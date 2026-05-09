@@ -1,0 +1,4 @@
+{
+    //是否启用旧版跳蚤市场, 如果遇到Index out of array的错误, 可以关闭此项以尝试解决
+    "UseOldRagfairPrice": true
+}

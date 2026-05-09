@@ -1,0 +1,45 @@
+{
+        "_id": "示例物品",
+        "_targetid": "544fb3f34bdc2d03748b456a",
+        "_name": "示例物品",
+        "_props": {
+            "BackgroundColor": "violet",
+            "Prefab": {
+                "path": "assets/content/weapons/usable_items/item_syringe/item_stimulator_x-tg-12_antidote_loot.bundle",
+                "rcid": ""
+            },
+            "UsePrefab": {
+                "path": "assets/content/weapons/usable_items/item_syringe/item_stimulator_x-tg-12_antidote_container.bundle",
+                "rcid": ""
+            },
+            "MaxHpResource": 0,
+            "hpResourceRate": 0,
+            "StimulatorBuffs": "Buffs_VHC_Example",
+            "effects_health": {},
+            "effects_damage": {}
+        },
+        "_customprops": {
+            //Test
+            "$type": "buff",
+            "Name": "Vulcan-范例针剂",
+            "ShortName": "Example",
+            "Description": "一个平平无奇的物品范例。",
+            "DefaultPrice": 55000,
+            "RagfairType": "5b47574386f77428ca22b33a",
+            "CanFindInRaid": false,
+            "CustomLoot": false,
+            "CustomLootTarget": "59faff1d86f7746c51718c9c",
+            "isMoney": false,
+            "BuffValue": [
+                {
+                    "BuffType": "Pain",
+                    "Chance": 1,
+                    "Delay": 1,
+                    "Duration": 600,
+                    "Value": 0,
+                    "AbsoluteValue": false,
+                    "SkillName": ""
+                }
+            ]
+        }
+    }
