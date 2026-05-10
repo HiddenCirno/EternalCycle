@@ -47,7 +47,7 @@ namespace EternalCycle
             var jsonUtil = ServiceLocator.ServiceProvider.GetService<JsonUtil>();
             var databaseService = ServiceLocator.ServiceProvider.GetService<DatabaseService>();
             var localeService = ServiceLocator.ServiceProvider.GetService<LocaleService>();
-            var logger = new ECLogger("PreRagfairLoadEvent");
+            var logger = new ECLogger("PreRagfairLoadEvent", true);
             PreRagfairLoadEventManager.ExecuteEvent(databaseService, logger);
             LocaleUtils.InitGiftBoxLocale(databaseService, localeService);
             File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportidmap.json"), jsonUtil.Serialize(VulcanUtil.HashIdList, true));

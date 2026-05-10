@@ -215,7 +215,7 @@ public class VulcanCore(
         void testmethod(PreRagfairLoadContext prlc)
         {
             var item = prlc.DB.GetItems();
-            Console.WriteLine(item.FirstOrDefault().Value.Id.ToString());
+            prlc.Logger.Warn(item.FirstOrDefault().Value.Id.ToString());
             prlc.Logger.Info("跳蚤市场前置入口");
         }
         PreRagfairLoadEventManager.OnPreRagfairLoadEvent += testmethod;

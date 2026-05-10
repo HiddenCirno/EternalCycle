@@ -27,10 +27,11 @@ namespace EternalCycle
             public readonly string Message;
             public readonly ConsoleColor Color;
             public readonly DateTime Time;
+            public readonly bool ShowModuleName;
 
-            public LogEntry(string module, CycleLogLevel level, string msg, ConsoleColor color)
+            public LogEntry(string module, CycleLogLevel level, string msg, ConsoleColor color, bool showModuleName)
             {
-                Module = module; Level = level; Message = msg; Color = color; Time = DateTime.Now;
+                Module = module; Level = level; Message = msg; Color = color; Time = DateTime.Now; ShowModuleName = showModuleName;
             }
         }
 
@@ -55,11 +56,12 @@ namespace EternalCycle
 
         private static void ProcessQueue()
         {
+            var debug = false;
             foreach (var entry in _logQueue.GetConsumingEnumerable(_cts.Token))
             {
-                string timeStr = entry.Time.ToString("HH:mm:ss");
-                string levelStr = entry.Level.ToString().ToUpper().PadRight(7);
-                string outputText = $"[{timeStr}] {levelStr} [{entry.Module}] {entry.Message}";
+                string timeStr = debug ? $"[{entry.Time.ToString("HH:mm:ss")}]" : "";
+                //string levelStr = entry.Level.ToString().ToUpper().PadRight(7);
+                string outputText = entry.ShowModuleName ? $"{timeStr}[{entry.Module}]{entry.Message}" : $"{timeStr}{entry.Message}";
 
                 lock (Console.Out)
                 {
@@ -73,9 +75,9 @@ namespace EternalCycle
             }
         }
 
-        private static void Enqueue(string module, CycleLogLevel level, string msg, ConsoleColor color)
+        private static void Enqueue(string module, CycleLogLevel level, string msg, ConsoleColor color, bool showModuleName)
         {
-            if (!_logQueue.IsAddingCompleted) _logQueue.Add(new LogEntry(module, level, msg, color));
+            if (!_logQueue.IsAddingCompleted) _logQueue.Add(new LogEntry(module, level, msg, color, showModuleName));
         }
 
 
@@ -84,22 +86,24 @@ namespace EternalCycle
         // ==============================================================
 
         private readonly string _moduleName;
+        private readonly bool _showModuleName;
 
         // 构造函数：只需传入模块名
-        public ECLogger(string moduleName)
+        public ECLogger(string moduleName, bool showModuleName)
         {
             EnsureEngineStarted(); // 确保后台线程在干活
             _moduleName = moduleName;
+            _showModuleName = showModuleName;
         }
 
         // 实例方法：自带模块名，爽快调用
-        public void Info(string msg) => Enqueue(_moduleName, CycleLogLevel.Info, msg, ConsoleColor.Cyan);
-        public void Success(string msg) => Enqueue(_moduleName, CycleLogLevel.Success, msg, ConsoleColor.Green);
-        public void Warn(string msg) => Enqueue(_moduleName, CycleLogLevel.Warn, msg, ConsoleColor.Yellow);
+        public void Info(string msg) => Enqueue(_moduleName, CycleLogLevel.Info, msg, ConsoleColor.DarkCyan, _showModuleName);
+        public void Success(string msg) => Enqueue(_moduleName, CycleLogLevel.Success, msg, ConsoleColor.DarkGreen, _showModuleName);
+        public void Warn(string msg) => Enqueue(_moduleName, CycleLogLevel.Warn, msg, ConsoleColor.DarkYellow, _showModuleName);
         public void Error(string msg, Exception ex = null)
         {
             string finalMsg = ex == null ? msg : $"{msg}\n异常: {ex}";
-            Enqueue(_moduleName, CycleLogLevel.Error, finalMsg, ConsoleColor.Red);
+            Enqueue(_moduleName, CycleLogLevel.Error, finalMsg, ConsoleColor.DarkRed, _showModuleName);
         }
     }
 }
