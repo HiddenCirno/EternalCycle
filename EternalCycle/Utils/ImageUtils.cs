@@ -25,7 +25,7 @@ using SPTarkov.Server.Core.Routers;
 using System.IO;
 using SPTarkov.Server.Core.Models.Spt.Templates;
 
-namespace VulcanCore;
+namespace EternalCycle;
 
 
 public class ImageUtils

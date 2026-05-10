@@ -26,7 +26,7 @@ using System.IO;
 using System.Reflection;
 using System.Text.Json;
 using Path = System.IO.Path;
-namespace VulcanCore;
+namespace EternalCycle;
 public class CustomizationUtils
 {
     public static void InitCustomiaztionData(Dictionary<string, CustomCustomizationItem> customData, DatabaseService databaseService, ICloner cloner)

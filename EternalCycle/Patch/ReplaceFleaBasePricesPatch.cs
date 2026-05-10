@@ -34,9 +34,9 @@ using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.Arm;
 using System.Text;
 using System.Text.Json;
-using VulcanCore;
+using EternalCycle;
 
-namespace VulcanCore
+namespace EternalCycle
 {
     public class ReplaceFleaBasePricesPatch : AbstractPatch
     {

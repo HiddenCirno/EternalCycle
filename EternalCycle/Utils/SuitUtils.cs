@@ -25,7 +25,7 @@ using System.IO;
 using System.Reflection;
 using System.Text.Json;
 using Path = System.IO.Path;
-namespace VulcanCore;
+namespace EternalCycle;
 public class SuitUtils
 {
     

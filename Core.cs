@@ -21,15 +21,15 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading;
-namespace VulcanCore;
+namespace EternalCycle;
 public record ModMetadata : AbstractModMetadata
 {
-    public override string ModGuid { get; init; } = "com.hiddenhiragi.vulcancore";
-    public override string Name { get; init; } = "火神之心-重生";
+    public override string ModGuid { get; init; } = "projectspark.hiddenhiragi.eternalcycle";
+    public override string Name { get; init; } = "永恒时序";
     public override string Author { get; init; } = "HiddenHiragi";
     public override List<string>? Contributors { get; init; }
-    public override SemanticVersioning.Version Version { get; init; } = new("1.0.1");
-    public override SemanticVersioning.Range SptVersion { get; init; } = new("~4.0.0");
+    public override SemanticVersioning.Version Version { get; init; } = new("1.0.0");
+    public override SemanticVersioning.Range SptVersion { get; init; } = new(">=4.0.13");
     public override List<string>? Incompatibilities { get; init; }
     public override Dictionary<string, SemanticVersioning.Range>? ModDependencies { get; init; }
     public override string? Url { get; init; } = "https://github.com/sp-tarkov/server-mod-examples";
@@ -47,12 +47,12 @@ public static class Init
         lock (InitLock)
         {
             if (_initialized) return;
+            //这个开关检测有必要吗?
+            //不知道, 那就留着吧
             _initialized = true;
-
             try
             {
-                //var harmony = new Harmony("com.hiddenhiragi.vulcancore");
-                //harmony.PatchAll(typeof(Init).Assembly);
+                //最前列hookAddBundle方法移除重复警告
                 new AddBundlePatch().Enable();
             }
             catch (Exception ex)
@@ -212,7 +212,14 @@ public class VulcanCore(
         new OpenRandomLootContainerPatch().Enable();
         //new RemoveExpiredItemsFromMessagePatch().Enable();
         new RagfairLoadPatch().Enable();
-        ItemUtils.InitItem(System.IO.Path.Combine(modPath, "items/"), "<color=#8FFF00>火神之心-物品加载器</color>", "<color=#FFFF80>火神之心</color>", logger, databaseService, jsonutil, cloner, configServer);
+        void testmethod(PreRagfairLoadContext prlc)
+        {
+            var item = prlc.DB.GetItems();
+            Console.WriteLine(item.FirstOrDefault().Value.Id.ToString());
+            prlc.Logger.Info("跳蚤市场前置入口");
+        }
+        PreRagfairLoadEventManager.OnPreRagfairLoadEvent += testmethod;
+        //ItemUtils.InitItem(System.IO.Path.Combine(modPath, "items/"), "<color=#8FFF00>火神之心-物品加载器</color>", "<color=#FFFF80>火神之心</color>", logger, databaseService, jsonutil, cloner, configServer);
         return Task.CompletedTask;
     }
 

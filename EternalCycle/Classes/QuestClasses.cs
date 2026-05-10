@@ -10,11 +10,11 @@ using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common;
 using Microsoft.AspNetCore.Mvc.ViewFeatures.Buffers;
 using System.Text.Json.Serialization;
-using static VulcanCore.VulcanUtil;
+using static EternalCycle.VulcanUtil;
 using SPTarkov.Server.Core.Models.Eft.Health;
 using System.Diagnostics.Metrics;
 
-namespace VulcanCore;
+namespace EternalCycle;
 
 public class CustomQuest
 {

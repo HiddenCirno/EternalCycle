@@ -21,7 +21,7 @@ using SPTarkov.Server.Core.Models.Spt.Config;
 using SPTarkov.Server.Core.Models.Eft.Profile;
 using SPTarkov.Server.Core.Models.Enums;
 
-namespace VulcanCore;
+namespace EternalCycle;
 
 
 public class BitMapUtils

@@ -10,10 +10,10 @@ using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common;
 using Microsoft.AspNetCore.Mvc.ViewFeatures.Buffers;
 using System.Text.Json.Serialization;
-using static VulcanCore.VulcanUtil;
+using static EternalCycle.VulcanUtil;
 using SPTarkov.Server.Core.Models.Enums.Hideout;
 
-namespace VulcanCore;
+namespace EternalCycle;
 [JsonDerivedType(typeof(CustomNormalRecipeData), "normal")]
 [JsonDerivedType(typeof(CustomLockedRecipeData), "locked")]
 public class CustomRecipeData

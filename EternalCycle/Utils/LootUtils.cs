@@ -23,7 +23,7 @@ using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Routers;
 using System.IO;
 using SPTarkov.Server.Core.Models.Spt.Templates;
-namespace VulcanCore;
+namespace EternalCycle;
 public class LootUtils
 {
     public static void AddStaticLoot(CustomItemTemplate template, DatabaseService databaseService, ISptLogger<VulcanCore> logger)

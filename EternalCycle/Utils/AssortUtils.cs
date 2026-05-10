@@ -26,7 +26,7 @@ using System.IO;
 using System.Reflection;
 using System.Text.Json;
 using Path = System.IO.Path;
-namespace VulcanCore;
+namespace EternalCycle;
 public class AssortUtils
 {
     public static void InitAssortData(List<CustomAssortData> assortData, DatabaseService databaseService, ICloner cloner, ISptLogger<VulcanCore> logger)

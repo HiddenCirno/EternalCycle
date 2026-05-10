@@ -16,7 +16,6 @@ using SPTarkov.Server.Core.Utils;
 using SPTarkov.Server.Core.Utils.Cloners;
 using SPTarkov.Reflection.Patching;
 using System.Reflection;
-using VulcanCore;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Spt.Bots;
@@ -33,7 +32,7 @@ using System.Text.Json;
 using System.Runtime.InteropServices;
 using SPTarkov.Server.Core.Models.Spt.Launcher;
 
-namespace VulcanCore
+namespace EternalCycle
 {
     public class RagfairLoadPatch : AbstractPatch
     {
@@ -45,10 +44,11 @@ namespace VulcanCore
         [PatchPrefix]
         public static bool Prefix(RagfairServer __instance)
         {
-
             var jsonUtil = ServiceLocator.ServiceProvider.GetService<JsonUtil>();
             var databaseService = ServiceLocator.ServiceProvider.GetService<DatabaseService>();
             var localeService = ServiceLocator.ServiceProvider.GetService<LocaleService>();
+            var logger = new ECLogger("PreRagfairLoadEvent");
+            PreRagfairLoadEventManager.ExecuteEvent(databaseService, logger);
             LocaleUtils.InitGiftBoxLocale(databaseService, localeService);
             File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportidmap.json"), jsonUtil.Serialize(VulcanUtil.HashIdList, true));
             //试试游戏启动抓到的语言是不是MiniHUD的版本

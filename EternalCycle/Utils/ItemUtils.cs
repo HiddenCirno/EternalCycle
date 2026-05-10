@@ -35,7 +35,7 @@ using System.Text.Json;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace VulcanCore;
+namespace EternalCycle;
 
 
 public class ItemUtils

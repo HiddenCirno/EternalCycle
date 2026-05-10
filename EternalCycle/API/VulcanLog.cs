@@ -15,7 +15,7 @@ using SPTarkov.Server.Core.Utils.Cloners;
 using SPTarkov.Server.Core.Utils.Logger;
 using Microsoft.Extensions.Logging;
 
-namespace VulcanCore;
+namespace EternalCycle;
 
 
 public class VulcanLog

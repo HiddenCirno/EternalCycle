@@ -24,7 +24,7 @@ using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Routers;
 using System.IO;
 using SPTarkov.Server.Core.Models.Spt.Templates;
-namespace VulcanCore; 
+namespace EternalCycle; 
 [Obsolete("此类型未使用, 但是我怕产生编译问题, 所以留着")]
 public static class LazyLoadUtils
 {

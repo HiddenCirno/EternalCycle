@@ -1,4 +1,4 @@
-namespace VulcanCore;
+namespace EternalCycle;
 
 [Flags]
 public enum EQuestStatusType

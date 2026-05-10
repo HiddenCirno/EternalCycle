@@ -31,7 +31,7 @@ using System.Text.Json;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using Path = System.IO.Path;
 
-namespace VulcanCore;
+namespace EternalCycle;
 
 
 public class QuestUtils

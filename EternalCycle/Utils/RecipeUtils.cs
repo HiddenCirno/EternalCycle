@@ -26,7 +26,7 @@ using System.IO;
 using System.Reflection;
 using System.Text.Json;
 using Path = System.IO.Path;
-namespace VulcanCore;
+namespace EternalCycle;
 public class RecipeUtils
 {
     public static void InitRecipeData(Dictionary<string, CustomRecipeData> recipeData, DatabaseService databaseService, ICloner cloner)

@@ -16,7 +16,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace VulcanCore;
+namespace EternalCycle;
 
 
 public class ConfigManager
