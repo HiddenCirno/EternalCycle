@@ -21,6 +21,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading;
+using static EternalCycle.ContextManager;
 namespace EternalCycle;
 public record ModMetadata : AbstractModMetadata
 {
@@ -212,13 +213,23 @@ public class VulcanCore(
         new OpenRandomLootContainerPatch().Enable();
         //new RemoveExpiredItemsFromMessagePatch().Enable();
         new RagfairLoadPatch().Enable();
-        void testmethod(PreRagfairLoadContext prlc)
+        void testmethod(OnRagfairLoadContext prlc)
         {
             var item = prlc.DB.GetItems();
             prlc.Logger.Warn(item.FirstOrDefault().Value.Id.ToString());
-            prlc.Logger.Info("跳蚤市场前置入口");
+            prlc.Logger.Info("Mod加载完成后市场初始化前");
         }
-        PreRagfairLoadEventManager.OnPreRagfairLoadEvent += testmethod;
+        void testmethod2(OnRagfairLoadContext prlc)
+        {
+            prlc.Logger.Error("市场初始化后游戏启动前");
+        }
+        void testmethod3(OnRagfairLoadContext prlc)
+        {
+            prlc.Logger.Error("Mod加载完成后");
+        }
+        EventManager.OnBeforeRagfairLoadedEvent += testmethod;
+        EventManager.OnAfterRagfairLoadedEvent += testmethod2;
+        EventManager.OnAfterModLoadedEvent += testmethod3;
         //ItemUtils.InitItem(System.IO.Path.Combine(modPath, "items/"), "<color=#8FFF00>火神之心-物品加载器</color>", "<color=#FFFF80>火神之心</color>", logger, databaseService, jsonutil, cloner, configServer);
         return Task.CompletedTask;
     }

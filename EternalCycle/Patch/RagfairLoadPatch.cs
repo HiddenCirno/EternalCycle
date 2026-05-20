@@ -48,13 +48,23 @@ namespace EternalCycle
             var databaseService = ServiceLocator.ServiceProvider.GetService<DatabaseService>();
             var localeService = ServiceLocator.ServiceProvider.GetService<LocaleService>();
             var logger = new ECLogger("PreRagfairLoadEvent", true);
-            PreRagfairLoadEventManager.ExecuteEvent(databaseService, logger);
+            var logger2 = new ECLogger("PostModLoadEvent", true);
+            EventManager.InitAfterModLoadedEvent(databaseService, logger2);
+            EventManager.InitPreRagfairLoadEvent(databaseService, logger);
             LocaleUtils.InitGiftBoxLocale(databaseService, localeService);
             File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportidmap.json"), jsonUtil.Serialize(VulcanUtil.HashIdList, true));
             //试试游戏启动抓到的语言是不是MiniHUD的版本
             //是的话还得改过去(不会出问题吧)
             //看看迷宫的机关怎么回事
             return true;
+        }
+        [PatchPostfix]
+        public static void Postfix(RagfairServer __instance)
+        {
+            var databaseService = ServiceLocator.ServiceProvider.GetService<DatabaseService>();
+            var localeService = ServiceLocator.ServiceProvider.GetService<LocaleService>();
+            var logger = new ECLogger("PostRagfairLoadEvent", true);
+            EventManager.InitPostRagfairLoadEvent(databaseService, logger);
         }
 
     }
