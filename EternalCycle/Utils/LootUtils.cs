@@ -47,7 +47,7 @@ public class LootUtils
                 getedlocations.Labyrinth
             };
             MongoId targetid = lootableItemProps.UseCustomData == true && lootableItemProps.StaticLoot == true ? lootableItemProps.CustomStaticLootTarget : template.TargetId;
-            MongoId addedid = VulcanUtil.ConvertHashID(template.Id);
+            MongoId addedid = Utils.ConvertHashID(template.Id);
             float relative = lootableItemProps.UseCustomData == true && lootableItemProps.StaticLoot == true ? lootableItemProps.StaticLootDivisor : 2;
             //默认生成或仅在StaticLoot为true时生成
             if (lootableItemProps.CanFindInRaid)
@@ -104,7 +104,7 @@ public class LootUtils
                 getedlocations.Labyrinth
             };
             MongoId targetid = lootableItemProps.UseCustomData == true && lootableItemProps.MapLoot == true ? lootableItemProps.CustomMapLootTarget : template.TargetId;
-            MongoId addedid = VulcanUtil.ConvertHashID(template.Id);
+            MongoId addedid = Utils.ConvertHashID(template.Id);
             float relative = lootableItemProps.UseCustomData == true && lootableItemProps.MapLoot == true ? lootableItemProps.MapLootDivisor : 4;
             if (lootableItemProps.CanFindInRaid)
             {
@@ -126,7 +126,7 @@ public class LootUtils
                                 {
                                     var lootkey = loottarget.ComposedKey;
                                     var targetkey = $"{addedid}_{loottarget.Id}";
-                                    var lootid = (MongoId)VulcanUtil.ConvertHashID(targetkey);
+                                    var lootid = (MongoId)Utils.ConvertHashID(targetkey);
                                     //VulcanLog.Debug($"发现 {lootableItemProps.Name} 匹配的目标: {targetid}", logger);
                                     var disttarget = distlist.FirstOrDefault(i => i.ComposedKey.Key == lootkey);
                                     if (disttarget != null)
@@ -193,8 +193,8 @@ public class LootUtils
                         var lootkey = loottarget.ComposedKey;
                         var targetkey = $"{lootkey}_{loottarget.Id}";
                         List<Item> presetlist = ItemUtils.RegenerateItemListData(itemPreset, targetkey, cloner);
-                        var lootid = (MongoId)VulcanUtil.ConvertHashID(targetkey);
-                        VulcanLog.Debug($"发现匹配的目标: {targetid}", logger);
+                        var lootid = (MongoId)Utils.ConvertHashID(targetkey);
+                        //VulcanLog.Debug($"发现匹配的目标: {targetid}", logger);
                         var disttarget = distlist.FirstOrDefault(i => i.ComposedKey.Key == lootkey);
                         if (disttarget != null)
                         {

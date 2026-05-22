@@ -44,8 +44,8 @@ public class AssortUtils
                     {
                         var assortUnlockRewardData = new CustomAssortUnlockRewardData
                         {
-                            Id = (MongoId)VulcanUtil.ConvertHashID($"{customLockedAssortData.Id}_Locked"),
-                            QuestId = (MongoId)VulcanUtil.ConvertHashID(customLockedAssortData.QuestId),
+                            Id = (MongoId)Utils.ConvertHashID($"{customLockedAssortData.Id}_Locked"),
+                            QuestId = (MongoId)Utils.ConvertHashID(customLockedAssortData.QuestId),
                             QuestStage = customLockedAssortData.QuestStage,
                             IsUnknownReward = customLockedAssortData.IsUnknownReward,
                             AssortData = customLockedAssortData,
@@ -73,7 +73,7 @@ public class AssortUtils
     public static void InitAssort(CustomAssortData assortData, DatabaseService databaseService, ICloner cloner, ISptLogger<VulcanCore> logger)
     {
         var assort = assortData;
-        var assortid = VulcanUtil.ConvertHashID(assort.Id);
+        var assortid = Utils.ConvertHashID(assort.Id);
         var traderassort = TraderUtils.GetTrader((string)assort.Trader, databaseService).Assort;
         var items = ItemUtils.ConvertItemListData(assort.Item, cloner);
         var mainitem = items[0];
@@ -94,7 +94,7 @@ public class AssortUtils
             barterlist[0].Add(
             new BarterScheme
             {
-                Template = VulcanUtil.ConvertHashID(barter.Key),
+                Template = Utils.ConvertHashID(barter.Key),
                 Count = barter.Value
             });
         }
@@ -103,7 +103,7 @@ public class AssortUtils
             barterlist[0].Add(
             new BarterScheme
             {
-                Template = VulcanUtil.ConvertHashID(barter.Key),
+                Template = Utils.ConvertHashID(barter.Key),
                 Count = (double)barter.Value.Count,
                 Level = barter.Value.Level,
                 Side = (DogtagExchangeSide)barter.Value.Side

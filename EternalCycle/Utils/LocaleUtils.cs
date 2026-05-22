@@ -50,7 +50,7 @@ public class LocaleUtils
                 {
                     foreach (var questEntry in quests)
                     {
-                        string questId = VulcanUtil.ConvertHashID(questEntry.Key);
+                        string questId = Utils.ConvertHashID(questEntry.Key);
                         var modstring = $"<color=#FFFFFF><b>\n由{creator}创建\n添加者: {modname}\n任务API：火神之心\n任务ID：{questId}</b></color>";         // 例如 "PersicariaTask1"
                         var locale = questEntry.Value;                 // CustomQuestLocaleData 对象
 
@@ -70,7 +70,7 @@ public class LocaleUtils
                             {
                                 // cond.Key = "PersicariaTask1Find1"
                                 // cond.Value = "在战局中找到电线"
-                                language.TryAdd(VulcanUtil.ConvertHashID(cond.Key), cond.Value);
+                                language.TryAdd(Utils.ConvertHashID(cond.Key), cond.Value);
                                 //localeData[VulcanUtil.ConvertHashID(cond.Key)] = cond.Value;
                             }
                         }
@@ -98,7 +98,7 @@ public class LocaleUtils
             {
                 foreach (var questEntry in quests)
                 {
-                    string questId = VulcanUtil.ConvertHashID(questEntry.Key);
+                    string questId = Utils.ConvertHashID(questEntry.Key);
                     var modstring = $"<color=#FFFFFF><b>\n由{creator}创建\n添加者: {modname}\n任务API：火神之心\n任务ID：{questId}</b></color>";         // 例如 "PersicariaTask1"
                     var locale = questEntry.Value;                 // CustomQuestLocaleData 对象
 
@@ -118,7 +118,7 @@ public class LocaleUtils
                         {
                             // cond.Key = "PersicariaTask1Find1"
                             // cond.Value = "在战局中找到电线"
-                            localeData.TryAdd(VulcanUtil.ConvertHashID(cond.Key), cond.Value);
+                            localeData.TryAdd(Utils.ConvertHashID(cond.Key), cond.Value);
                             //localeData[VulcanUtil.ConvertHashID(cond.Key)] = cond.Value;
                         }
                     }
@@ -266,19 +266,19 @@ public class LocaleUtils
             var gold = "<color=#FFFF55>★★★★★</color>内容";
             var epic = "<color=#FF55FF>★★★★</color>内容";
             var normalstr = "<color=#FFFFFF>★★★</color>内容";
-            var srchance = VulcanUtil.DoubleToPercent(sr.Chance);
-            var srupchance = VulcanUtil.DoubleToPercent(sr.UpChance);
-            var srnormalchance = VulcanUtil.DoubleToPercent(1 - sr.UpChance);
+            var srchance = Utils.DoubleToPercent(sr.Chance);
+            var srupchance = Utils.DoubleToPercent(sr.UpChance);
+            var srnormalchance = Utils.DoubleToPercent(1 - sr.UpChance);
             var srbasecount = (int)(sr.ChanceGrowCount + 1 + ((1 - sr.Chance) / sr.ChanceGrowPerCount));
-            var sraddchance = VulcanUtil.DoubleToPercent(sr.UpAddChance);
-            var srrealchance = VulcanUtil.DoubleToPercent(1 / (double)srbasecount);
+            var sraddchance = Utils.DoubleToPercent(sr.UpAddChance);
+            var srrealchance = Utils.DoubleToPercent(1 / (double)srbasecount);
             var srgrowcount = sr.ChanceGrowCount;
-            var srgrowchance = VulcanUtil.DoubleToPercent(sr.ChanceGrowPerCount);
-            var rchance = VulcanUtil.DoubleToPercent(r.Chance);
+            var srgrowchance = Utils.DoubleToPercent(sr.ChanceGrowPerCount);
+            var rchance = Utils.DoubleToPercent(r.Chance);
             var rbasecount = (int)(1 / r.Chance);
-            var rupchance = VulcanUtil.DoubleToPercent(r.UpChance);
-            var rnormalchance = VulcanUtil.DoubleToPercent(1 - r.UpChance);
-            var raddchance = VulcanUtil.DoubleToPercent(r.UpAddChance);
+            var rupchance = Utils.DoubleToPercent(r.UpChance);
+            var rnormalchance = Utils.DoubleToPercent(1 - r.UpChance);
+            var raddchance = Utils.DoubleToPercent(r.UpAddChance);
             var srupstring = "";
             var srnormalstring = "";
             var rupstring = "";

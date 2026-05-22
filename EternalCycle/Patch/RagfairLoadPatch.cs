@@ -52,7 +52,7 @@ namespace EternalCycle
             EventManager.InitAfterModLoadedEvent(databaseService, logger2);
             EventManager.InitPreRagfairLoadEvent(databaseService, logger);
             LocaleUtils.InitGiftBoxLocale(databaseService, localeService);
-            File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportidmap.json"), jsonUtil.Serialize(VulcanUtil.HashIdList, true));
+            File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportidmap.json"), jsonUtil.Serialize(Utils.hashIdList, true));
             //试试游戏启动抓到的语言是不是MiniHUD的版本
             //是的话还得改过去(不会出问题吧)
             //看看迷宫的机关怎么回事

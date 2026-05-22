@@ -182,7 +182,7 @@ public class QuestUtils
                     break;
                 default:
                     {
-                        VulcanLog.Warn($"发现未处理的任务属性({data.Id})! ", logger);
+                        //VulcanLog.Warn($"发现未处理的任务属性({data.Id})! ", logger);
                     }
                     break;
             }
@@ -238,7 +238,7 @@ public class QuestUtils
             copycondition.Target = new ListOrT<string>(new List<string>(), null);
             foreach (string target in findItemData.Items)
             {
-                copycondition.Target.List.Add(VulcanUtil.ConvertHashID(target));
+                copycondition.Target.List.Add(Utils.ConvertHashID(target));
             }
             copycondition.Value = (double)findItemData.Count;
             conditions.Add(copycondition);
@@ -286,7 +286,7 @@ public class QuestUtils
             copycondition.Target = new ListOrT<string>(new List<string>(), null);
             foreach (string target in handItemData.Items)
             {
-                copycondition.Target.List.Add(VulcanUtil.ConvertHashID(target));
+                copycondition.Target.List.Add(Utils.ConvertHashID(target));
             }
             copycondition.Value = (double)handItemData.Count;
             conditions.Add(copycondition);
@@ -301,7 +301,7 @@ public class QuestUtils
         {
             var copycondition = cloner.Clone(condition);
             copycondition.Id = killTargetData.Id;
-            copycondition.Counter.Id = VulcanUtil.ConvertHashID($"{killTargetData.Id}_Counter");
+            copycondition.Counter.Id = Utils.ConvertHashID($"{killTargetData.Id}_Counter");
             copycondition.Counter.Conditions.Clear();
             copycondition.OneSessionOnly = killTargetData.CompleteInOneRaid;
             copycondition.Value = (double)killTargetData.Count;
@@ -342,7 +342,7 @@ public class QuestUtils
                     CompareMethod = EnumUtils.GetCompareType(killTargetData.DistanceType),
                     Value = (double)killTargetData.Distance
                 };
-                copytargets.Id = VulcanUtil.ConvertHashID($"{killTargetData.Id}_KillsCounter");
+                copytargets.Id = Utils.ConvertHashID($"{killTargetData.Id}_KillsCounter");
                 if (killTargetData.EnemyEquipmentList.Count > 0)
                 {
                     List<List<string>> list = copytargets.EnemyEquipmentInclusive?.ToList() ?? new List<List<string>>();
@@ -351,7 +351,7 @@ public class QuestUtils
                         var addedarray = new List<string>();
                         foreach (var item in itemarray)
                         {
-                            addedarray.Add(VulcanUtil.ConvertHashID(item));
+                            addedarray.Add(Utils.ConvertHashID(item));
                         }
                         list.Add(addedarray); // 添加新元素
                         copytargets.EnemyEquipmentInclusive = list;
@@ -362,7 +362,7 @@ public class QuestUtils
                     foreach (var weapon in killTargetData.WeaponList)
                     {
                         copytargets.Weapon.Clear();
-                        copytargets.Weapon.Add(VulcanUtil.ConvertHashID(weapon));
+                        copytargets.Weapon.Add(Utils.ConvertHashID(weapon));
                     }
                 }
                 if (killTargetData.ModList.Count > 0)
@@ -382,7 +382,7 @@ public class QuestUtils
             if (locationtargets != null && killTargetData.Location > 0)
             {
                 var copytargets = cloner.Clone(locationtargets);
-                copytargets.Id = VulcanUtil.ConvertHashID($"{killTargetData.Id}_LocationCounter");
+                copytargets.Id = Utils.ConvertHashID($"{killTargetData.Id}_LocationCounter");
                 var locations = BitMapUtils.GetLocationCode(killTargetData.Location);
                 copytargets.Target = new ListOrT<string>(new List<string>(), null);
                 foreach (string location in locations)
@@ -398,7 +398,7 @@ public class QuestUtils
                 for (var i = 0; i < count; i++)
                 {
                     var copytargets = cloner.Clone(equiptargets);
-                    copytargets.Id = VulcanUtil.ConvertHashID($"{killTargetData.Id}_EquipmentCounter_{count}");
+                    copytargets.Id = Utils.ConvertHashID($"{killTargetData.Id}_EquipmentCounter_{count}");
                     copytargets.EquipmentExclusive.Clear();
                     copytargets.EquipmentInclusive = new List<List<string>>();
                     var list = killTargetData.EquipmentList[i];
@@ -416,7 +416,7 @@ public class QuestUtils
             if (zonetargets != null && killTargetData.ZoneList.Count > 0)
             {
                 var copytargets = cloner.Clone(zonetargets);
-                copytargets.Id = VulcanUtil.ConvertHashID($"{killTargetData.Id}_ZoneCounter");
+                copytargets.Id = Utils.ConvertHashID($"{killTargetData.Id}_ZoneCounter");
                 copytargets.Zones.Clear();
                 foreach (var zone in killTargetData.ZoneList)
                 {
@@ -469,7 +469,7 @@ public class QuestUtils
         {
             var copycondition = cloner.Clone(condition);
             copycondition.Id = visitPlaceData.Id;
-            copycondition.Counter.Id = VulcanUtil.ConvertHashID($"{visitPlaceData.Id}_Counter");
+            copycondition.Counter.Id = Utils.ConvertHashID($"{visitPlaceData.Id}_Counter");
             copycondition.Counter.Conditions.Clear();
             copycondition.OneSessionOnly = visitPlaceData.CompleteInOneRaid;
             copycondition.Value = (double)1;
@@ -482,7 +482,7 @@ public class QuestUtils
             if (visittargets != null)
             {
                 var copytargets = cloner.Clone(visittargets);
-                copytargets.Id = VulcanUtil.ConvertHashID($"{visitPlaceData.Id}_VisitCounter");
+                copytargets.Id = Utils.ConvertHashID($"{visitPlaceData.Id}_VisitCounter");
                 copytargets.Target = copytargets.Target = new ListOrT<string>(null, visitPlaceData.ZoneId);
                 copycondition.Counter.Conditions.Add(copytargets);
             }
@@ -517,7 +517,7 @@ public class QuestUtils
         {
             var copycondition = cloner.Clone(condition);
             copycondition.Id = exitLocationData.Id;
-            copycondition.Counter.Id = VulcanUtil.ConvertHashID($"{exitLocationData.Id}_Counter");
+            copycondition.Counter.Id = Utils.ConvertHashID($"{exitLocationData.Id}_Counter");
             copycondition.Counter.Conditions.Clear();
             copycondition.OneSessionOnly = exitLocationData.CompleteInOneRaid;
             copycondition.Value = (double)exitLocationData.Count;
@@ -534,7 +534,7 @@ public class QuestUtils
             if (locationtargets != null)
             {
                 var copytargets = cloner.Clone(locationtargets);
-                copytargets.Id = VulcanUtil.ConvertHashID($"{exitLocationData.Id}_LocationCounter");
+                copytargets.Id = Utils.ConvertHashID($"{exitLocationData.Id}_LocationCounter");
                 var locations = BitMapUtils.GetLocationCode(exitLocationData.Locations);
                 copytargets.Target = new ListOrT<string>(new List<string>(), null);
                 foreach (string location in locations)
@@ -546,7 +546,7 @@ public class QuestUtils
             if (exitstatustargets != null)
             {
                 var copytargets = cloner.Clone(exitstatustargets);
-                copytargets.Id = VulcanUtil.ConvertHashID($"{exitLocationData.Id}_ExitStatusCounter");
+                copytargets.Id = Utils.ConvertHashID($"{exitLocationData.Id}_ExitStatusCounter");
                 var statuslist = BitMapUtils.GetExitStatusCode(exitLocationData.ExitStatus);
                 copytargets.Status.Clear();
                 foreach (string status in statuslist)
@@ -564,7 +564,7 @@ public class QuestUtils
                 if (exitpointtargets != null)
                 {
                     var copytargets = cloner.Clone(exitpointtargets);
-                    copytargets.Id = VulcanUtil.ConvertHashID($"{exitLocationData.Id}_ExitPointCounter");
+                    copytargets.Id = Utils.ConvertHashID($"{exitLocationData.Id}_ExitPointCounter");
                     copytargets.ExitName = exitLocationData.ExitPoint;
                     copycondition.Counter.Conditions.Add(copytargets);
                 }
@@ -783,7 +783,7 @@ public class QuestUtils
                 copyreward.Items.Clear();
                 copyreward.Items.Add(new Item
                 {
-                    Id = VulcanUtil.ConvertHashID(recipeUnlockRewardData.Id),
+                    Id = Utils.ConvertHashID(recipeUnlockRewardData.Id),
                     Template = itemid,
                     Upd = new Upd
                     {
@@ -990,10 +990,10 @@ public class QuestUtils
         var questTarget = GetQuest((string)questLogicTree.Id, databaseService);
         foreach (var quest in questLogicTree.PreQuestData)
         {
-            var questid = VulcanUtil.ConvertHashID(quest.Key);
+            var questid = Utils.ConvertHashID(quest.Key);
             InitCompleteQuestDataConditions(questTarget.Conditions.AvailableForStart, new CompleteQuestData
             {
-                Id = VulcanUtil.ConvertHashID($"{questLogicTree.Id}_PreQuest_{quest.Key}"),
+                Id = Utils.ConvertHashID($"{questLogicTree.Id}_PreQuest_{quest.Key}"),
                 QuestId = questid,
                 QuestStatus = quest.Value
             },
@@ -1001,10 +1001,10 @@ public class QuestUtils
         }
         foreach (var trader in questLogicTree.PreTraderStandingData)
         {
-            var traderid = VulcanUtil.ConvertHashID(trader.Key);
+            var traderid = Utils.ConvertHashID(trader.Key);
             InitReachTraderStandingDataConditions(questTarget.Conditions.AvailableForStart, new ReachTraderStandingData
             {
-                Id = VulcanUtil.ConvertHashID($"{questLogicTree.Id}_PreTraderStanding_{trader.Key}"),
+                Id = Utils.ConvertHashID($"{questLogicTree.Id}_PreTraderStanding_{trader.Key}"),
                 TraderId = traderid,
                 TrustStanding = trader.Value
             },
@@ -1012,10 +1012,10 @@ public class QuestUtils
         }
         foreach (var trader in questLogicTree.PreTraderTrustLevelData)
         {
-            var traderid = VulcanUtil.ConvertHashID(trader.Key);
+            var traderid = Utils.ConvertHashID(trader.Key);
             InitReachTraderTrustLevelDataConditions(questTarget.Conditions.AvailableForStart, new ReachTraderTrustLevelData
             {
-                Id = VulcanUtil.ConvertHashID($"{questLogicTree.Id}_PreTraderTrustLevel_{trader.Key}"),
+                Id = Utils.ConvertHashID($"{questLogicTree.Id}_PreTraderTrustLevel_{trader.Key}"),
                 TraderId = traderid,
                 TrustLevel = trader.Value
             },
@@ -1025,7 +1025,7 @@ public class QuestUtils
         {
             InitReachLevelDataConditions(questTarget.Conditions.AvailableForStart, new ReachLevelData
             {
-                Id = VulcanUtil.ConvertHashID($"{questLogicTree.Id}_PrePlayerLevel"),
+                Id = Utils.ConvertHashID($"{questLogicTree.Id}_PrePlayerLevel"),
                 Count = questLogicTree.PrePlayerLevel
             },
             databaseService, cloner);
@@ -1034,7 +1034,7 @@ public class QuestUtils
         {
             InitReachPrestigeLevelDataConditions(questTarget.Conditions.AvailableForStart, new ReachPrestigeLevelData
             {
-                Id = VulcanUtil.ConvertHashID($"{questLogicTree.Id}_PrePlayerPrestigeLevel"),
+                Id = Utils.ConvertHashID($"{questLogicTree.Id}_PrePlayerPrestigeLevel"),
                 CompareType = questLogicTree.PrestigeCompareType ?? 3,
                 Level = (int)questLogicTree.PrePlayerPrestigeLevel
             },

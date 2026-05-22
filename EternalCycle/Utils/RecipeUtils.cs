@@ -45,8 +45,8 @@ public class RecipeUtils
                     {
                         var recipeUnlockRewardData = new CustomRecipeUnlockRewardData
                         {
-                            Id = (MongoId)VulcanUtil.ConvertHashID($"{customLockedRecipeData.Id}_Locked"),
-                            QuestId = (MongoId)VulcanUtil.ConvertHashID(customLockedRecipeData.QuestId),
+                            Id = (MongoId)Utils.ConvertHashID($"{customLockedRecipeData.Id}_Locked"),
+                            QuestId = (MongoId)Utils.ConvertHashID(customLockedRecipeData.QuestId),
                             QuestStage = customLockedRecipeData.QuestStage,
                             IsUnknownReward = customLockedRecipeData.IsUnknownReward,
                             RecipeData = customLockedRecipeData,
@@ -95,7 +95,7 @@ public class RecipeUtils
         {
             recipe.Requirements.Add(new Requirement
             {
-                TemplateId = VulcanUtil.ConvertHashID(item.Key),
+                TemplateId = Utils.ConvertHashID(item.Key),
                 Type = "Tool"
             });
         }
@@ -103,7 +103,7 @@ public class RecipeUtils
         {
             recipe.Requirements.Add(new Requirement
             {
-                TemplateId = VulcanUtil.ConvertHashID(item.Key),
+                TemplateId = Utils.ConvertHashID(item.Key),
                 Count = item.Value,
                 IsFunctional = false,
                 IsEncoded = false,
@@ -154,7 +154,7 @@ public class RecipeUtils
         var recipes = databaseService.GetHideout().Production.ScavRecipes;
         var recipe = new ScavRecipe
         {
-            Id = VulcanUtil.ConvertHashID(recipeData.Id),
+            Id = Utils.ConvertHashID(recipeData.Id),
             ProductionTime = recipeData.Time,
             Requirements = new List<Requirement>(),
             EndProducts = new EndProducts
@@ -180,7 +180,7 @@ public class RecipeUtils
         {
             recipe.Requirements.Add(new Requirement
             {
-                TemplateId = VulcanUtil.ConvertHashID(item.Key),
+                TemplateId = Utils.ConvertHashID(item.Key),
                 Count = item.Value,
                 IsFunctional = false,
                 IsEncoded = false,

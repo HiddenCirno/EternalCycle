@@ -95,7 +95,7 @@ public class TraderUtils
             traderPattern.Suits = new List<Suit>();
         }
         traderPattern?.Services?.Clear();
-        VulcanUtil.CopyNonNullProperties(traderBase, traderPattern.Base);
+        Utils.CopyNonNullProperties(traderBase, traderPattern.Base);
         LocaleUtils.AddTraderToLocales(traderBase, databaseService, creator, modname);
         if (insuranceChance > 0)
         {

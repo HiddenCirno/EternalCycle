@@ -54,7 +54,7 @@ public class PresetUtils
         var zhCNLang = databaseService.GetLocales().Global["ch"];
         var presetname = preset.Name;
         var itempresetdata = ItemUtils.ConvertItemListData(preset.PresetData, cloner); //new List<Item>();
-        var presetid = (MongoId)VulcanUtil.ConvertHashID(presetname);
+        var presetid = (MongoId)Utils.ConvertHashID(presetname);
         var realpresetdata = ItemUtils.RegenerateItemListData(itempresetdata, presetname, cloner);
         if (preset.IsBasePreset)
         {

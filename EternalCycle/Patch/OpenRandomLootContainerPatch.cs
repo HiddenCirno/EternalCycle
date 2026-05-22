@@ -108,17 +108,17 @@ namespace EternalCycle
                 ItemUtils.StaticBoxData.TryGetValue(itemid, out var boxdata);
                 if (boxdata != null)
                 {
-                    VulcanLog.Debug("进入静态箱子流程", logger);
+                    //VulcanLog.Debug("进入静态箱子流程", logger);
                     var giftdata = boxdata.GiftData;
                     if (boxdata.ForcedFindInRaid) foundInRaid = true;
                     foreach (var data in giftdata)
                     {
-                        VulcanLog.Debug("正在检查数据....", logger);
-                        var hashkey = VulcanUtil.ConvertHashID(DateTime.Now.ToString());
+                        //VulcanLog.Debug("正在检查数据....", logger);
+                        var hashkey = Utils.ConvertHashID(DateTime.Now.ToString());
                         var reward = ItemUtils.GetGiftItemByType(data, hashkey, databaseService, logger, cloner);
                         if (reward.Count > 0)
                         {
-                            VulcanLog.Debug("数据返回成功", logger);
+                            //VulcanLog.Debug("数据返回成功", logger);
                             rewards.Add(reward);
                         }
                     }

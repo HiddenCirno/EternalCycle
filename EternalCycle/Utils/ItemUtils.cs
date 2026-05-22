@@ -123,8 +123,8 @@ public class ItemUtils
             foreach (var file in files)
             {
                 string fileContent = File.ReadAllText(file);
-                string processedJson = VulcanUtil.RemoveJsonComments(fileContent);
-                var item = VulcanUtil.ConvertItemData<CustomItemTemplate>(processedJson, jsonUtil);
+                //string processedJson = Utils.RemoveJsonComments(fileContent);
+                var item = Utils.ConvertItemData<CustomItemTemplate>(fileContent, jsonUtil);
                 ItemUtils.CreateAndAddItem(item, item.TargetId, creator, modname, logger, databaseService, cloner, configServer);
             }
         }
@@ -135,8 +135,8 @@ public class ItemUtils
         //物品模板复制
         TemplateItem itemClone = cloner.Clone(GetItem(targetid, databaseService));
         //原版属性覆盖
-        VulcanUtil.CopyNonNullProperties(template.Props, itemClone.Properties);
-        var itemid = VulcanUtil.ConvertHashID(template.Id);
+        Utils.CopyNonNullProperties(template.Props, itemClone.Properties);
+        var itemid = Utils.ConvertHashID(template.Id);
         template.Id = itemid;
         //参数覆盖
         SetItemBaseData(template, itemClone);
@@ -196,17 +196,17 @@ public class ItemUtils
         {
             AddItemToKappa(template, databaseService, cloner);
         }
-        VulcanLog.Debug($"物品添加成功: {template.CustomProps.Name}", logger);
+        Utils.commonLogger.Debug($"物品添加成功: {template.CustomProps.Name}");
     }
     public static void AddItemToKappa(CustomItemTemplate item, DatabaseService databaseService, ICloner cloner)
     {
         var kappa = QuestUtils.GetQuest(QuestTpl.COLLECTOR, databaseService);
         var twitchcase = GetItem(ItemTpl.CONTAINER_STREAMER_ITEM_CASE, databaseService);
         var conditions = kappa.Conditions.AvailableForFinish;
-        var itemid = VulcanUtil.ConvertHashID(item.Id);
+        var itemid = Utils.ConvertHashID(item.Id);
         QuestUtils.InitHandoverItemDataConditions(conditions, new HandoverItemData
         {
-            Id = VulcanUtil.ConvertHashID($"Kappa_{item.Id}"),
+            Id = Utils.ConvertHashID($"Kappa_{item.Id}"),
             FindInRaid = true,
             ItemId = itemid,
             Count = 1,
@@ -397,7 +397,7 @@ public class ItemUtils
             var customFixData = new CustomFixData
             {
                 FixType = itemProps.FixType,
-                ItemId = VulcanUtil.ConvertHashID(template.Id),
+                ItemId = Utils.ConvertHashID(template.Id),
                 TargetId = itemProps.CustomFixID != null ? (MongoId)itemProps.CustomFixID : template.TargetId
             };
             FixList.Add(customFixData);
@@ -421,7 +421,7 @@ public class ItemUtils
         handbook.Add(new HandbookItem
         {
             Id = itemid,
-            ParentId = VulcanUtil.ConvertHashID(template.CustomProps.RagfairType),
+            ParentId = Utils.ConvertHashID(template.CustomProps.RagfairType),
             Price = (double)priceToSet
         });
         if (template.CustomProps.CopyPrice == true && price.ContainsKey(targetid))
@@ -504,7 +504,7 @@ public class ItemUtils
     {
         Globals globals = databaseService.GetGlobals();
         WeaponItemProps itemProps = (WeaponItemProps)template.CustomProps;
-        globals.Configuration.Mastering = VulcanUtil.AddToArray<Mastering>(globals.Configuration.Mastering, itemProps.Mastering);
+        globals.Configuration.Mastering = Utils.AddToArray<Mastering>(globals.Configuration.Mastering, itemProps.Mastering);
     }
     public static void AddQuestItemGeneaate(CustomItemTemplate template, DatabaseService databaseService, ISptLogger<VulcanCore> logger, ICloner cloner)
     {
@@ -517,8 +517,8 @@ public class ItemUtils
             {
                 looseloot.AddTransformer(delegate (LooseLoot loostLoot)
                 {
-                    VulcanLog.Debug(loostLoot.SpawnpointsForced.Count().ToString(), logger);
-                    spawnpoint.Template.Root = VulcanUtil.ConvertHashID(spawnpoint.Template.Root);
+                    //VulcanLog.Debug(loostLoot.SpawnpointsForced.Count().ToString(), logger);
+                    spawnpoint.Template.Root = Utils.ConvertHashID(spawnpoint.Template.Root);
                     var list = loostLoot.SpawnpointsForced.ToList();
                     var newspawnpoint = new Spawnpoint
                     {
@@ -544,13 +544,13 @@ public class ItemUtils
                             Id = item.Id,
                             Template = item.Template
                         });
-                        VulcanLog.Debug(spawnpoint.Template.Root, logger);
-                        VulcanLog.Debug(item.Id, logger);
+                        //VulcanLog.Debug(spawnpoint.Template.Root, logger);
+                        //VulcanLog.Debug(item.Id, logger);
                     }
                     newspawnpoint.Template.Items = spawnpointitemlist;
                     list.Add(newspawnpoint);
                     loostLoot.SpawnpointsForced = list;
-                    VulcanLog.Debug(loostLoot.SpawnpointsForced.Count().ToString(), logger);
+                    //VulcanLog.Debug(loostLoot.SpawnpointsForced.Count().ToString(), logger);
                     return loostLoot;
                 });
             }
@@ -564,7 +564,7 @@ public class ItemUtils
             var copyitem = cloner.Clone<Item>(item);
             if (copyitem.ParentId != null && copyitem.ParentId != "hideout")
             {
-                copyitem.ParentId = VulcanUtil.ConvertHashID(copyitem.ParentId);
+                copyitem.ParentId = Utils.ConvertHashID(copyitem.ParentId);
             }
             list.Add((Item)copyitem);
         }
@@ -576,10 +576,10 @@ public class ItemUtils
         foreach (Item item in itemlist)
         {
             var copyitem = cloner.Clone<Item>(item);
-            copyitem.Id = VulcanUtil.ConvertHashID($"{copyitem.Id}_{addinfo}");
+            copyitem.Id = Utils.ConvertHashID($"{copyitem.Id}_{addinfo}");
             if (copyitem.ParentId != null && copyitem.ParentId != "hideout")
             {
-                copyitem.ParentId = VulcanUtil.ConvertHashID($"{copyitem.ParentId}_{addinfo}");
+                copyitem.ParentId = Utils.ConvertHashID($"{copyitem.ParentId}_{addinfo}");
             }
             list.Add((Item)copyitem);
         }
@@ -997,7 +997,7 @@ public class ItemUtils
             var filter = targetfilter.Properties.Grids.First().Properties.Filters.First().ExcludedFilter;
             foreach (var str in list)
             {
-                filter.Add(VulcanUtil.ConvertHashID(str));
+                filter.Add(Utils.ConvertHashID(str));
             }
         }
     }
@@ -1010,14 +1010,14 @@ public class ItemUtils
             filter.Clear();
             foreach (var str in list)
             {
-                filter.Add(VulcanUtil.ConvertHashID(str));
+                filter.Add(Utils.ConvertHashID(str));
             }
         }
     }
     public static void SetGiftBoxData(CustomItemTemplate template, DatabaseService databaseService, ConfigServer configServer, ISptLogger<VulcanCore> logger, ICloner cloner)
     {
         var inventoryConfig = configServer.GetConfig<InventoryConfig>();
-        var itemid = VulcanUtil.ConvertHashID(template.Id);
+        var itemid = Utils.ConvertHashID(template.Id);
         if (template.CustomProps is GiftBoxProps itemProps)
         {
             if (itemProps.IsGiftBox != null && itemProps.IsGiftBox == true)
@@ -1027,7 +1027,7 @@ public class ItemUtils
                 var rewardpool = new Dictionary<MongoId, double>();
                 foreach (var kvp in boxdata.Rewards)
                 {
-                    rewardpool.TryAdd(VulcanUtil.ConvertHashID(kvp.Key), kvp.Value);
+                    rewardpool.TryAdd(Utils.ConvertHashID(kvp.Key), kvp.Value);
                 }
                 randomloot.TryAdd(itemid, new RewardDetails
                 {
@@ -1124,7 +1124,7 @@ public class ItemUtils
                     {
                         itemlist.Add(new Item
                         {
-                            Id = VulcanUtil.ConvertHashID($"{parent}_ammo_{i}"),
+                            Id = Utils.ConvertHashID($"{parent}_ammo_{i}"),
                             Template = ammo,
                             ParentId = parent,
                             SlotId = "cartridges",
@@ -1141,7 +1141,7 @@ public class ItemUtils
                 {
                     itemlist.Add(new Item
                     {
-                        Id = VulcanUtil.ConvertHashID($"{parent}_ammo_inside"),
+                        Id = Utils.ConvertHashID($"{parent}_ammo_inside"),
                         Template = ammo,
                         ParentId = parent,
                         SlotId = "cartridges",
@@ -1156,7 +1156,7 @@ public class ItemUtils
                 {
                     itemlist.Add(new Item
                     {
-                        Id = VulcanUtil.ConvertHashID($"{parent}_ammo_end"),
+                        Id = Utils.ConvertHashID($"{parent}_ammo_end"),
                         Template = ammo,
                         ParentId = parent,
                         SlotId = "cartridges",
@@ -1261,15 +1261,15 @@ public class ItemUtils
                 rdata.AddChance += r.ChanceGrowPerCount;
             }
         }
-        VulcanLog.Debug("开始统计抽卡结果", logger);
-        VulcanLog.Debug($"当前卡池: {drawpoolname}", logger);
-        VulcanLog.Debug("开始进行抽卡计算", logger);
-        VulcanLog.Debug($"当前金色数据: 累加概率: {srdata.AddChance}, 抽取次数: {srdata.Count}, 保底叠加概率: {srdata.UpAddChance}", logger);
-        VulcanLog.Debug($"当前紫色数据: 累加概率: {rdata.AddChance}, 抽取次数: {rdata.Count}, 保底叠加概率: {rdata.UpAddChance}", logger);
-        VulcanLog.Debug($"当前金色概率: {randomchance}/{srrealchance + srdata.AddChance}", logger);
+        //VulcanLog.Debug("开始统计抽卡结果", logger);
+        //VulcanLog.Debug($"当前卡池: {drawpoolname}", logger);
+        //VulcanLog.Debug("开始进行抽卡计算", logger);
+        //VulcanLog.Debug($"当前金色数据: 累加概率: {srdata.AddChance}, 抽取次数: {srdata.Count}, 保底叠加概率: {srdata.UpAddChance}", logger);
+        //VulcanLog.Debug($"当前紫色数据: 累加概率: {rdata.AddChance}, 抽取次数: {rdata.Count}, 保底叠加概率: {rdata.UpAddChance}", logger);
+        //VulcanLog.Debug($"当前金色概率: {randomchance}/{srrealchance + srdata.AddChance}", logger);
         if ((randomchance <= (srrealchance + srdata.AddChance)) || (srdata.Count == (sr.ChanceGrowCount + 1 + Math.Floor(((1 - sr.Chance) / sr.ChanceGrowPerCount)))))
         {
-            VulcanLog.Warn("你抽到了金色传说! ", logger);
+            //VulcanLog.Warn("你抽到了金色传说! ", logger);
             var cachererord = new SuperRareCardRecord
             {
                 ItemId = "",
@@ -1283,9 +1283,9 @@ public class ItemUtils
             rdata.Count = 0;
             if (upchance <= (sr.UpChance + srdata.UpAddChance))
             {
-                VulcanLog.Access("小保底没歪", logger);
+                //VulcanLog.Access("小保底没歪", logger);
                 srdata.UpAddChance = 0;
-                result = GetGiftItemByType(VulcanUtil.DrawFromList<GiftData>(srpool.ChanceUp), VulcanUtil.ConvertHashID($"{DateTime.Now.ToString()}_{srdata.Count}"), databaseService, logger, cloner);
+                result = GetGiftItemByType(Utils.DrawFromList<GiftData>(srpool.ChanceUp), Utils.ConvertHashID($"{DateTime.Now.ToString()}_{srdata.Count}"), databaseService, logger, cloner);
                 var tpl = result.First().Template;
                 cachererord.ItemId = tpl;
                 cachererord.ItemName = itemHelper.GetItemName(tpl);
@@ -1294,9 +1294,9 @@ public class ItemUtils
             }
             else
             {
-                VulcanLog.Error("哎呀, 小保底歪了", logger);
+                //VulcanLog.Error("哎呀, 小保底歪了", logger);
                 srdata.UpAddChance += sr.UpAddChance;
-                result = GetGiftItemByType(VulcanUtil.DrawFromList<GiftData>(srpool.Normal), VulcanUtil.ConvertHashID($"{DateTime.Now.ToString()}_{srdata.Count}"), databaseService, logger, cloner);
+                result = GetGiftItemByType(Utils.DrawFromList<GiftData>(srpool.Normal), Utils.ConvertHashID($"{DateTime.Now.ToString()}_{srdata.Count}"), databaseService, logger, cloner);
                 var tpl = result.First().Template;
                 cachererord.ItemId = tpl;
                 cachererord.ItemName = itemHelper.GetItemName(tpl);
@@ -1306,37 +1306,37 @@ public class ItemUtils
         }
         else if (randomchance <= (r.Chance) || (rdata.Count == Math.Floor((r.ChanceGrowCount + 1 + ((1 - r.Chance) / r.ChanceGrowPerCount)))))
         {
-            VulcanLog.Warn("你抽到了紫色史诗 ", logger);
+            //VulcanLog.Warn("你抽到了紫色史诗 ", logger);
             rdata.AddChance = 0;
             rdata.Count = 0;
             if (upchance <= (r.UpChance + rdata.UpAddChance))
             {
-                VulcanLog.Access("保底没歪", logger);
+                //VulcanLog.Access("保底没歪", logger);
                 rdata.UpAddChance = 0;
-                result = GetGiftItemByType(VulcanUtil.DrawFromList<GiftData>(rpool.ChanceUp), VulcanUtil.ConvertHashID($"{DateTime.Now.ToString()}_{srdata.Count}"), databaseService, logger, cloner);
+                result = GetGiftItemByType(Utils.DrawFromList<GiftData>(rpool.ChanceUp), Utils.ConvertHashID($"{DateTime.Now.ToString()}_{srdata.Count}"), databaseService, logger, cloner);
             }
             else
             {
-                VulcanLog.Error("哎呀, 保底歪了", logger);
+                //VulcanLog.Error("哎呀, 保底歪了", logger);
                 rdata.UpAddChance += r.UpAddChance;
-                result = GetGiftItemByType(VulcanUtil.DrawFromList<GiftData>(rpool.Normal), VulcanUtil.ConvertHashID($"{DateTime.Now.ToString()}_{srdata.Count}"), databaseService, logger, cloner);
+                result = GetGiftItemByType(Utils.DrawFromList<GiftData>(rpool.Normal), Utils.ConvertHashID($"{DateTime.Now.ToString()}_{srdata.Count}"), databaseService, logger, cloner);
             }
         }
         else
         {
-            VulcanLog.Debug("很遗憾, 你抽到了一坨垃圾:( ", logger);
-            VulcanLog.Debug("无需灰心, 霉运乃人生常事, 少侠请重新来过", logger);
+            //VulcanLog.Debug("很遗憾, 你抽到了一坨垃圾:( ", logger);
+            //VulcanLog.Debug("无需灰心, 霉运乃人生常事, 少侠请重新来过", logger);
             if (upchance < normal.UpChance)
             {
-                result = GetGiftItemByType(VulcanUtil.DrawFromList<GiftData>(normalpool.ChanceUp), VulcanUtil.ConvertHashID($"{DateTime.Now.ToString()}_{srdata.Count}"), databaseService, logger, cloner);
+                result = GetGiftItemByType(Utils.DrawFromList<GiftData>(normalpool.ChanceUp), Utils.ConvertHashID($"{DateTime.Now.ToString()}_{srdata.Count}"), databaseService, logger, cloner);
             }
             else
             {
-                result = GetGiftItemByType(VulcanUtil.DrawFromList<GiftData>(normalpool.Normal), VulcanUtil.ConvertHashID($"{DateTime.Now.ToString()}_{srdata.Count}"), databaseService, logger, cloner);
+                result = GetGiftItemByType(Utils.DrawFromList<GiftData>(normalpool.Normal), Utils.ConvertHashID($"{DateTime.Now.ToString()}_{srdata.Count}"), databaseService, logger, cloner);
             }
         }
         var dwarrecordstring = jsonUtil.Serialize(drawrecord, true);
-        VulcanLog.Access("抽卡统计结束", logger);
+        //VulcanLog.Access("抽卡统计结束", logger);
         File.WriteAllText(recordfile, dwarrecordstring);
         //VulcanLog.Debug(dwarrecordstring, logger);
         //VulcanLog.Warn("警告! 无法获取卡池信息", logger);
@@ -1374,7 +1374,7 @@ public class ItemUtils
         var limits = globals.Configuration.RestrictionsInRaid.ToList();
         limits.Add(new RestrictionsInRaid
         {
-            TemplateId = VulcanUtil.ConvertHashID(template.Id),
+            TemplateId = Utils.ConvertHashID(template.Id),
             MaxInLobby = (double)template.CustomProps.InLobbyCountLimit,
             MaxInRaid = (double)template.CustomProps.InRaidCountLimit
         });
@@ -1399,7 +1399,7 @@ public class ItemUtils
         var pmcconfig = configServer.GetConfig<PmcConfig>();
         var customprops = template.CustomProps;
         var sidestring = side == PlayerSide.Bear ? "bear" : "usec";
-        var itemid = VulcanUtil.ConvertHashID(template.Id);
+        var itemid = Utils.ConvertHashID(template.Id);
         if (customprops.ApplyToStandard == true)
         {
             pmcconfig.DogtagSettings[sidestring]["default"].Add(itemid, 1);

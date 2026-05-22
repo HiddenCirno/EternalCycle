@@ -230,7 +230,7 @@ public class VulcanCore(
         EventManager.OnBeforeRagfairLoadedEvent += testmethod;
         EventManager.OnAfterRagfairLoadedEvent += testmethod2;
         EventManager.OnAfterModLoadedEvent += testmethod3;
-        //ItemUtils.InitItem(System.IO.Path.Combine(modPath, "items/"), "<color=#8FFF00>火神之心-物品加载器</color>", "<color=#FFFF80>火神之心</color>", logger, databaseService, jsonutil, cloner, configServer);
+        ItemUtils.InitItem(System.IO.Path.Combine(modPath, "items/"), "<color=#8FFF00>火神之心-物品加载器</color>", "<color=#FFFF80>火神之心</color>", logger, databaseService, jsonutil, cloner, configServer);
         return Task.CompletedTask;
     }
 
@@ -340,11 +340,11 @@ public class VulcanCore(
             var localeService = ServiceLocator.ServiceProvider.GetService<LocaleService>();
             if (!ItemUtils.firstlogin)
             {
-                VulcanLog.Warn("正在修复物品数据....", logger);
+                //VulcanLog.Warn("正在修复物品数据....", logger);
                 // 构建返回的价格字典
                 ItemUtils.FixItemCompatibleInit(ItemUtils.FixList, databaseService, logger, cloner);
                 //VulcanLog.Debug($"{LocaleUtils.GetItemName(VulcanUtil.ConvertHashID("为了全人类海报"), localeService)}", logger);
-                VulcanLog.Access("物品数据修复完成", logger);
+                //VulcanLog.Access("物品数据修复完成", logger);
                 ItemUtils.firstlogin = true;
             }
             // 使用 HttpResponseUtil 返回标准格式 JSON
@@ -366,7 +366,7 @@ public class VulcanCore(
             )
         {
             var localeService = ServiceLocator.ServiceProvider.GetService<LocaleService>();
-            VulcanLog.Warn("游戏启动", logger);
+            //VulcanLog.Warn("游戏启动", logger);
             // 使用 HttpResponseUtil 返回标准格式 JSON
             //string jsonResponse = _httpResponseUtil.GetBody(priceMap);
             //绕过SPT提供的方法直接传递原始数据
@@ -391,7 +391,7 @@ public class VulcanCore(
             var currectProfile = profileHelper.GetFullProfile(sessionId);
             var profileToSave = jsonUtil.Serialize(currectProfile, true);
             var pmcName = currectProfile.CharacterData.PmcData.Info.Nickname;
-            var currectPmcName = VulcanUtil.GetValidFolderName(pmcName);
+            var currectPmcName = Utils.GetValidFolderName(pmcName);
             var timePath = DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss");
             var time = DateTime.Now.ToString("yyyy年MM月dd日HH时mm分ss秒");
             var currcetBackupPath = System.IO.Path.Combine(backupPath, timePath, currectPmcName);
@@ -400,7 +400,7 @@ public class VulcanCore(
             File.WriteAllText(filePath, profileToSave);
             var backupLog = $"当前存档已成功备份! 玩家名: {pmcName} 备份时间: {time} 保存路径: {filePath}";
             var backupMessage = $"{pmcName}的存档已成功备份到{filePath}";
-            VulcanLog.Access(backupLog, logger);
+            //VulcanLog.Access(backupLog, logger);
             // 使用 HttpResponseUtil 返回标准格式 JSON
             //string jsonResponse = _httpResponseUtil.GetBody(priceMap);
             //绕过SPT提供的方法直接传递原始数据

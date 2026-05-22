@@ -85,7 +85,7 @@ public class SuitUtils
         };
         foreach (var key in customSuit.Requirements.QuestRequirements)
         {
-            suit.Requirements.QuestRequirements.Add(VulcanUtil.ConvertHashID(key));
+            suit.Requirements.QuestRequirements.Add(Utils.ConvertHashID(key));
         }
         suits.Add(suit);
     }
@@ -117,7 +117,7 @@ public class SuitUtils
         };
         foreach (var key in customSuit.Requirements.QuestRequirements)
         {
-            suit.Requirements.QuestRequirements.Add(VulcanUtil.ConvertHashID(key));
+            suit.Requirements.QuestRequirements.Add(Utils.ConvertHashID(key));
         }
         suits.Add(suit);
     }

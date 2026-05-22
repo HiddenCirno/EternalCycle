@@ -10,7 +10,7 @@ using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common;
 using Microsoft.AspNetCore.Mvc.ViewFeatures.Buffers;
 using System.Text.Json.Serialization;
-using static EternalCycle.VulcanUtil;
+using static EternalCycle.Utils;
 
 namespace EternalCycle;
 
