@@ -136,7 +136,7 @@ public class WeaponItemProps : CustomFixedItemProps
     [JsonPropertyName("AddMastering")]
     public bool? AddMastering { get; set; }
     [JsonPropertyName("Mastering")]
-    public Mastering? Mastering { get; set; }
+    public CustomMastering? Mastering { get; set; }
 
     [JsonPropertyName("CustomMasteringTarget")]
     public string? CustomMasteringTarget { get; set; }
@@ -453,7 +453,13 @@ public record CustomItem : Item
     [JsonConverter(typeof(MongoIdConverter))]
     public required override MongoId Template { get; set; }
 }
-public class CustomDogTag
+public record CustomMastering : Mastering
+{
+    [JsonPropertyName("Templates")]
+    [JsonConverter(typeof(MongoIdEnumerableConverter))]
+    public required override IEnumerable<MongoId> Templates { get; set; }
+}
+    public class CustomDogTag
 {
     [JsonPropertyName("count")]
     public int Count { get; set; }

@@ -19,17 +19,21 @@ namespace EternalCycle
         /// <summary>
         /// 全局的日志实例
         /// </summary>
-        public static ECLogger commonLogger = new ECLogger("火神之心", true);
+        public static ECLogger commonLogger = new ECLogger("永恒时序", true);
+        
         //预存储字符串
         private static readonly char[] InvalidFolderChars = { '<', '>', ':', '"', '/', '\\', '|', '?', '*' };
+        
         /// <summary>
         /// 全局存储转换后的ID映射表
         /// </summary>
         public static ConcurrentDictionary<string, string> hashIdList = new ConcurrentDictionary<string, string>();
+        
         /// <summary>
         /// 用于预处理jsonRaw的转换规则
         /// </summary>
         public static JsonDocumentOptions convertOptions = new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip };
+        
         /// <summary>
         /// 深度拷贝json数据
         /// </summary>
@@ -44,6 +48,7 @@ namespace EternalCycle
             //反序列化
             return JsonSerializer.Deserialize<T>(json);
         }
+
         /// <summary>
         /// 深度合并, 将源对象中非空的属性值复制到目标对象（仅限公共实例属性）
         /// </summary>
@@ -68,6 +73,7 @@ namespace EternalCycle
                 }
             }
         }
+
         /// <summary>
         /// 拓展方法, 判断字符串是否为24位十六进制字符串(即MongoId的规范形式)
         /// </summary>
@@ -88,6 +94,7 @@ namespace EternalCycle
             }
             return true;
         }
+
         /// <summary>
         /// 根据输入字符串转换ID：若已是24位Hex则原样返回，否则生成新的24位哈希
         /// </summary>
@@ -97,6 +104,7 @@ namespace EternalCycle
         {
             return str.IsHex24() ? str : str.GenerateHash();
         }
+
         /// <summary>
         /// 扩展方法, 生成 SHA256 哈希并取前24位（高性能实现，复用哈希实例）
         /// </summary>
@@ -112,6 +120,7 @@ namespace EternalCycle
             hashIdList.TryAdd(input, result);
             return result;
         }
+
         /// <summary>
         /// 转换物品数据（从文件路径+文件名加载，递归处理内部引用ID）
         /// </summary>
@@ -153,6 +162,7 @@ namespace EternalCycle
             JsonNode rootNode = JsonNode.Parse(file, null, convertOptions).AsObject();
             return ResolveJsonNode<T>(rootNode, jsonutil); // 返回处理后的 JsonNode
         }
+
         /// <summary>
         /// 递归处理JSON节点中的ID字段（Slots/Chambers/Grids等），将非Hex的ID转换为哈希值
         /// </summary>
@@ -224,6 +234,7 @@ namespace EternalCycle
             string resultJson = node.ToJsonString();
             return jsonUtil.Deserialize<T>(resultJson); // 返回处理后的 JsonNode
         }
+
         /// <summary>
         /// 修改配件槽位或枪膛数组中的ID引用（_parent, _id, Filter, ExcludedFilter, Plate等）
         /// </summary>
@@ -250,6 +261,7 @@ namespace EternalCycle
                 }
             }
         }
+
         /// <summary>
         /// 向数组中添加元素（若原数组为null则创建新数组）
         /// </summary>
@@ -262,6 +274,7 @@ namespace EternalCycle
             if (array == null) return [item];
             return [.. array, item];
         }
+
         /// <summary>
         /// 转换商人基础数据（修改根节点的_id字段）
         /// </summary>
@@ -295,6 +308,10 @@ namespace EternalCycle
             //反序列化并返回
             return jsonutil.Deserialize<T>(resultJson);
         }
+
+        /// <summary>
+        /// 自定义转换器: 字符串toMongoId
+        /// </summary>
         public class MongoIdConverter : JsonConverter<MongoId>
         {
             /// <summary>
@@ -309,6 +326,7 @@ namespace EternalCycle
                 string str = reader.GetString()!;
                 return (MongoId)str.ConvertHashID();
             }
+
             /// <summary>
             /// 将MongoId写入JSON字符串
             /// </summary>
@@ -320,6 +338,55 @@ namespace EternalCycle
                 writer.WriteStringValue(value.ToString());
             }
         }
+
+        /// <summary>
+        /// 自定义转换器: JSON字符串数组 to IEnumerable&lt;MongoId&gt;
+        /// 用于处理形如 ["id1", "id2"] 的JSON数组并自动应用 HashID 转换
+        /// </summary>
+        public class MongoIdEnumerableConverter : JsonConverter<IEnumerable<MongoId>>
+        {
+            /// <summary>
+            /// 读取JSON中的字符串数组并转换为MongoId集合
+            /// </summary>
+            /// <param name="reader">JSON读取器</param>
+            /// <param name="typeToConvert">目标类型</param>
+            /// <param name="options">序列化选项</param>
+            /// <returns>转换后的MongoId集合</returns>
+            /// <exception cref="JsonException">当JSON节点不是数组时抛出异常</exception>
+            public override IEnumerable<MongoId> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            {
+                if (reader.TokenType != JsonTokenType.StartArray)
+                    throw new JsonException("Expected an array of strings.");
+                var list = new List<MongoId>();
+
+                while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+                {
+                    if (reader.TokenType == JsonTokenType.String)
+                    {
+                        string str = reader.GetString()!;
+                        list.Add(str.ConvertHashID());
+                    }
+                }
+                return list;
+            }
+
+            /// <summary>
+            /// 将MongoId集合写入为JSON字符串数组
+            /// </summary>
+            /// <param name="writer">JSON写入器</param>
+            /// <param name="value">需要写入的MongoId集合</param>
+            /// <param name="options">序列化选项</param>
+            public override void Write(Utf8JsonWriter writer, IEnumerable<MongoId> value, JsonSerializerOptions options)
+            {
+                writer.WriteStartArray();
+                foreach (var item in value)
+                {
+                    writer.WriteStringValue(item.ToString());
+                }
+                writer.WriteEndArray();
+            }
+        }
+
         /// <summary>
         /// 从列表中随机抽取一个元素
         /// </summary>
@@ -332,6 +399,7 @@ namespace EternalCycle
             if (list.Count == 0) throw new ArgumentException("列表为空", nameof(list));
             return list[Random.Shared.Next(list.Count)];
         }
+
         /// <summary>
         /// 将双精度浮点数转换为百分比字符串（保留三位小数）
         /// </summary>
@@ -346,6 +414,7 @@ namespace EternalCycle
             var percent = (num * 100).ToString("F3");
             return percent + "%";
         }
+
         /// <summary>
         /// 将字符串中的非法文件名字符替换为下划线
         /// </summary>
@@ -368,6 +437,7 @@ namespace EternalCycle
             }
             return new string(buffer);
         }
+
         /// <summary>
         /// 从文件路径加载JSONC并反序列化为指定类型（自动跳过注释）
         /// </summary>
@@ -382,6 +452,7 @@ namespace EternalCycle
                 ReadCommentHandling = JsonCommentHandling.Skip // 启用注释解析
             });
         }
+
         /// <summary>
         /// 从JSONC字符串反序列化为指定类型（自动跳过注释）
         /// </summary>

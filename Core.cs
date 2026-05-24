@@ -211,6 +211,8 @@ public class VulcanCore(
             new ReplaceFleaBasePricesPatch().Enable();
         }
         new OpenRandomLootContainerPatch().Enable();
+
+        //new StartupLogPatch().Enable();
         //new RemoveExpiredItemsFromMessagePatch().Enable();
         new RagfairLoadPatch().Enable();
         void testmethod(OnRagfairLoadContext prlc)
