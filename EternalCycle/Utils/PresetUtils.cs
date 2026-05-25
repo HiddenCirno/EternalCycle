@@ -88,7 +88,7 @@ public class PresetUtils
         });
         if (preset.SpawnInRaid)
         {
-            LootUtils.AddPresetLoot(realpresetdata, preset.SpawnTarget, databaseService, cloner, logger);
+            LootUtils.AddPresetLoot(realpresetdata, preset.SpawnTarget, databaseService, cloner);
         }
     }
 }

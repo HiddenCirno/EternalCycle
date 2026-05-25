@@ -238,24 +238,20 @@ namespace EternalCycle
                 .SetInRaidLimitCount(databaseService)
                 .SetCustomPMCDogTag(configServer)
                 .AddPriceData(databaseService)
-                .AddWeaponItemData(databaseService);
-            //任务物品
-            AddQuestItemGeneaate(template, databaseService, logger, cloner);
-            //容器物品
-            SetContainerSize(itemClone, template, databaseService);
-            //Fix
-            AddItemFixData(template, databaseService);
-            //抽奖箱(原版/固定/技能, 高级抽卡需要技术验证
-            //Finally
-            SetGiftBoxData(template, databaseService, configServer, logger, cloner);
-            //test
-            LootUtils.AddStaticLoot(template, databaseService, logger);
-            LootUtils.AddLooseLoot(template, databaseService, logger);
+                .AddWeaponItemData(databaseService)
+                .AddQuestItemGenerate(databaseService)
+                .SetContainerSize(itemClone, databaseService)
+                .SetGiftBoxData(configServer)
+                .AddStaticLoot(databaseService)
+                .AddLooseLoot(databaseService)
+                .AddItemFixData();
+
             //本地化数据
             var Locales = BuildItemLocales(template.CustomProps, creator, modname);
             LocaleUtils.AddItemToLocales(Locales, itemid, databaseService);
             //尝试添加物品
-            if(itemOriginal==null) databaseService.GetItems().TryAdd(itemid, itemClone);
+            //在非空情况下itemClone直接就是来自物品表的引用, 因此无需覆盖更新
+            if (itemOriginal == null) databaseService.GetItems().TryAdd(itemid, itemClone);
             //Kappa
             if (template.CustomProps.AddToKappa == true)
             {
@@ -289,7 +285,7 @@ namespace EternalCycle
         public static Dictionary<string, LocaleDetails> BuildItemLocales(CustomProps props, string creator, string modname)
         {
             var locales = new Dictionary<string, LocaleDetails>();
-            var modstring = $"<color=#FFFFFF><b>\n由{creator}创建\n添加者: {modname}\n物品API：火神之心\n物品ID：#ItemId</b></color>";
+            var modstring = $"<color=#FFFFFF><b>\n由{creator}创建\n添加者: {modname}\n物品API：永恒时序\n物品ID：#ItemId</b></color>";
             var chdescription = $"{props.Description}{modstring}";
             // 默认中文
             locales["ch"] = new LocaleDetails
@@ -439,19 +435,28 @@ namespace EternalCycle
             }
             return template;
         }
-        public static void AddItemFixData(CustomItemTemplate template, DatabaseService databaseService)
+
+        /// <summary>
+        /// 为物品初始化兼容修复数据
+        /// </summary>
+        /// <param name="template">自定义物品对象</param>
+        /// <returns>自定义物品对象</returns>
+        public static CustomItemTemplate AddItemFixData(this CustomItemTemplate template)
         {
             if (template.CustomProps is CustomFixedItemProps itemProps)
             {
+                var itemid = template.Id.ConvertHashID();
                 var customFixData = new CustomFixData
                 {
                     FixType = itemProps.FixType,
-                    ItemId = Utils.ConvertHashID(template.Id),
+                    ItemId = itemid,
                     TargetId = itemProps.CustomFixID != null ? (MongoId)itemProps.CustomFixID : template.TargetId
                 };
-                FixList.Add(customFixData);
+                if(FixList.FirstOrDefault(x=>x.ItemId == itemid)==null) FixList.Add(customFixData);
             }
+            return template;
         }
+
         /// <summary>
         /// 为自定义物品增加手册标签和价格
         /// </summary>
@@ -523,15 +528,23 @@ namespace EternalCycle
             }
             item.Type = template.Type != null ? template.Type : item.Type;
         }
-        public static void SetContainerSize(TemplateItem itemTemplate, CustomItemTemplate template, DatabaseService databaseService)
+
+        /// <summary>
+        /// 为自定义物品调整主容器大小
+        /// </summary>
+        /// <param name="template">自定义物品对象</param>
+        /// <param name="itemTemplate">物品引用实例</param>
+        /// <param name="databaseService">数据库实例</param>
+        /// <returns>自定义物品对象</returns>
+        public static CustomItemTemplate SetContainerSize(this CustomItemTemplate template, TemplateItem itemTemplate, DatabaseService databaseService)
         {
             if (template.CustomProps is CustomSizeContainerProps itemProps)
             {
-                var grid = itemTemplate.Properties.Grids.ToList();
-                grid[0].Properties.CellsH = itemProps.ContainerCellsH;
-                grid[0].Properties.CellsV = itemProps.ContainerCellsV;
-                itemTemplate.Properties.Grids = grid;
+                var grid = itemTemplate.Properties.Grids.FirstOrDefault();
+                grid.Properties.CellsH = itemProps.ContainerCellsH;
+                grid.Properties.CellsV = itemProps.ContainerCellsV;
             }
+            return template;
         }
         
         /// <summary>
@@ -600,20 +613,29 @@ namespace EternalCycle
                 globals.Configuration.Mastering = Utils.AddToArray(globals.Configuration.Mastering, itemProps.Mastering);
             }
         }
-        public static void AddQuestItemGeneaate(CustomItemTemplate template, DatabaseService databaseService, ISptLogger<VulcanCore> logger, ICloner cloner)
+
+        /// <summary>
+        /// 为自定义物品添加任务物品刷新
+        /// </summary>
+        /// <param name="template">自定义物品对象</param>
+        /// <param name="databaseService">数据库实例</param>
+        /// <returns>自定义物品对象</returns>
+        public static CustomItemTemplate AddQuestItemGenerate(this CustomItemTemplate template, DatabaseService databaseService)
         {
             if (template.CustomProps is QuestItemProps questItemProps)
             {
-                //VulcanLog.Debug("111", logger);
+                //提取数据, 定位地图
                 var spawnpoint = questItemProps.SpawnPointData;
                 var looseloot = databaseService.GetLocation(spawnpoint.Location)?.LooseLoot;
                 if (looseloot != null)
                 {
-                    looseloot.AddTransformer(delegate (LooseLoot loostLoot)
+                    //对战利品执行懒加载
+                    looseloot.AddTransformer(loostLoot=>
                     {
-                        //VulcanLog.Debug(loostLoot.SpawnpointsForced.Count().ToString(), logger);
-                        spawnpoint.Template.Root = Utils.ConvertHashID(spawnpoint.Template.Root);
+                        //获取物品根节点
+                        spawnpoint.Template.Root = spawnpoint.Template.Root.ConvertHashID();
                         var list = loostLoot.SpawnpointsForced.ToList();
+                        //定义刷新点, 物品留空做预处理
                         var newspawnpoint = new Spawnpoint
                         {
                             LocationId = spawnpoint.LocationId,
@@ -627,10 +649,11 @@ namespace EternalCycle
                                 Position = spawnpoint.Template.Position,
                                 Rotation = spawnpoint.Template.Rotation,
                                 Root = spawnpoint.Template.Root,
-                                Items = new List<SptLootItem>()
+                                Items = null
                             }
                         };
-                        var spawnpointitemlist = newspawnpoint.Template.Items.ToList();
+                        //处理物品表
+                        var spawnpointitemlist = new List<SptLootItem>();
                         foreach (var item in spawnpoint.Template.Items)
                         {
                             spawnpointitemlist.Add(new SptLootItem
@@ -638,17 +661,16 @@ namespace EternalCycle
                                 Id = item.Id,
                                 Template = item.Template
                             });
-                            //VulcanLog.Debug(spawnpoint.Template.Root, logger);
-                            //VulcanLog.Debug(item.Id, logger);
                         }
                         newspawnpoint.Template.Items = spawnpointitemlist;
+                        //处理战利品表
                         list.Add(newspawnpoint);
                         loostLoot.SpawnpointsForced = list;
-                        //VulcanLog.Debug(loostLoot.SpawnpointsForced.Count().ToString(), logger);
                         return loostLoot;
                     });
                 }
             }
+            return template;
         }
         public static List<Item> ConvertItemListData(List<CustomItem> itemlist, ICloner cloner)
         {
@@ -1108,46 +1130,62 @@ namespace EternalCycle
                 }
             }
         }
-        public static void SetGiftBoxData(CustomItemTemplate template, DatabaseService databaseService, ConfigServer configServer, ISptLogger<VulcanCore> logger, ICloner cloner)
+
+        /// <summary>
+        /// 为自定义物品配置礼盒数据
+        /// 这部分是不是应该放进另一个前置里? 开箱算法是一个破坏性Patch
+        /// 还是算了, 数据处理放在这, 数据读取另存
+        /// </summary>
+        /// <param name="template"></param>
+        /// <param name="configServer"></param>
+        /// 
+        /// 
+        public static CustomItemTemplate SetGiftBoxData(this CustomItemTemplate template, ConfigServer configServer)
         {
             var inventoryConfig = configServer.GetConfig<InventoryConfig>();
-            var itemid = Utils.ConvertHashID(template.Id);
+            var itemid = template.Id.ConvertHashID();
             if (template.CustomProps is GiftBoxProps itemProps)
             {
-                if (itemProps.IsGiftBox != null && itemProps.IsGiftBox == true)
+                //原版随机盒子
+                if (itemProps.IsGiftBox == true)
                 {
                     var boxdata = itemProps.BoxData;
                     var randomloot = inventoryConfig.RandomLootContainers;
                     var rewardpool = new Dictionary<MongoId, double>();
+                    //生成卡池数据
                     foreach (var kvp in boxdata.Rewards)
                     {
-                        rewardpool.TryAdd(Utils.ConvertHashID(kvp.Key), kvp.Value);
+                        rewardpool.TryAdd(kvp.Key.ConvertHashID(), kvp.Value);
                     }
-                    randomloot.TryAdd(itemid, new RewardDetails
+                    //强制覆盖卡池
+                    randomloot[itemid] = new RewardDetails
                     {
                         RewardCount = boxdata.Count,
                         FoundInRaid = true,
                         RewardTplPool = rewardpool
-                    });
+                    };
                 }
-                if (itemProps.IsStaticBox != null && itemProps.IsStaticBox == true)
+                //固定容器, Mod数据, 要提供覆盖吗?
+                //还是提供了吧
+                if (itemProps.IsStaticBox == true)
                 {
                     var boxdata = itemProps.StaticBoxData;
-                    StaticBoxData.TryAdd(itemid, boxdata);
+                    StaticBoxData[itemid] = boxdata;
                 }
-                if (itemProps.IsSpecialBox != null && itemProps.IsSpecialBox == true)
+                if (itemProps.IsSpecialBox == true)
                 {
                     var boxdata = itemProps.SpecialBoxData;
-                    SpecialBoxData.TryAdd(itemid, boxdata.GiftData);
+                    SpecialBoxData[itemid] = boxdata.GiftData;
                 }
                 //adv还没写
                 //写了
-                if (itemProps.IsAdvGiftBox != null && itemProps.IsAdvGiftBox == true)
+                if (itemProps.IsAdvGiftBox == true)
                 {
                     var boxdata = itemProps.AdvancedBoxData;
-                    AdvancedBoxData.TryAdd(itemid, itemProps.AdvancedBoxData);
+                    AdvancedBoxData[itemid] = boxdata;
                 }
             }
+            return template;
         }
         public static List<Item> GetGiftItemByType(GiftData giftData, string hash, DatabaseService databaseService, ISptLogger<VulcanCore> logger, ICloner cloner)
         {
