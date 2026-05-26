@@ -27,26 +27,76 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using Path = System.IO.Path;
 
-namespace EternalCycle;
-
-
-public class LocaleUtils
+namespace EternalCycle
 {
-    public static void InitQuestLocale(string folderpath, string creator, string modname, DatabaseService databaseService, ModHelper modHelper)
+    /// <summary>
+    /// 对本地化生成进行操作处理的工具类
+    /// </summary>
+    public class LocaleUtils
     {
-        List<string> files = Directory.GetFiles(folderpath).ToList();
-        if (files.Count > 0)
+        public static void InitQuestLocale(string folderpath, string creator, string modname, DatabaseService databaseService, ModHelper modHelper)
         {
-            foreach (var file in files)
+            List<string> files = Directory.GetFiles(folderpath).ToList();
+            if (files.Count > 0)
             {
-                string fileName = Path.GetFileName(file);
-                var quests = modHelper.GetJsonDataFromFile<Dictionary<string, CustomQuestLocaleData>>(folderpath, fileName);
-                string lang = Path.GetFileNameWithoutExtension(file);
-                if(!databaseService.GetLocales().Global.TryGetValue(lang, out var locales))
+                foreach (var file in files)
                 {
-                    continue;
+                    string fileName = Path.GetFileName(file);
+                    var quests = modHelper.GetJsonDataFromFile<Dictionary<string, CustomQuestLocaleData>>(folderpath, fileName);
+                    string lang = Path.GetFileNameWithoutExtension(file);
+                    if (!databaseService.GetLocales().Global.TryGetValue(lang, out var locales))
+                    {
+                        continue;
+                    }
+                    locales.AddTransformer(language =>
+                    {
+                        foreach (var questEntry in quests)
+                        {
+                            string questId = Utils.ConvertHashID(questEntry.Key);
+                            var modstring = $"<color=#FFFFFF><b>\n由{creator}创建\n添加者: {modname}\n任务API：永恒时序\n任务ID：{questId}</b></color>";         // 例如 "PersicariaTask1"
+                            var locale = questEntry.Value;                 // CustomQuestLocaleData 对象
+
+                            // 写入任务主要字段
+                            language.TryAdd($"{questId} name", locale.QuestName);
+                            language.TryAdd($"{questId} description", $"{locale.QuestDescription}{modstring}");
+                            language.TryAdd($"{questId} note", locale.QuestNote ?? "");
+                            language.TryAdd($"{questId} failMessageText", locale.QuestFailMessage ?? "");
+                            language.TryAdd($"{questId} startedMessageText", locale.QuestStartMessaage ?? "");
+                            language.TryAdd($"{questId} successMessageText", locale.QuestSuccessMessage ?? "");
+                            language.TryAdd($"{questId} location", locale.QuestLocation ?? "");
+
+                            // 写入每个条件文本（如 Hand/Find 条件）
+                            if (locale.QuestConditions != null)
+                            {
+                                foreach (var cond in locale.QuestConditions)
+                                {
+                                    // cond.Key = "PersicariaTask1Find1"
+                                    // cond.Value = "在战局中找到电线"
+                                    language.TryAdd(Utils.ConvertHashID(cond.Key), cond.Value);
+                                    //localeData[VulcanUtil.ConvertHashID(cond.Key)] = cond.Value;
+                                }
+                            }
+                        }
+                        return language;
+                    });
+
                 }
-                locales.AddTransformer(language =>
+            }
+        }
+        public static void InitQuestLocale(Dictionary<string, Dictionary<string, CustomQuestLocaleData>> customLocaleData, string creator, string modname, DatabaseService databaseService)
+        {
+            // 遍历语言，例如 ch / en / ru ...
+            foreach (var languageEntry in customLocaleData)
+            {
+                string langKey = languageEntry.Key; // "ch"
+                var quests = languageEntry.Value;   // Dictionary<string, CustomQuestLocaleData>
+
+                // 获取目标语言对应的全局本地化 LazyLoad
+                if (!databaseService.GetLocales().Global.TryGetValue(langKey, out LazyLoad<Dictionary<string, string>> lazyLocale))
+                    continue;
+
+                // 为该语言添加 transformer（延迟加载时注入翻译数据）
+                lazyLocale.AddTransformer(localeData =>
                 {
                     foreach (var questEntry in quests)
                     {
@@ -55,13 +105,13 @@ public class LocaleUtils
                         var locale = questEntry.Value;                 // CustomQuestLocaleData 对象
 
                         // 写入任务主要字段
-                        language.TryAdd($"{questId} name", locale.QuestName);
-                        language.TryAdd($"{questId} description", $"{locale.QuestDescription}{modstring}");
-                        language.TryAdd($"{questId} note", locale.QuestNote ?? "");
-                        language.TryAdd($"{questId} failMessageText", locale.QuestFailMessage ?? "");
-                        language.TryAdd($"{questId} startedMessageText", locale.QuestStartMessaage ?? "");
-                        language.TryAdd($"{questId} successMessageText", locale.QuestSuccessMessage ?? "");
-                        language.TryAdd($"{questId} location", locale.QuestLocation ?? "");
+                        localeData.TryAdd($"{questId} name", locale.QuestName);
+                        localeData.TryAdd($"{questId} description", $"{locale.QuestDescription}{modstring}");
+                        localeData.TryAdd($"{questId} note", locale.QuestNote ?? "");
+                        localeData.TryAdd($"{questId} failMessageText", locale.QuestFailMessage ?? "");
+                        localeData.TryAdd($"{questId} startedMessageText", locale.QuestStartMessaage ?? "");
+                        localeData.TryAdd($"{questId} successMessageText", locale.QuestSuccessMessage ?? "");
+                        localeData.TryAdd($"{questId} location", locale.QuestLocation ?? "");
 
                         // 写入每个条件文本（如 Hand/Find 条件）
                         if (locale.QuestConditions != null)
@@ -70,326 +120,328 @@ public class LocaleUtils
                             {
                                 // cond.Key = "PersicariaTask1Find1"
                                 // cond.Value = "在战局中找到电线"
-                                language.TryAdd(Utils.ConvertHashID(cond.Key), cond.Value);
+                                localeData.TryAdd(Utils.ConvertHashID(cond.Key), cond.Value);
                                 //localeData[VulcanUtil.ConvertHashID(cond.Key)] = cond.Value;
                             }
                         }
                     }
-                    return language;
-                });
 
-            }
-        }
-    }
-    public static void InitQuestLocale(Dictionary<string, Dictionary<string, CustomQuestLocaleData>> customLocaleData, string creator, string modname, DatabaseService databaseService)
-    {
-        // 遍历语言，例如 ch / en / ru ...
-        foreach (var languageEntry in customLocaleData)
-        {
-            string langKey = languageEntry.Key; // "ch"
-            var quests = languageEntry.Value;   // Dictionary<string, CustomQuestLocaleData>
-
-            // 获取目标语言对应的全局本地化 LazyLoad
-            if (!databaseService.GetLocales().Global.TryGetValue(langKey, out LazyLoad<Dictionary<string, string>> lazyLocale))
-                continue;
-
-            // 为该语言添加 transformer（延迟加载时注入翻译数据）
-            lazyLocale.AddTransformer(localeData =>
-            {
-                foreach (var questEntry in quests)
-                {
-                    string questId = Utils.ConvertHashID(questEntry.Key);
-                    var modstring = $"<color=#FFFFFF><b>\n由{creator}创建\n添加者: {modname}\n任务API：火神之心\n任务ID：{questId}</b></color>";         // 例如 "PersicariaTask1"
-                    var locale = questEntry.Value;                 // CustomQuestLocaleData 对象
-
-                    // 写入任务主要字段
-                    localeData.TryAdd($"{questId} name", locale.QuestName);
-                    localeData.TryAdd($"{questId} description", $"{locale.QuestDescription}{modstring}");
-                    localeData.TryAdd($"{questId} note", locale.QuestNote ?? "");
-                    localeData.TryAdd($"{questId} failMessageText", locale.QuestFailMessage ?? "");
-                    localeData.TryAdd($"{questId} startedMessageText", locale.QuestStartMessaage ?? "");
-                    localeData.TryAdd($"{questId} successMessageText", locale.QuestSuccessMessage ?? "");
-                    localeData.TryAdd($"{questId} location", locale.QuestLocation ?? "");
-
-                    // 写入每个条件文本（如 Hand/Find 条件）
-                    if (locale.QuestConditions != null)
-                    {
-                        foreach (var cond in locale.QuestConditions)
-                        {
-                            // cond.Key = "PersicariaTask1Find1"
-                            // cond.Value = "在战局中找到电线"
-                            localeData.TryAdd(Utils.ConvertHashID(cond.Key), cond.Value);
-                            //localeData[VulcanUtil.ConvertHashID(cond.Key)] = cond.Value;
-                        }
-                    }
-                }
-
-                return localeData;
-            });
-        }
-    }
-    public static void AddItemToLocales(Dictionary<string, LocaleDetails> localeDetails, string newItemId, DatabaseService databaseService)
-    {
-        string newItemId2 = newItemId;
-        foreach (KeyValuePair<string, string> language in databaseService.GetLocales().Languages)
-        {
-            localeDetails.TryGetValue(language.Key, out LocaleDetails newLocaleDetails);
-            if ((object)newLocaleDetails == null)
-            {
-                newLocaleDetails = localeDetails[localeDetails.Keys.FirstOrDefault()];
-            }
-
-            if (databaseService.GetLocales().Global.TryGetValue(language.Key, out LazyLoad<Dictionary<string, string>> value))
-            {
-                value.AddTransformer(delegate (Dictionary<string, string>? localeData)
-                {
-                    localeData.TryAdd(newItemId2 + " Name", newLocaleDetails.Name);
-                    localeData.TryAdd(newItemId2 + " ShortName", newLocaleDetails.ShortName);
-                    localeData.TryAdd(newItemId2 + " Description", newLocaleDetails.Description.Replace("#ItemId", newItemId2));
                     return localeData;
                 });
             }
         }
-    }
-    public static void AddTraderToLocales(TraderBaseWithDesc baseJson, DatabaseService databaseService, string creator, string modname)
-    {
-        var locales = databaseService.GetTables().Locales.Global;
-        var newTraderId = baseJson.Id;
-        var modstring = $"<color=#FFFFFF><b>\n由{creator}创建\n添加者: {modname}\n商人API：火神之心\n商人ID：{newTraderId}</b></color>";
 
-        foreach (var (localeKey, localeKvP) in locales)
+        /// <summary>
+        /// 为物品构建本地化数据
+        /// </summary>
+        /// <param name="props">自定义属性对象</param>
+        /// <param name="creator">创建者</param>
+        /// <param name="modname">Mod名</param>
+        /// <returns></returns>
+        public static Dictionary<string, LocaleDetails> BuildItemLocales(CustomProps props, string creator, string modname)
         {
-            localeKvP.AddTransformer(lazyloadedLocaleData =>
+            //这玩意居然没啥好改的
+            var locales = new Dictionary<string, LocaleDetails>();
+            var modstring = $"<color=#FFFFFF><b>\n由{creator}创建\n添加者: {modname}\n物品API：永恒时序\n物品ID：{{0}}</b></color>";
+            //Creted By: xxx, Added By: xxx, ModAPI: EternalCycle, Item Id: xxx
+            var chdescription = $"{props.Description}{modstring}";
+            //zhcn
+            locales["ch"] = new LocaleDetails
             {
-                lazyloadedLocaleData.TryAdd($"{newTraderId} FullName", baseJson?.Surname);
-                lazyloadedLocaleData.TryAdd($"{newTraderId} FirstName", baseJson.Name);
-                lazyloadedLocaleData.TryAdd($"{newTraderId} Nickname", baseJson?.Nickname);
-                lazyloadedLocaleData.TryAdd($"{newTraderId} Location", baseJson?.Location);
-                lazyloadedLocaleData.TryAdd($"{newTraderId} Description", $"{baseJson.Description}{modstring}");
-                return lazyloadedLocaleData;
-            });
+                Name = props.Name,
+                ShortName = props.ShortName,
+                Description = chdescription
+            };
+            //Eng
+            locales["en"] = new LocaleDetails
+            {
+                Name = string.IsNullOrEmpty(props.EName) ? props.Name : props.EName,
+                ShortName = string.IsNullOrEmpty(props.EShortName) ? props.ShortName : props.EShortName,
+                Description = string.IsNullOrEmpty(props.EDescription) ? chdescription : props.EDescription
+            };
+            //jp
+            locales["jp"] = new LocaleDetails
+            {
+                Name = string.IsNullOrEmpty(props.JName) ? props.Name : props.JName,
+                ShortName = string.IsNullOrEmpty(props.JShortName) ? props.ShortName : props.JShortName,
+                Description = string.IsNullOrEmpty(props.JDescription) ? chdescription : props.JDescription
+            };
+            return locales;
         }
-    }
-    public static void InitLocaleText(Dictionary<string, Dictionary<string, string>> locales, DatabaseService databaseService)
-    {
-        foreach (var languageEntry in locales)
-        {
-            string langKey = languageEntry.Key; // "ch"
-            var langValue = languageEntry.Value;   // Dictionary<string, CustomQuestLocaleData>
 
-            // 获取目标语言对应的全局本地化 LazyLoad
-            if (!databaseService.GetLocales().Global.TryGetValue(langKey, out LazyLoad<Dictionary<string, string>> lazyLocale))
-                continue;
-
-            // 为该语言添加 transformer（延迟加载时注入翻译数据）
-            lazyLocale.AddTransformer(localeData =>
-            {
-                foreach (var key in langValue)
-                {
-                    //localeData.TryAdd(key.Key, key.Value);
-                    localeData[key.Key] = key.Value;
-                }
-                return localeData;
-            });
-        }
-    }
-    public static void InitLocaleText(string folderpath, DatabaseService databaseService, ModHelper modHelper)
-    {
-        List<string> files = Directory.GetFiles(folderpath).ToList();
-        if (files.Count > 0)
+        /// <summary>
+        /// 完成自定义物品的本地化加载
+        /// </summary>
+        /// <param name="localeDetails">本地化数据</param>
+        /// <param name="newItemId">物品ID</param>
+        /// <param name="databaseService">数据库实例</param>
+        public static void AddItemToLocales(Dictionary<string, LocaleDetails> localeDetails, string newItemId, DatabaseService databaseService)
         {
-            foreach (var file in files)
+            if (localeDetails == null || localeDetails.Count == 0) return;
+            //遍历SPT的语言索引
+            foreach (var language in databaseService.GetLocales().Languages)
             {
-                string fileName = Path.GetFileName(file);
-                var text = modHelper.GetJsonDataFromFile<Dictionary<string, string>>(folderpath, fileName);
-                string lang = Path.GetFileNameWithoutExtension(file);
-                if (!databaseService.GetLocales().Global.TryGetValue(lang, out var locales))
+                //尝试从自定义本地化数据获取索引
+                localeDetails.TryGetValue(language.Key, out var lang);
+                if (lang == null)
                 {
-                    continue;
+                    //默认回调
+                    lang = localeDetails["ch"];
                 }
-                locales.AddTransformer(language =>
+                //找到对应的语言文件
+                if (databaseService.GetLocales().Global.TryGetValue(language.Key, out var localeValue))
                 {
-                    foreach(var kvp in text)
+                    //添加修改器
+                    localeValue.AddTransformer(localeData =>
                     {
-                        language[kvp.Key] = kvp.Value;
-                    }
-                    return language;
+                        localeData[$"{newItemId} Name"] = lang.Name;
+                        localeData[$"{newItemId} ShortName"] = lang.ShortName;
+                        localeData[$"{newItemId} Description"] = string.Format(lang.Description, newItemId);
+                        return localeData;
+                    });
+                }
+            }
+        }
+
+        public static void AddTraderToLocales(TraderBaseWithDesc baseJson, DatabaseService databaseService, string creator, string modname)
+        {
+            var locales = databaseService.GetTables().Locales.Global;
+            var newTraderId = baseJson.Id;
+            var modstring = $"<color=#FFFFFF><b>\n由{creator}创建\n添加者: {modname}\n商人API：火神之心\n商人ID：{newTraderId}</b></color>";
+
+            foreach (var (localeKey, localeKvP) in locales)
+            {
+                localeKvP.AddTransformer(lazyloadedLocaleData =>
+                {
+                    lazyloadedLocaleData.TryAdd($"{newTraderId} FullName", baseJson?.Surname);
+                    lazyloadedLocaleData.TryAdd($"{newTraderId} FirstName", baseJson.Name);
+                    lazyloadedLocaleData.TryAdd($"{newTraderId} Nickname", baseJson?.Nickname);
+                    lazyloadedLocaleData.TryAdd($"{newTraderId} Location", baseJson?.Location);
+                    lazyloadedLocaleData.TryAdd($"{newTraderId} Description", $"{baseJson.Description}{modstring}");
+                    return lazyloadedLocaleData;
                 });
             }
         }
-    }
-    public static string GetItemName(MongoId itemid, LocaleService localeService)
-    {
-        var lang = localeService.GetLocaleDb("ch");
-        var name = lang.TryGetValue($"{itemid} Name", out var result);
-        if (result != null && result != "")
+        public static void InitLocaleText(Dictionary<string, Dictionary<string, string>> locales, DatabaseService databaseService)
         {
-            return result;
-        }
-        return "";
-    }
-    public static string GetItemShortName(MongoId itemid, LocaleService localeService)
-    {
-        var lang = localeService.GetLocaleDb("ch");
-        var name = lang.TryGetValue($"{itemid} ShortName", out var result);
-        if (result != null && result != "")
-        {
-            return result;
-        }
-        return "";
-    }
-    public static string GetQuestName(MongoId questid, LocaleService localeService)
-    {
-        var lang = localeService.GetLocaleDb("ch");
-        var name = lang.TryGetValue($"{questid} name", out var result);
-        if (result != null && result != "")
-        {
-            return result;
-        }
-        return "";
-    }
-    public static void InitGiftBoxLocale(DatabaseService databaseService, LocaleService localeService)
-    {
-        foreach (var pool in ItemUtils.DrawPoolData.Values)
-        {
+            foreach (var languageEntry in locales)
+            {
+                string langKey = languageEntry.Key; // "ch"
+                var langValue = languageEntry.Value;   // Dictionary<string, CustomQuestLocaleData>
 
-            var zhCNLang = databaseService.GetLocales().Global["ch"];
-            var basedata = pool.BaseReward;
-            var itempool = pool.ItemPool;
-            var sr = basedata.SuperRare;
-            var srpool = itempool.SuperRare;
-            var r = basedata.Rare;
-            var rpool = itempool.Rare;
-            var normal = basedata.Normal;
-            var normalpool = itempool.Normal;
-            var poolname = pool.Name;
-            var gold = "<color=#FFFF55>★★★★★</color>内容";
-            var epic = "<color=#FF55FF>★★★★</color>内容";
-            var normalstr = "<color=#FFFFFF>★★★</color>内容";
-            var srchance = Utils.DoubleToPercent(sr.Chance);
-            var srupchance = Utils.DoubleToPercent(sr.UpChance);
-            var srnormalchance = Utils.DoubleToPercent(1 - sr.UpChance);
-            var srbasecount = (int)(sr.ChanceGrowCount + 1 + ((1 - sr.Chance) / sr.ChanceGrowPerCount));
-            var sraddchance = Utils.DoubleToPercent(sr.UpAddChance);
-            var srrealchance = Utils.DoubleToPercent(1 / (double)srbasecount);
-            var srgrowcount = sr.ChanceGrowCount;
-            var srgrowchance = Utils.DoubleToPercent(sr.ChanceGrowPerCount);
-            var rchance = Utils.DoubleToPercent(r.Chance);
-            var rbasecount = (int)(1 / r.Chance);
-            var rupchance = Utils.DoubleToPercent(r.UpChance);
-            var rnormalchance = Utils.DoubleToPercent(1 - r.UpChance);
-            var raddchance = Utils.DoubleToPercent(r.UpAddChance);
-            var srupstring = "";
-            var srnormalstring = "";
-            var rupstring = "";
-            var rnormalstring = "";
-            var normalstring = "";
-            foreach (var gift in srpool.ChanceUp)
-            {
-                switch (gift)
+                // 获取目标语言对应的全局本地化 LazyLoad
+                if (!databaseService.GetLocales().Global.TryGetValue(langKey, out LazyLoad<Dictionary<string, string>> lazyLocale))
+                    continue;
+
+                // 为该语言添加 transformer（延迟加载时注入翻译数据）
+                lazyLocale.AddTransformer(localeData =>
                 {
-                    case GiftDataItemData itemData:
+                    foreach (var key in langValue)
+                    {
+                        //localeData.TryAdd(key.Key, key.Value);
+                        localeData[key.Key] = key.Value;
+                    }
+                    return localeData;
+                });
+            }
+        }
+        public static void InitLocaleText(string folderpath, DatabaseService databaseService, ModHelper modHelper)
+        {
+            List<string> files = Directory.GetFiles(folderpath).ToList();
+            if (files.Count > 0)
+            {
+                foreach (var file in files)
+                {
+                    string fileName = Path.GetFileName(file);
+                    var text = modHelper.GetJsonDataFromFile<Dictionary<string, string>>(folderpath, fileName);
+                    string lang = Path.GetFileNameWithoutExtension(file);
+                    if (!databaseService.GetLocales().Global.TryGetValue(lang, out var locales))
+                    {
+                        continue;
+                    }
+                    locales.AddTransformer(language =>
+                    {
+                        foreach (var kvp in text)
                         {
-                            srupstring += $"{LocaleUtils.GetItemName(itemData.ItemId, localeService)}x{itemData.Count}, ";
+                            language[kvp.Key] = kvp.Value;
                         }
-                        break;
-                    case GiftDataVanillaPreset vanillaPreset:
-                        {
-                            srupstring += $"{LocaleUtils.GetItemName(vanillaPreset.Item, localeService)}x1, ";
-                        }
-                        break;
-                    case GiftDataCustomPreset customPreset:
-                        {
-                            srupstring += $"{LocaleUtils.GetItemName(customPreset.Item.First().Template, localeService)}x1, ";
-                        }
-                        break;
+                        return language;
+                    });
                 }
             }
-            foreach (var gift in srpool.Normal)
+        }
+        public static string GetItemName(MongoId itemid, LocaleService localeService)
+        {
+            var lang = localeService.GetLocaleDb("ch");
+            var name = lang.TryGetValue($"{itemid} Name", out var result);
+            if (result != null && result != "")
             {
-                switch (gift)
-                {
-                    case GiftDataItemData itemData:
-                        {
-                            srnormalstring += $"{LocaleUtils.GetItemName(itemData.ItemId, localeService)}x{itemData.Count}, ";
-                        }
-                        break;
-                    case GiftDataVanillaPreset vanillaPreset:
-                        {
-                            srnormalstring += $"{LocaleUtils.GetItemName(vanillaPreset.Item, localeService)}x1, ";
-                        }
-                        break;
-                    case GiftDataCustomPreset customPreset:
-                        {
-                            srnormalstring += $"{LocaleUtils.GetItemName(customPreset.Item.First().Template, localeService)}x1, ";
-                        }
-                        break;
-                }
+                return result;
             }
-            foreach (var gift in rpool.ChanceUp)
+            return "";
+        }
+        public static string GetItemShortName(MongoId itemid, LocaleService localeService)
+        {
+            var lang = localeService.GetLocaleDb("ch");
+            var name = lang.TryGetValue($"{itemid} ShortName", out var result);
+            if (result != null && result != "")
             {
-                switch (gift)
-                {
-                    case GiftDataItemData itemData:
-                        {
-                            rupstring += $"{LocaleUtils.GetItemName(itemData.ItemId, localeService)}x{itemData.Count}, ";
-                        }
-                        break;
-                    case GiftDataVanillaPreset vanillaPreset:
-                        {
-                            rupstring += $"{LocaleUtils.GetItemName(vanillaPreset.Item, localeService)}x1, ";
-                        }
-                        break;
-                    case GiftDataCustomPreset customPreset:
-                        {
-                            rupstring += $"{LocaleUtils.GetItemName(customPreset.Item.First().Template, localeService)}x1, ";
-                        }
-                        break;
-                }
+                return result;
             }
-            foreach (var gift in rpool.Normal)
+            return "";
+        }
+        public static string GetQuestName(MongoId questid, LocaleService localeService)
+        {
+            var lang = localeService.GetLocaleDb("ch");
+            var name = lang.TryGetValue($"{questid} name", out var result);
+            if (result != null && result != "")
             {
-                switch (gift)
-                {
-                    case GiftDataItemData itemData:
-                        {
-                            rnormalstring += $"{LocaleUtils.GetItemName(itemData.ItemId, localeService)}x{itemData.Count}, ";
-                        }
-                        break;
-                    case GiftDataVanillaPreset vanillaPreset:
-                        {
-                            rnormalstring += $"{LocaleUtils.GetItemName(vanillaPreset.Item, localeService)}x1, ";
-                        }
-                        break;
-                    case GiftDataCustomPreset customPreset:
-                        {
-                            rnormalstring += $"{LocaleUtils.GetItemName(customPreset.Item.First().Template, localeService)}x1, ";
-                        }
-                        break;
-                }
+                return result;
             }
-            foreach (var gift in normalpool.Normal)
+            return "";
+        }
+        public static void InitGiftBoxLocale(DatabaseService databaseService, LocaleService localeService)
+        {
+            foreach (var pool in ItemUtils.DrawPoolData.Values)
             {
-                switch (gift)
+
+                var zhCNLang = databaseService.GetLocales().Global["ch"];
+                var basedata = pool.BaseReward;
+                var itempool = pool.ItemPool;
+                var sr = basedata.SuperRare;
+                var srpool = itempool.SuperRare;
+                var r = basedata.Rare;
+                var rpool = itempool.Rare;
+                var normal = basedata.Normal;
+                var normalpool = itempool.Normal;
+                var poolname = pool.Name;
+                var gold = "<color=#FFFF55>★★★★★</color>内容";
+                var epic = "<color=#FF55FF>★★★★</color>内容";
+                var normalstr = "<color=#FFFFFF>★★★</color>内容";
+                var srchance = Utils.DoubleToPercent(sr.Chance);
+                var srupchance = Utils.DoubleToPercent(sr.UpChance);
+                var srnormalchance = Utils.DoubleToPercent(1 - sr.UpChance);
+                var srbasecount = (int)(sr.ChanceGrowCount + 1 + ((1 - sr.Chance) / sr.ChanceGrowPerCount));
+                var sraddchance = Utils.DoubleToPercent(sr.UpAddChance);
+                var srrealchance = Utils.DoubleToPercent(1 / (double)srbasecount);
+                var srgrowcount = sr.ChanceGrowCount;
+                var srgrowchance = Utils.DoubleToPercent(sr.ChanceGrowPerCount);
+                var rchance = Utils.DoubleToPercent(r.Chance);
+                var rbasecount = (int)(1 / r.Chance);
+                var rupchance = Utils.DoubleToPercent(r.UpChance);
+                var rnormalchance = Utils.DoubleToPercent(1 - r.UpChance);
+                var raddchance = Utils.DoubleToPercent(r.UpAddChance);
+                var srupstring = "";
+                var srnormalstring = "";
+                var rupstring = "";
+                var rnormalstring = "";
+                var normalstring = "";
+                foreach (var gift in srpool.ChanceUp)
                 {
-                    case GiftDataItemData itemData:
-                        {
-                            normalstring += $"{LocaleUtils.GetItemName(itemData.ItemId, localeService)}x{itemData.Count}, ";
-                        }
-                        break;
-                    case GiftDataVanillaPreset vanillaPreset:
-                        {
-                            normalstring += $"{LocaleUtils.GetItemName(vanillaPreset.Item, localeService)}x1, ";
-                        }
-                        break;
-                    case GiftDataCustomPreset customPreset:
-                        {
-                            normalstring += $"{LocaleUtils.GetItemName(customPreset.Item.First().Template, localeService)}x1, ";
-                        }
-                        break;
+                    switch (gift)
+                    {
+                        case GiftDataItemData itemData:
+                            {
+                                srupstring += $"{LocaleUtils.GetItemName(itemData.ItemId, localeService)}x{itemData.Count}, ";
+                            }
+                            break;
+                        case GiftDataVanillaPreset vanillaPreset:
+                            {
+                                srupstring += $"{LocaleUtils.GetItemName(vanillaPreset.Item, localeService)}x1, ";
+                            }
+                            break;
+                        case GiftDataCustomPreset customPreset:
+                            {
+                                srupstring += $"{LocaleUtils.GetItemName(customPreset.Item.First().Template, localeService)}x1, ";
+                            }
+                            break;
+                    }
                 }
-            }
-            string result = $@"
+                foreach (var gift in srpool.Normal)
+                {
+                    switch (gift)
+                    {
+                        case GiftDataItemData itemData:
+                            {
+                                srnormalstring += $"{LocaleUtils.GetItemName(itemData.ItemId, localeService)}x{itemData.Count}, ";
+                            }
+                            break;
+                        case GiftDataVanillaPreset vanillaPreset:
+                            {
+                                srnormalstring += $"{LocaleUtils.GetItemName(vanillaPreset.Item, localeService)}x1, ";
+                            }
+                            break;
+                        case GiftDataCustomPreset customPreset:
+                            {
+                                srnormalstring += $"{LocaleUtils.GetItemName(customPreset.Item.First().Template, localeService)}x1, ";
+                            }
+                            break;
+                    }
+                }
+                foreach (var gift in rpool.ChanceUp)
+                {
+                    switch (gift)
+                    {
+                        case GiftDataItemData itemData:
+                            {
+                                rupstring += $"{LocaleUtils.GetItemName(itemData.ItemId, localeService)}x{itemData.Count}, ";
+                            }
+                            break;
+                        case GiftDataVanillaPreset vanillaPreset:
+                            {
+                                rupstring += $"{LocaleUtils.GetItemName(vanillaPreset.Item, localeService)}x1, ";
+                            }
+                            break;
+                        case GiftDataCustomPreset customPreset:
+                            {
+                                rupstring += $"{LocaleUtils.GetItemName(customPreset.Item.First().Template, localeService)}x1, ";
+                            }
+                            break;
+                    }
+                }
+                foreach (var gift in rpool.Normal)
+                {
+                    switch (gift)
+                    {
+                        case GiftDataItemData itemData:
+                            {
+                                rnormalstring += $"{LocaleUtils.GetItemName(itemData.ItemId, localeService)}x{itemData.Count}, ";
+                            }
+                            break;
+                        case GiftDataVanillaPreset vanillaPreset:
+                            {
+                                rnormalstring += $"{LocaleUtils.GetItemName(vanillaPreset.Item, localeService)}x1, ";
+                            }
+                            break;
+                        case GiftDataCustomPreset customPreset:
+                            {
+                                rnormalstring += $"{LocaleUtils.GetItemName(customPreset.Item.First().Template, localeService)}x1, ";
+                            }
+                            break;
+                    }
+                }
+                foreach (var gift in normalpool.Normal)
+                {
+                    switch (gift)
+                    {
+                        case GiftDataItemData itemData:
+                            {
+                                normalstring += $"{LocaleUtils.GetItemName(itemData.ItemId, localeService)}x{itemData.Count}, ";
+                            }
+                            break;
+                        case GiftDataVanillaPreset vanillaPreset:
+                            {
+                                normalstring += $"{LocaleUtils.GetItemName(vanillaPreset.Item, localeService)}x1, ";
+                            }
+                            break;
+                        case GiftDataCustomPreset customPreset:
+                            {
+                                normalstring += $"{LocaleUtils.GetItemName(customPreset.Item.First().Template, localeService)}x1, ";
+                            }
+                            break;
+                    }
+                }
+                string result = $@"
 抽奖概率公示: 
 {gold}: 
 抽奖概率: 
@@ -411,36 +463,27 @@ public class LocaleUtils
 可获得内容: {rnormalstring}
 {normalstr}: 
 可获得内容: {normalstring}";
-            var itemlist = new List<string>();
-            foreach (var kvp in ItemUtils.AdvancedBoxData)
-            {
-                if (kvp.Value.PoolName == poolname)
+                var itemlist = new List<string>();
+                foreach (var kvp in ItemUtils.AdvancedBoxData)
                 {
-                    itemlist.Add($"{kvp.Key} Description");
-                }
-            }
-            zhCNLang.AddTransformer(lang =>
-            {
-                foreach (var kvp in lang)
-                {
-                    if (kvp.Value!=null && kvp.Value.Contains("<color=#FFFFFF><b>\n由") && itemlist.Contains(kvp.Key))
+                    if (kvp.Value.PoolName == poolname)
                     {
-                        //lang[kvp.Key] = $"{lang[kvp.Key]}\n{result}";
-                        lang[kvp.Key] = kvp.Value.Replace("<color=#FFFFFF><b>\n由", $"{result}\n<color=#FFFFFF><b>\n由");
+                        itemlist.Add($"{kvp.Key} Description");
                     }
                 }
-                return lang;
-            });
+                zhCNLang.AddTransformer(lang =>
+                {
+                    foreach (var kvp in lang)
+                    {
+                        if (kvp.Value != null && kvp.Value.Contains("<color=#FFFFFF><b>\n由") && itemlist.Contains(kvp.Key))
+                        {
+                            //lang[kvp.Key] = $"{lang[kvp.Key]}\n{result}";
+                            lang[kvp.Key] = kvp.Value.Replace("<color=#FFFFFF><b>\n由", $"{result}\n<color=#FFFFFF><b>\n由");
+                        }
+                    }
+                    return lang;
+                });
+            }
         }
     }
 }
-
-
-
-
-
-
-
-
-
-

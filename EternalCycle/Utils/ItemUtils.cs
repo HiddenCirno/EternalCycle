@@ -193,7 +193,6 @@ namespace EternalCycle
         /// <param name="databaseService">数据库实例</param>
         /// <param name="cloner">克隆器实例</param>
         /// <param name="configServer">配置实例</param>
-        //得改
         public static void CreateAndAddItem(CustomItemTemplate template, string targetid, string creator, string modname, DatabaseService databaseService, ICloner cloner, ConfigServer configServer)
         {
             //需要添加一个验证器, 实现覆盖和加载双模
@@ -247,7 +246,7 @@ namespace EternalCycle
                 .AddItemFixData();
 
             //本地化数据
-            var Locales = BuildItemLocales(template.CustomProps, creator, modname);
+            var Locales = LocaleUtils.BuildItemLocales(template.CustomProps, creator, modname);
             LocaleUtils.AddItemToLocales(Locales, itemid, databaseService);
             //尝试添加物品
             //在非空情况下itemClone直接就是来自物品表的引用, 因此无需覆盖更新
@@ -282,37 +281,7 @@ namespace EternalCycle
                 twitchcasecontainer.Add(itemid);
             }
         }
-        public static Dictionary<string, LocaleDetails> BuildItemLocales(CustomProps props, string creator, string modname)
-        {
-            var locales = new Dictionary<string, LocaleDetails>();
-            var modstring = $"<color=#FFFFFF><b>\n由{creator}创建\n添加者: {modname}\n物品API：永恒时序\n物品ID：#ItemId</b></color>";
-            var chdescription = $"{props.Description}{modstring}";
-            // 默认中文
-            locales["ch"] = new LocaleDetails
-            {
-                Name = props.Name,
-                ShortName = props.ShortName,
-                Description = chdescription
-            };
 
-            // 英文（优先英文字段）
-            locales["en"] = new LocaleDetails
-            {
-                Name = string.IsNullOrEmpty(props.EName) ? props.Name : props.EName,
-                ShortName = string.IsNullOrEmpty(props.EShortName) ? props.ShortName : props.EShortName,
-                Description = string.IsNullOrEmpty(props.EDescription) ? chdescription : props.EDescription
-            };
-
-            // 日语（默认中文）
-            locales["jp"] = new LocaleDetails
-            {
-                Name = string.IsNullOrEmpty(props.JName) ? props.Name : props.JName,
-                ShortName = string.IsNullOrEmpty(props.JShortName) ? props.ShortName : props.JShortName,
-                Description = string.IsNullOrEmpty(props.JDescription) ? chdescription : props.JDescription
-            };
-
-            return locales;
-        }
         /// <summary>
         /// 处理自定义物品的黑名单数据
         /// </summary>
@@ -672,32 +641,40 @@ namespace EternalCycle
             }
             return template;
         }
-        public static List<Item> ConvertItemListData(List<CustomItem> itemlist, ICloner cloner)
+
+        /// <summary>
+        /// 将自定义物品树转换为原版物品树
+        /// </summary>
+        /// <param name="itemlist">自定义物品树实例</param>
+        /// <param name="cloner">克隆器实例</param>
+        /// <returns>原版物品树实例</returns>
+        public static List<Item> ConvertItemListData(this List<CustomItem> itemlist, ICloner cloner)
         {
-            var list = new List<Item>();
-            foreach (CustomItem item in itemlist)
-            {
-                var copyitem = cloner.Clone<Item>(item);
-                if (copyitem.ParentId != null && copyitem.ParentId != "hideout")
-                {
-                    copyitem.ParentId = Utils.ConvertHashID(copyitem.ParentId);
-                }
-                list.Add((Item)copyitem);
-            }
-            return list;
+            //重写了一下底层, ParentId在底层自动转换了, 这里可以直接原生搞定12
+            return itemlist.ConvertAll(item => (Item)item);
         }
-        public static List<Item> RegenerateItemListData(List<Item> itemlist, string addinfo, ICloner cloner)
+        
+        /// <summary>
+        /// 清洗物品树, 将其转换为独立实例
+        /// </summary>
+        /// <param name="itemlist">传入的物品树实例</param>
+        /// <param name="addinfo">加盐信息</param>
+        /// <param name="cloner">克隆器实例</param>
+        /// <returns>全新的物品树实例</returns>
+        public static List<Item> RegenerateItemListData(this List<Item> itemlist, string addinfo, ICloner cloner)
         {
             var list = new List<Item>();
             foreach (Item item in itemlist)
             {
-                var copyitem = cloner.Clone<Item>(item);
-                copyitem.Id = Utils.ConvertHashID($"{copyitem.Id}_{addinfo}");
+                var copyitem = cloner.Clone(item);
+                copyitem.Id = ($"{copyitem.Id}_{addinfo}").ConvertHashID();
                 if (copyitem.ParentId != null && copyitem.ParentId != "hideout")
                 {
-                    copyitem.ParentId = Utils.ConvertHashID($"{copyitem.ParentId}_{addinfo}");
+                    //怪了, 根节点为什么会洗掉啊? 我咋写的代码....
+                    //既然没问题那就留着吧
+                    copyitem.ParentId = ($"{copyitem.ParentId}_{addinfo}").ConvertHashID();
                 }
-                list.Add((Item)copyitem);
+                list.Add(copyitem);
             }
             return list;
         }

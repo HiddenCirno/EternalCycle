@@ -232,7 +232,7 @@ public class VulcanCore(
         EventManager.OnBeforeRagfairLoadedEvent += testmethod;
         EventManager.OnAfterRagfairLoadedEvent += testmethod2;
         EventManager.OnAfterModLoadedEvent += testmethod3;
-        ItemUtils.InitItem(System.IO.Path.Combine(modPath, "items/"), "<color=#8FFF00>火神之心-物品加载器</color>", "<color=#FFFF80>火神之心</color>", logger, databaseService, jsonutil, cloner, configServer);
+        ItemUtils.InitItem(System.IO.Path.Combine(modPath, "items/"), "<color=#8FFF00>永恒时序-物品加载器</color>", "<color=#FFFF80>永恒时序</color>", databaseService, jsonutil, cloner, configServer);
         return Task.CompletedTask;
     }
 

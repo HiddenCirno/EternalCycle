@@ -317,25 +317,48 @@ namespace EternalCycle
             /// <summary>
             /// 读取JSON中的字符串并转换为MongoId
             /// </summary>
-            /// <param name="reader">JSON读取器</param>
-            /// <param name="typeToConvert">目标类型</param>
-            /// <param name="options">序列化选项</param>
             /// <returns>转换后的MongoId</returns>
             public override MongoId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
-                string str = reader.GetString()!;
-                return (MongoId)str.ConvertHashID();
+                return reader.GetString()!.ConvertHashID();
             }
 
             /// <summary>
             /// 将MongoId写入JSON字符串
             /// </summary>
-            /// <param name="writer">JSON写入器</param>
-            /// <param name="value">MongoId值</param>
-            /// <param name="options">序列化选项</param>
             public override void Write(Utf8JsonWriter writer, MongoId value, JsonSerializerOptions options)
             {
                 writer.WriteStringValue(value.ToString());
+            }
+        }
+
+        /// <summary>
+        /// 自定义转换器: 字符串ToHashId
+        /// </summary>
+        public class StringHashConverter : JsonConverter<string>
+        {
+            /// <summary>
+            /// 读取JSON中的字符串并转换成HashId
+            /// </summary>
+            public override string? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            {
+                string? rawValue = reader.GetString();
+
+                if (rawValue == null) return ""; //防止null传参
+
+                //差点忘了这个....
+                if (rawValue == "hideout") return rawValue;
+
+                string hashedValue = rawValue.ConvertHashID();
+                return string.Intern(hashedValue);
+            }
+
+            /// <summary>
+            /// 写入
+            /// </summary>
+            public override void Write(Utf8JsonWriter writer, string value, JsonSerializerOptions options)
+            {
+                writer.WriteStringValue(value);
             }
         }
 
@@ -348,9 +371,6 @@ namespace EternalCycle
             /// <summary>
             /// 读取JSON中的字符串数组并转换为MongoId集合
             /// </summary>
-            /// <param name="reader">JSON读取器</param>
-            /// <param name="typeToConvert">目标类型</param>
-            /// <param name="options">序列化选项</param>
             /// <returns>转换后的MongoId集合</returns>
             /// <exception cref="JsonException">当JSON节点不是数组时抛出异常</exception>
             public override IEnumerable<MongoId> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -363,8 +383,7 @@ namespace EternalCycle
                 {
                     if (reader.TokenType == JsonTokenType.String)
                     {
-                        string str = reader.GetString()!;
-                        list.Add(str.ConvertHashID());
+                        list.Add(reader.GetString()!.ConvertHashID());
                     }
                 }
                 return list;
@@ -373,9 +392,6 @@ namespace EternalCycle
             /// <summary>
             /// 将MongoId集合写入为JSON字符串数组
             /// </summary>
-            /// <param name="writer">JSON写入器</param>
-            /// <param name="value">需要写入的MongoId集合</param>
-            /// <param name="options">序列化选项</param>
             public override void Write(Utf8JsonWriter writer, IEnumerable<MongoId> value, JsonSerializerOptions options)
             {
                 writer.WriteStartArray();

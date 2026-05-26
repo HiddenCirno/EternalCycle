@@ -90,6 +90,8 @@ namespace EternalCycle
                 : 4f;
             foreach (var location in GetValidLocations(databaseService))
             {
+                //ÍüÁË·ÀÓù....
+                if (location.LooseLoot == null) continue;
                 location.LooseLoot.AddTransformer(looseloot =>
                 {
                     foreach (var spawnpoint in looseloot.Spawnpoints)
@@ -102,7 +104,7 @@ namespace EternalCycle
                         if (loottarget != null)
                         {
                             var targetkey = $"{addedid}_{loottarget.Id}";
-                            var lootid = (MongoId)Utils.ConvertHashID(targetkey);
+                            var lootid = targetkey.ConvertHashID();
 
                             var disttarget = spawnpoint.ItemDistribution.FirstOrDefault(i => i.ComposedKey.Key == loottarget.ComposedKey);
                             if (disttarget != null)
@@ -158,7 +160,7 @@ namespace EternalCycle
                             if (disttarget != null)
                             {
                                 //½âÎöÎäÆ÷Ê÷
-                                List<Item> presetlist = ItemUtils.RegenerateItemListData(itemPreset, targetkey, cloner);
+                                List<Item> presetlist = itemPreset.RegenerateItemListData(targetkey, cloner);
                                 if (presetlist == null || presetlist.Count == 0) continue;
 
                                 var itemsArray = spawnpoint.Template.Items.ToArray();

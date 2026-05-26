@@ -452,6 +452,10 @@ public record CustomItem : Item
     [JsonPropertyName("_tpl")]
     [JsonConverter(typeof(MongoIdConverter))]
     public required override MongoId Template { get; set; }
+
+    [JsonPropertyName("parentId")]
+    [JsonConverter(typeof(StringHashConverter))]
+    public override string? ParentId { get => base.ParentId; set => base.ParentId = value; }
 }
 public record CustomMastering : Mastering
 {
