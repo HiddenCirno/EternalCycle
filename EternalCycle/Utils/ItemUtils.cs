@@ -90,7 +90,7 @@ namespace EternalCycle
         /// <returns></returns>
         public static MongoId? GetItemRagfairTag(string itemid, DatabaseService databaseService)
         {
-            var targetId = (MongoId)itemid;
+            var targetId = itemid;
             var handbook = databaseService.GetHandbook();
             var item = handbook.Items.FirstOrDefault(x => x.Id == targetId);
             return item?.ParentId;
@@ -99,7 +99,7 @@ namespace EternalCycle
         public static int GetItemMinPrice(string itemid, DatabaseService databaseService)
         {
             var item = GetItem(itemid, databaseService);
-            var itemsid = (MongoId)itemid;
+            var itemsid = itemid;
             var priceTable = databaseService.GetPrices();
             var handbook = databaseService.GetHandbook().Items;
             //var ragfairPrice = offers.Min;
@@ -246,8 +246,7 @@ namespace EternalCycle
                 .AddItemFixData();
 
             //本地化数据
-            var Locales = LocaleUtils.BuildItemLocales(template.CustomProps, creator, modname);
-            LocaleUtils.AddItemToLocales(Locales, itemid, databaseService);
+            LocaleUtils.AddItemToLocales(LocaleUtils.BuildItemLocales(template.CustomProps, creator, modname), itemid, databaseService);
             //尝试添加物品
             //在非空情况下itemClone直接就是来自物品表的引用, 因此无需覆盖更新
             if (itemOriginal == null) databaseService.GetItems().TryAdd(itemid, itemClone);
