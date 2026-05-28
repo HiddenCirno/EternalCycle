@@ -281,8 +281,10 @@ namespace EternalCycle
                 {
                     try 
                     {
-                    var item = context.JsonUtil.Deserialize<Dictionary<string, CustomItemTemplate>>(File.ReadAllText(path));
-                    InitItem(item, creator, modname, context.DB, context.ConfigServer, context.Cloner);
+                        //var item = context.JsonUtil.Deserialize<Dictionary<string, CustomItemTemplate>>(File.ReadAllText(path));
+                        //var item = context.ModHelper.GetJsonDataFromFile<Dictionary<string, CustomItemTemplate>>("", path);
+                        var item = Utils.ConvertItemData("", path, context.JsonUtil);
+                        InitItem(item, creator, modname, context.DB, context.ConfigServer, context.Cloner);
                     }
                     catch (Exception ex)
                     {
