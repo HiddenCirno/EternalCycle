@@ -150,13 +150,13 @@ namespace EternalCycle
         /// <param name="creator">创建者字段</param>
         /// <param name="modname">Mod名字段</param>
         /// <param name="databaseService">数据库服务实例</param>
-        /// <param name="cloner">克隆器接口实例</param>
         /// <param name="configServer">配置服务实例</param>
-        public static void InitItem(Dictionary<string, CustomItemTemplate> items, string creator, string modname, DatabaseService databaseService, ICloner cloner, ConfigServer configServer)
+        /// <param name="cloner">克隆器接口实例</param>
+        public static void InitItem(Dictionary<string, CustomItemTemplate> items, string creator, string modname, DatabaseService databaseService, ConfigServer configServer, ICloner cloner)
         {
             foreach (var item in items)
             {
-                CreateAndAddItem(item.Value, item.Value.TargetId, creator, modname, databaseService, cloner, configServer);
+                CreateAndAddItem(item.Value, item.Value.TargetId, creator, modname, databaseService, configServer, cloner);
             }
         }
         /// <summary>
@@ -167,9 +167,9 @@ namespace EternalCycle
         /// <param name="modname">Mod名字段</param>
         /// <param name="databaseService">数据库服务实例</param>
         /// <param name="jsonUtil">json序列化器实例</param>
-        /// <param name="cloner">克隆器接口实例</param>
         /// <param name="configServer">配置服务实例</param>
-        public static void InitItem(string folderPath, string creator, string modname, DatabaseService databaseService, JsonUtil jsonUtil, ICloner cloner, ConfigServer configServer)
+        /// <param name="cloner">克隆器接口实例</param>
+        public static void InitItem(string folderPath, string creator, string modname, DatabaseService databaseService, JsonUtil jsonUtil, ConfigServer configServer, ICloner cloner)
         {
             List<string> files = Directory.GetFiles(folderPath).ToList();
             if (files.Count > 0)
@@ -179,7 +179,7 @@ namespace EternalCycle
                     string fileContent = File.ReadAllText(file);
                     //string processedJson = Utils.RemoveJsonComments(fileContent);
                     var item = Utils.ConvertItemData<CustomItemTemplate>(fileContent, jsonUtil);
-                    CreateAndAddItem(item, item.TargetId, creator, modname, databaseService, cloner, configServer);
+                    CreateAndAddItem(item, item.TargetId, creator, modname, databaseService, configServer, cloner);
                 }
             }
         }
@@ -191,9 +191,9 @@ namespace EternalCycle
         /// <param name="creator">创建者</param>
         /// <param name="modname">Mod名字</param>
         /// <param name="databaseService">数据库实例</param>
-        /// <param name="cloner">克隆器实例</param>
         /// <param name="configServer">配置实例</param>
-        public static void CreateAndAddItem(CustomItemTemplate template, string targetid, string creator, string modname, DatabaseService databaseService, ICloner cloner, ConfigServer configServer)
+        /// <param name="cloner">克隆器实例</param>
+        public static void CreateAndAddItem(CustomItemTemplate template, string targetid, string creator, string modname, DatabaseService databaseService, ConfigServer configServer, ICloner cloner)
         {
             //需要添加一个验证器, 实现覆盖和加载双模
             //已经有了
@@ -257,7 +257,49 @@ namespace EternalCycle
             }
             Utils.commonLogger.Debug($"物品添加成功: {template.CustomProps.Name}");
         }
+
+        /// <summary>
+        /// 将自定义物品注册到加载事件
+        /// </summary>
+        /// <param name="path">指定的存放单一物品文件的路径或完整的物品文件路径</param>
+        /// <param name="creator">创建者</param>
+        /// <param name="modname">Mod名</param>
+        public static void RegisterItem(string path, string creator, string modname)
+        {
+            //文件夹
+            if (Directory.Exists(path))
+            {
+                EventManager.DataLoadEvent.LoadItemEvent += (context) =>
+                {
+                    InitItem(path, creator, modname, context.DB, context.JsonUtil, context.ConfigServer, context.Cloner);
+                };
+            }
+            //单文件
+            else if (File.Exists(path))
+            {
+                EventManager.DataLoadEvent.LoadItemEvent += (context) =>
+                {
+                    try 
+                    {
+                    var item = context.JsonUtil.Deserialize<Dictionary<string, CustomItemTemplate>>(File.ReadAllText(path));
+                    InitItem(item, creator, modname, context.DB, context.ConfigServer, context.Cloner);
+                    }
+                    catch (Exception ex)
+                    {
+                        EventManager.EventLogger.Error($"注册物品时发生错误：指定的文件 {path} 存在问题", ex);
+                    }
+                };
+            }
+            else
+            {
+                EventManager.EventLogger.Warn($"注册物品时发生异常：找不到指定的文件或文件夹 {path}");
+            }
+        }
+
         //这个也得大改....
+        //所有加载器计划变更为事件统一点
+        //物品-任务-商人-预设-任务逻辑-任务奖励-报价单-配方
+        //大概就是这样, Kappa涉及到任务数据所以放在物品后
         public static void AddItemToKappa(CustomItemTemplate item, DatabaseService databaseService, ICloner cloner)
         {
             var kappa = QuestUtils.GetQuest(QuestTpl.COLLECTOR, databaseService);
@@ -271,7 +313,6 @@ namespace EternalCycle
                 ItemId = itemid,
                 Count = 1,
                 AutoLocale = true
-
             },
             databaseService, cloner);
             var twitchcasecontainer = twitchcase.Properties.Grids.First().Properties.Filters.First().Filter;
@@ -1496,7 +1537,7 @@ namespace EternalCycle
             var newLimit = new RestrictionsInRaid
             {
                 TemplateId = targetId,
-                MaxInLobby = (double)(template.CustomProps.InLobbyCountLimit ?? -1),
+                MaxInLobby = (template.CustomProps.InLobbyCountLimit ?? -1),
                 MaxInRaid = (double)template.CustomProps.InRaidCountLimit
             };
             //检查是否已经存在
@@ -1563,22 +1604,7 @@ namespace EternalCycle
                 unheard.Add(itemid, 1);
             }
         }
-        public static void RegisterItemDirectory(string folderPath, string creator, string modname)
-        {
-            // 别人调用这个方法时，我们直接在这里帮他们挂载事件！
-            EventManager.OnBeforeRagfairLoadedEvent += (context) =>
-            {
-                // 1. 在真正执行的时间点，动态获取所需的服务（别的Mod再也不用自己传这些东西了！）
-                var jsonUtil = ServiceLocator.ServiceProvider.GetService<JsonUtil>();
-                var cloner = ServiceLocator.ServiceProvider.GetService<ICloner>();
-                var configServer = ServiceLocator.ServiceProvider.GetService<ConfigServer>();
-                var logger = ServiceLocator.ServiceProvider.GetService<ISptLogger<VulcanCore>>();
-
-                // 2. 调用底层的真实加载逻辑
-                context.Logger.Info($"[EternalCycle] 正在加载来自 {modname}({creator}) 的自定义物品...");
-                InitItem(folderPath, creator, modname, context.DB, jsonUtil, cloner, configServer);
-            };
-        }
+        
         public static List<string> GetItemListByRagfairTag(MongoId ragfairTag, DatabaseService databaseService)
         {
             var result = new List<string>();

@@ -1,63 +1,84 @@
 using SPTarkov.Server.Core.Models.Logging;
 using SPTarkov.Server.Core.Models.Utils;
+using SPTarkov.Server.Core.Servers;
 using SPTarkov.Server.Core.Services;
 using SPTarkov.Server.Core.Services.Mod;
+using SPTarkov.Server.Core.Utils;
+using SPTarkov.Server.Core.Utils.Cloners;
 using System;
 using static EternalCycle.ContextManager;
 
 namespace EternalCycle
 {
+    /// <summary>
+    /// 事件管理器
+    /// </summary>
     public class EventManager
     {
-        // 委托现在只需要接收这一个 Context 对象
-        public static event Action<OnRagfairLoadContext> OnBeforeRagfairLoadedEvent;
-        public static event Action<OnRagfairLoadContext> OnAfterRagfairLoadedEvent;
-        public static event Action<OnRagfairLoadContext> OnAfterModLoadedEvent;
-        public static event Action<OnRagfairLoadContext> OnBeforeServerStartedEvent;
-        public static event Action<OnRagfairLoadContext> OnAfterServerStartedEvent;
+        /// <summary>
+        /// 跳蚤市场前置事件
+        /// </summary>
+        public static Action<OnRagfairLoadContext> OnBeforeRagfairLoadedEvent;
+        /// <summary>
+        /// 跳蚤市场后置事件
+        /// </summary>
+        public static Action<OnRagfairLoadContext> OnAfterRagfairLoadedEvent;
+        /// <summary>
+        /// Mod加载后置事件, 位于市场前
+        /// </summary>
+        public static Action<OnRagfairLoadContext> OnAfterModLoadedEvent;
+        //由于版本问题这两个暂时用不到
+        public static Action<OnRagfairLoadContext> OnBeforeServerStartedEvent;
+        public static Action<OnRagfairLoadContext> OnAfterServerStartedEvent;
+        //以下为集合事件
+        /// <summary>
+        /// Mod数据加载事件
+        /// </summary>
+        public static class DataLoadEvent
+        {
+            public static Action<OnRagfairLoadContext> LoadItemEvent;
+            public static Action<OnRagfairLoadContext> LoadQuestEvent;
+            public static Action<OnRagfairLoadContext> LoadQuestLogicEvent;
+            public static Action<OnRagfairLoadContext> LoadQuestDataEvent;
+            public static Action<OnRagfairLoadContext> LoadTraderBaseEvent;
+            public static Action<OnRagfairLoadContext> LoadPresetEvent;
+            public static Action<OnRagfairLoadContext> LoadQuestRewardsEvent;
+            public static Action<OnRagfairLoadContext> LoadTraderAssortEvent;
+            public static Action<OnRagfairLoadContext> FixItemCompatibleEvent;
+            //tbc
+        }
+
+        /// <summary>
+        /// 事件管理器专用Logger
+        /// </summary>
         public static ECLogger EventLogger = new ECLogger("全局事件管理器", true);
 
-        public static void InitPreRagfairLoadEvent(DatabaseService db, ECLogger logger)
+        public static void InitPreRagfairLoadEvent(OnRagfairLoadContext context)
         {
-            if (OnBeforeRagfairLoadedEvent != null)
-            {
-                // 把服务打包成一个 Context 丢出去
-                var context = new OnRagfairLoadContext
-                {
-                    DB = db,
-                    Logger = logger
-                };
-                InitEvent(OnBeforeRagfairLoadedEvent, context);
-            }
+            InitRagfairEvent(OnBeforeRagfairLoadedEvent, context);
         }
-        public static void InitPostRagfairLoadEvent(DatabaseService db, ECLogger logger)
-        {
-            if (OnAfterRagfairLoadedEvent != null)
-            {
-                // 把服务打包成一个 Context 丢出去
-                var context = new OnRagfairLoadContext
-                {
-                    DB = db,
-                    Logger = logger
-                };
 
-                InitEvent(OnAfterRagfairLoadedEvent, context);
-            }
-        }
-        public static void InitAfterModLoadedEvent(DatabaseService db, ECLogger logger)
+        public static void InitPostRagfairLoadEvent(OnRagfairLoadContext context)
         {
-            if (OnAfterModLoadedEvent != null)
-            {
-                // 把服务打包成一个 Context 丢出去
-                var context = new OnRagfairLoadContext
-                {
-                    DB = db,
-                    Logger = logger
-                };
-
-                InitEvent(OnAfterModLoadedEvent, context);
-            }
+            InitRagfairEvent(OnAfterRagfairLoadedEvent, context);
         }
+
+        public static void InitAfterModLoadedEvent(OnRagfairLoadContext context)
+        {
+            InitRagfairEvent(OnAfterModLoadedEvent, context);
+        }
+
+        public static void InitLoadItemEvent(OnRagfairLoadContext context)
+        {
+            InitRagfairEvent(DataLoadEvent.LoadItemEvent, context);
+        }
+
+        public static void InitRagfairEvent (Action<OnRagfairLoadContext> targetEvent, OnRagfairLoadContext context)
+        {
+            if (targetEvent == null) return;
+            InitEvent(targetEvent, context);
+        }
+
         private static void InitEvent<T>(Action<T> eventToFire, T context)
         {
             if (eventToFire == null) return; // 没人订阅就直接跳过
