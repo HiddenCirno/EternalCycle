@@ -346,7 +346,7 @@ public class VulcanCore(
             {
                 //VulcanLog.Warn("正在修复物品数据....", logger);
                 // 构建返回的价格字典
-                ItemUtils.FixItemCompatibleInit(ItemUtils.FixList, databaseService, logger, cloner);
+                ItemUtils.FixItemCompatibleInit(ItemUtils.FixDict, databaseService, cloner);
                 //VulcanLog.Debug($"{LocaleUtils.GetItemName(VulcanUtil.ConvertHashID("为了全人类海报"), localeService)}", logger);
                 //VulcanLog.Access("物品数据修复完成", logger);
                 ItemUtils.firstlogin = true;

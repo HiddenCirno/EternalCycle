@@ -475,6 +475,5 @@ public record CustomMastering : Mastering
 public class CustomFixData
 {
     public MongoId ItemId { get; set; }
-    public MongoId TargetId { get; set; }
     public HashSet<string> FixType { get; set; }
 }

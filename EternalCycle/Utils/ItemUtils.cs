@@ -45,7 +45,7 @@ namespace EternalCycle
         /// <summary>
         /// 用于物品兼容性修复的哈希表
         /// </summary>
-        public static HashSet<CustomFixData> FixList = new HashSet<CustomFixData>();
+        public static Dictionary<MongoId, List<CustomFixData>> FixDict = new Dictionary<MongoId, List<CustomFixData>>;
         /// <summary>
         /// 固定可打开包裹数据
         /// </summary>
@@ -503,14 +503,21 @@ namespace EternalCycle
         {
             if (template.CustomProps is CustomFixedItemProps itemProps)
             {
+                //已调整为新的字典逻辑
                 var itemid = template.Id.ConvertHashID();
+                MongoId targetid = itemProps.CustomFixID != null ? (MongoId)itemProps.CustomFixID : template.TargetId;
                 var customFixData = new CustomFixData
                 {
                     FixType = itemProps.FixType,
-                    ItemId = itemid,
-                    TargetId = itemProps.CustomFixID != null ? (MongoId)itemProps.CustomFixID : template.TargetId
+                    ItemId = itemid
                 };
-                if(FixList.FirstOrDefault(x=>x.ItemId == itemid)==null) FixList.Add(customFixData);
+                FixDict.TryGetValue(targetid, out var list);
+                if (list == null) FixDict.Add(targetid, new List<CustomFixData>() { customFixData });
+                else
+                {
+                    list.Add(customFixData);
+                }
+                //if(FixDict.FirstOrDefault(x=>x.ItemId == itemid)==null) FixDict.Add(customFixData);
             }
             return template;
         }
@@ -773,13 +780,56 @@ namespace EternalCycle
             }
             return list;
         }
-        public static void FixItemCompatible(CustomFixData customFixData, DatabaseService databaseService, ISptLogger<VulcanCore> logger, ICloner cloner)
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="customFixData"></param>
+        /// <param name="databaseService"></param>
+        public static void FixItemCompatible(CustomFixData customFixData, DatabaseService databaseService)
         {
-            var items = databaseService.GetItems();
-            var quests = databaseService.GetQuests();
+            var items = databaseService.GetItems().Values;
+            var quests = databaseService.GetQuests().Values;
             var globals = databaseService.GetGlobals();
             var handbooks = databaseService.GetHandbook().Items;
             var prices = databaseService.GetPrices();
+            //施工中
+            if (customFixData == null || customFixData.FixType == null) return;
+            foreach (var fixType in customFixData.FixType) 
+            {
+                switch (fixType)
+                {
+                    case "Mags":
+                    case "Chamber":
+                    case "Mods":
+                    case "ModsBlackList":
+                    case "Container":
+                    case "ContainerBlackList":
+                        {
+
+                        }
+                        break;
+                    case "QuestEquip":
+                    case "QuestEquipBlackList":
+                    case "QuestWeapon":
+                    case "QuestWeaponGroup":
+                    case "HandoverItem":
+                    case "HandoverItemGroup":
+                    case "FindItem":
+                    case "FindItemGroup":
+                        {
+
+                        }
+                        break;
+                    case "InRaidCountLimit":
+                        {
+
+                        }
+                        break;
+                }
+            }
+
+            //已废弃
             foreach (var item in items.Values)
             {
                 if (customFixData != null)
@@ -1001,11 +1051,21 @@ namespace EternalCycle
                 }
             }
         }
-        public static void FixItemCompatibleInit(HashSet<CustomFixData> fixData, DatabaseService databaseService, ISptLogger<VulcanCore> logger, ICloner cloner)
+
+        /// <summary>
+        /// 处理物品兼容数据修复的工具方法
+        /// </summary>
+        /// <param name="fixType">修复类型</param>
+        /// <param name="databaseService">数据库实例(一想到以后所有的都得改一遍我就想死....得交给AI)</param>
+        public static void FixItems(string fixType, DatabaseService databaseService)
+        {
+
+        }
+        public static void FixItemCompatibleInit(HashSet<CustomFixData> fixData, DatabaseService databaseService, ICloner cloner)
         {
             foreach (var item in fixData)
             {
-                FixItemCompatible(item, databaseService, logger, cloner);
+                FixItemCompatible(item, databaseService);
             }
         }
         public static void AddItemToListByRagfairTag(MongoId ragfairtag, List<MongoId> filter, DatabaseService databaseService, ISptLogger<VulcanCore> logger, ICloner cloner, int itemsize = 100)
@@ -1210,8 +1270,6 @@ namespace EternalCycle
         /// </summary>
         /// <param name="template"></param>
         /// <param name="configServer"></param>
-        /// 
-        /// 
         public static CustomItemTemplate SetGiftBoxData(this CustomItemTemplate template, ConfigServer configServer)
         {
             var inventoryConfig = configServer.GetConfig<InventoryConfig>();
