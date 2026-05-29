@@ -82,6 +82,7 @@ namespace EternalCycle
             }
             return null;
         }
+
         /// <summary>
         /// 从数据库返回指定物品的手册分类
         /// </summary>
@@ -339,6 +340,7 @@ namespace EternalCycle
             }
             return template;
         }
+        
         /// <summary>
         /// 为指定ID的物品处理黑名单数据
         /// </summary>
@@ -390,46 +392,91 @@ namespace EternalCycle
                 }
             }
         }
+
+        /// <summary>
+        /// 处理黑名单的工具方法
+        /// </summary>
+        /// <param name="itemid">物品ID</param>
+        /// <param name="configserver">配置实例</param>
         public static void AddAirDropBlackList(string itemid, ConfigServer configserver)
         {
             AirdropConfig lootConfig = configserver.GetConfig<AirdropConfig>();
             foreach (AirdropLoot loot in lootConfig.Loot.Values)
             {
-                loot.ItemBlacklist.Add(itemid);
+                //你TM为什么是List呢?!
+                if(!loot.ItemBlacklist.Contains(itemid)) loot.ItemBlacklist.Add(itemid);
             }
         }
+
+        /// <summary>
+        /// 处理黑名单的工具方法
+        /// </summary>
+        /// <param name="itemid">物品ID</param>
+        /// <param name="configserver">配置实例</param>
         public static void AddPMCLootBlackList(string itemid, ConfigServer configserver)
         {
             PmcConfig lootConfig = configserver.GetConfig<PmcConfig>();
+            //HashSet, 因此可以直接Add, 无需查重
             lootConfig.VestLoot.Blacklist.Add(itemid);
             lootConfig.PocketLoot.Blacklist.Add(itemid);
             lootConfig.BackpackLoot.Blacklist.Add(itemid);
         }
+
+        /// <summary>
+        /// 处理黑名单的工具方法
+        /// </summary>
+        /// <param name="itemid">物品ID</param>
+        /// <param name="configserver">配置实例</param>
         public static void AddScavCaseLootBlackList(string itemid, ConfigServer configserver)
         {
-            ScavCaseConfig lootConfig = configserver.GetConfig<ScavCaseConfig>();
+            ScavCaseConfig lootConfig = configserver.GetConfig<ScavCaseConfig>();   
             lootConfig.RewardItemBlacklist.Add(itemid);
         }
+
+        /// <summary>
+        /// 处理黑名单的工具方法
+        /// </summary>
+        /// <param name="itemid">物品ID</param>
+        /// <param name="configserver">配置实例</param>
         public static void AddFenceBlackList(string itemid, ConfigServer configserver)
         {
             TraderConfig lootConfig = configserver.GetConfig<TraderConfig>();
             lootConfig.Fence.Blacklist.Add(itemid);
         }
+
+        /// <summary>
+        /// 处理黑名单的工具方法
+        /// </summary>
+        /// <param name="itemid">物品ID</param>
+        /// <param name="configserver">配置实例</param>
         public static void AddCircleBlackList(string itemid, ConfigServer configserver)
         {
             HideoutConfig lootConfig = configserver.GetConfig<HideoutConfig>();
             lootConfig.CultistCircle.RewardItemBlacklist.Add(itemid);
         }
+
+        /// <summary>
+        /// 处理黑名单的工具方法
+        /// </summary>
+        /// <param name="itemid">物品ID</param>
+        /// <param name="configserver">配置实例</param>
         public static void AddDailyRewardBlackList(string itemid, ConfigServer configserver)
         {
             QuestConfig questConfig = configserver.GetConfig<QuestConfig>();
             questConfig.RepeatableQuests.ForEach(type => type.RewardBlacklist.Add(itemid));
         }
+
+        /// <summary>
+        /// 处理黑名单的工具方法
+        /// </summary>
+        /// <param name="itemid">物品ID</param>
+        /// <param name="configserver">配置实例</param>
         public static void AddGlobalBlackList(string itemid, ConfigServer configserver)
         {
             ItemConfig itemConfig = configserver.GetConfig<ItemConfig>();
             itemConfig.RewardItemBlacklist.Add(itemid);
         }
+
         /// <summary>
         /// 为自定义物品修复Buff数据
         /// </summary>
@@ -529,6 +576,12 @@ namespace EternalCycle
             pricesDict[itemid] = finalRagfairPrice;
             return template;
         }
+        
+        /// <summary>
+        /// 复制物品基本数据
+        /// </summary>
+        /// <param name="template">自定义物品对象</param>
+        /// <param name="item">原版物品对象</param>
         public static void SetItemBaseData(CustomItemTemplate template, TemplateItem item)
         {
             item.Id = template.Id;
