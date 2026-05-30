@@ -29,6 +29,7 @@ using SPTarkov.Server.Core.Utils.Json;
 using SPTarkov.Server.Core.Utils.Logger;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -45,7 +46,7 @@ namespace EternalCycle
         /// <summary>
         /// 用于物品兼容性修复的哈希表
         /// </summary>
-        public static Dictionary<MongoId, List<CustomFixData>> FixDict = new Dictionary<MongoId, List<CustomFixData>>;
+        public static Dictionary<MongoId, List<CustomFixData>> FixDict = new Dictionary<MongoId, List<CustomFixData>>();
         /// <summary>
         /// 固定可打开包裹数据
         /// </summary>
@@ -780,13 +781,14 @@ namespace EternalCycle
             }
             return list;
         }
-        
+
         /// <summary>
-        /// 
+        /// 为物品修复兼容性
         /// </summary>
-        /// <param name="customFixData"></param>
-        /// <param name="databaseService"></param>
-        public static void FixItemCompatible(CustomFixData customFixData, DatabaseService databaseService)
+        /// <param name="targetId">目标ID</param>
+        /// <param name="customFixData">自定义的修复数据</param>
+        /// <param name="databaseService">数据库实例</param>
+        public static void FixItemCompatible(MongoId targetId, CustomFixData customFixData, DatabaseService databaseService)
         {
             var items = databaseService.GetItems().Values;
             var quests = databaseService.GetQuests().Values;
@@ -795,33 +797,52 @@ namespace EternalCycle
             var prices = databaseService.GetPrices();
             //施工中
             if (customFixData == null || customFixData.FixType == null) return;
+            //不对, 反了, 这里应该foreach-item在外面
+            //吗?
+            //damn, 反了
+            //不对, 没反
+            //哎呦不对, 反了我草
+            foreach (var item in items)
+            {
+                foreach (var fixType in customFixData.FixType)
+                {
+                    var type = fixType.ToLower();
+                    switch (type)
+                    {
+                        case "mags":
+                        case "chamber":
+                        case "mods":
+                        case "modsblacklist":
+                        case "removemodsblacklist":
+                        case "container":
+                        case "containerblacklist":
+                        case "removecontainerblacklist":
+                            {
+                                FixItems(targetId, customFixData.ItemId, type, item);
+                            }
+                            break;
+                    }
+                }
+            }
+
             foreach (var fixType in customFixData.FixType) 
             {
-                switch (fixType)
+                var type = fixType.ToLower();
+                switch (type)
                 {
-                    case "Mags":
-                    case "Chamber":
-                    case "Mods":
-                    case "ModsBlackList":
-                    case "Container":
-                    case "ContainerBlackList":
+                    case "questequip":
+                    case "questequipblacklist":
+                    case "questweapon":
+                    case "questweapongroup":
+                    case "handoveritem":
+                    case "handoveritemgroup":
+                    case "finditem":
+                    case "finditemgroup":
                         {
 
                         }
                         break;
-                    case "QuestEquip":
-                    case "QuestEquipBlackList":
-                    case "QuestWeapon":
-                    case "QuestWeaponGroup":
-                    case "HandoverItem":
-                    case "HandoverItemGroup":
-                    case "FindItem":
-                    case "FindItemGroup":
-                        {
-
-                        }
-                        break;
-                    case "InRaidCountLimit":
+                    case "inraidcountlimit":
                         {
 
                         }
@@ -830,102 +851,7 @@ namespace EternalCycle
             }
 
             //已废弃
-            foreach (var item in items.Values)
-            {
-                if (customFixData != null)
-                {
-                    if (customFixData.FixType != null)
-                    {
-                        if (customFixData.FixType.Contains("Mags"))
-                        {
-                            if (item.Properties != null && item.Properties.Cartridges != null)
-                            {
-                                foreach (var cartridge in item.Properties.Cartridges)
-                                {
-                                    var filters = cartridge.Properties.Filters;
-                                    if (filters.First().Filter.Contains(customFixData.TargetId))
-                                    {
-                                        filters.First().Filter.Add(customFixData.ItemId);
-                                    }
-                                }
-                            }
-                        }
-                        if (customFixData.FixType.Contains("Chamber"))
-                        {
-                            if (item.Properties != null && item.Properties.Chambers != null)
-                            {
-                                foreach (var chamber in item.Properties.Chambers)
-                                {
-                                    var filters = chamber.Properties.Filters;
-                                    if (filters.First().Filter.Contains(customFixData.TargetId))
-                                    {
-                                        filters.First().Filter.Add(customFixData.ItemId);
-                                    }
-                                }
-                            }
-                        }
-                        if (customFixData.FixType.Contains("Mods"))
-                        {
-                            if (item.Properties != null && item.Properties.Slots != null)
-                            {
-                                foreach (var slot in item.Properties.Slots)
-                                {
-                                    var filters = slot.Properties.Filters;
-                                    if (filters.First().Filter.Contains(customFixData.TargetId))
-                                    {
-                                        filters.First().Filter.Add(customFixData.ItemId);
-                                    }
-                                }
-                            }
-                        }
-                        if (customFixData.FixType.Contains("ModsBlackList"))
-                        {
-                            if (item.Properties != null && item.Properties.ConflictingItems != null)
-                            {
-                                var list = item.Properties.ConflictingItems;
-                                if (list.Contains(customFixData.TargetId))
-                                {
-                                    list.Add(customFixData.ItemId);
-                                }
-                            }
-                        }
-                        if (customFixData.FixType.Contains("Container"))
-                        {
-                            if (item.Properties != null && item.Properties.Grids != null)
-                            {
-                                foreach (var grid in item.Properties.Grids)
-                                {
-                                    var filters = grid.Properties.Filters;
-                                    if (filters != null)
-                                    {
-                                        if (filters.FirstOrDefault() != null && filters.FirstOrDefault().Filter.Contains(customFixData.TargetId))
-                                        {
-                                            filters.FirstOrDefault().Filter.Add(customFixData.ItemId);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        if (customFixData.FixType.Contains("ContainerBlackList"))
-                        {
-                            if (item.Properties != null && item.Properties.Grids != null)
-                            {
-                                foreach (var grid in item.Properties.Grids)
-                                {
-                                    var filters = grid.Properties.Filters;
-                                    if (filters != null)
-                                    {
-                                        if (filters.FirstOrDefault() != null && filters.FirstOrDefault().ExcludedFilter.Contains(customFixData.TargetId))
-                                        {
-                                            filters.FirstOrDefault().ExcludedFilter.Add(customFixData.ItemId);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            /* 废弃代码
             foreach (var quest in quests.Values)
             {
                 var finishes = quest.Conditions.AvailableForFinish;
@@ -1050,23 +976,166 @@ namespace EternalCycle
                     globals.Configuration.RestrictionsInRaid = limits.ToArray();
                 }
             }
+            */
         }
 
         /// <summary>
         /// 处理物品兼容数据修复的工具方法
         /// </summary>
+        /// <param name="targetId">目标ID</param>
+        /// <param name="itemId">物品ID</param>
         /// <param name="fixType">修复类型</param>
-        /// <param name="databaseService">数据库实例(一想到以后所有的都得改一遍我就想死....得交给AI)</param>
-        public static void FixItems(string fixType, DatabaseService databaseService)
+        /// <param name="item">物品对象</param>
+        public static void FixItems(MongoId targetId, MongoId itemId, string fixType, TemplateItem item)
         {
-
-        }
-        public static void FixItemCompatibleInit(HashSet<CustomFixData> fixData, DatabaseService databaseService, ICloner cloner)
-        {
-            foreach (var item in fixData)
+            switch (fixType)
             {
-                FixItemCompatible(item, databaseService);
+                case "mags":
+                    {
+                        if (item.Properties == null || item.Properties.Cartridges == null) break;
+                        foreach (var cartridge in item.Properties.Cartridges)
+                        {
+                            if (cartridge.Properties == null) continue;
+                            FixItemsFilter(cartridge.Properties, targetId, itemId);
+                        }
+                    }
+                    break;
+                case "chamber":
+                    {
+                        if (item.Properties == null || item.Properties.Chambers == null) break;
+                        foreach (var chambers in item.Properties.Chambers)
+                        {
+                            if (chambers.Properties == null) continue;
+                            FixItemsFilter(chambers.Properties, targetId, itemId);
+                        }
+                    }
+                    break;
+                case "mods":
+                    {
+                        if (item.Properties == null || item.Properties.Slots == null) break;
+                        foreach (var slots in item.Properties.Slots)
+                        {
+                            if (slots.Properties == null) continue;
+                            FixItemsFilter(slots.Properties, targetId, itemId);
+                        }
+                    }
+                    break;
+                case "modblacklist":
+                    {
+                        if (item.Properties == null || item.Properties.ConflictingItems == null) break;
+                        var list = item.Properties.ConflictingItems;
+                        if(list.Contains(targetId) && !list.Contains(itemId))
+                        {
+                            list.Add(itemId);
+                        }
+                    }
+                    break;
+                case "removemodblacklist":
+                    {
+                        if (item.Properties == null || item.Properties.ConflictingItems == null) break;
+                        var list = item.Properties.ConflictingItems;
+                        if (list.Contains(itemId))
+                        {
+                            list.Remove(itemId);
+                        }
+                    }
+                    break;
+                case "container":
+                    {
+                        if (item.Properties == null || item.Properties.Grids == null) break;
+                        foreach (var grid in item.Properties.Grids)
+                        {
+                            //你的定义怎么不一样??
+                            //哦, 有Exclude
+                            var filter = grid?.Properties?.Filters?.FirstOrDefault()?.Filter;
+                            if(filter!=null &&filter.Contains(targetId) && !filter.Contains(itemId))
+                            {
+                                filter.Add(itemId);
+                            }
+                        }
+                    }
+                    break;
+                case "containerblacklist":
+                    {
+                        if (item.Properties == null || item.Properties.Grids == null) break;
+                        foreach (var grid in item.Properties.Grids)
+                        {
+                            //你的定义怎么不一样??
+                            //哦, 有Exclude
+                            var filter = grid?.Properties?.Filters?.FirstOrDefault()?.ExcludedFilter;
+                            if (filter != null && filter.Contains(targetId) && !filter.Contains(itemId))
+                            {
+                                filter.Add(itemId);
+                            }
+                        }
+                    }
+                    break;
+                //这个好像有点危险
+                //还是做了吧, 大不了不写文档里
+                case "removecontainerblacklist":
+                    {
+                        if (item.Properties == null || item.Properties.Grids == null) break;
+                        foreach (var grid in item.Properties.Grids)
+                        {
+                            var filter = grid?.Properties?.Filters?.FirstOrDefault()?.ExcludedFilter;
+                            if (filter != null && filter.Contains(itemId))
+                            {
+                                filter.Remove(itemId);
+                            }
+                        }
+                    }
+                    break;
             }
+        }
+
+        /// <summary>
+        /// 处理物品兼容性的工具方法
+        /// </summary>
+        /// <param name="slot">目标容器</param>
+        /// <param name="targetId">目标ID</param>
+        /// <param name="itemId">物品ID</param>
+        public static void FixItemsFilter(SlotProperties slot, MongoId targetId, MongoId itemId)
+        {
+            var filter = slot?.Filters?.FirstOrDefault()?.Filter;
+            if (filter != null && filter.Contains(targetId) && !filter.Contains(itemId))
+            {
+                filter.Add(itemId);
+            }
+        }
+
+        /// <summary>
+        /// 初始化物品修复事件
+        /// </summary>
+        /// <param name="fixData">待修复的物品表</param>
+        /// <param name="databaseService"></param>
+        public static void FixItemCompatibleInit(Dictionary<MongoId, List<CustomFixData>> fixData, DatabaseService databaseService)
+        {
+            foreach (var data in fixData)
+            {
+                var targetid = data.Key;
+                foreach(var fixdata in data.Value)
+                {
+                    FixItemCompatible(targetid, fixdata, databaseService);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 注册物品修复事件, 内部调用, 勿动
+        /// </summary>
+        public static void RegisterFixItem()
+        {
+            EventManager.DataLoadEvent.FixItemCompatibleEvent += (context) =>
+            {
+                try
+                {
+                    FixItemCompatibleInit(FixDict, context.DB);
+                }
+                catch (Exception ex)
+                {
+                    EventManager.EventLogger.Error($"注册物品修复数据时发生错误：", ex);
+                }
+            };
         }
         public static void AddItemToListByRagfairTag(MongoId ragfairtag, List<MongoId> filter, DatabaseService databaseService, ISptLogger<VulcanCore> logger, ICloner cloner, int itemsize = 100)
         {

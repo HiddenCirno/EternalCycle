@@ -50,8 +50,6 @@ namespace EternalCycle
             var modHelper = ServiceLocator.ServiceProvider.GetService<ModHelper>();
             var cloner = ServiceLocator.ServiceProvider.GetService<ICloner>();
             var localeService = ServiceLocator.ServiceProvider.GetService<LocaleService>();
-            var logger = new ECLogger("PreRagfairLoadEvent", true);
-            var logger2 = new ECLogger("PostModLoadEvent", true);
             var context = new ContextManager.OnRagfairLoadContext
             {
                 DB = databaseService,
@@ -62,6 +60,16 @@ namespace EternalCycle
                 Cloner = cloner
             };
             EventManager.InitLoadItemEvent(context);
+
+            //µ÷ÊÔ´úÂë
+            var items = databaseService.GetItems();
+            foreach (var item in items)
+            {
+                if (item.Value == null || item.Value.Properties == null) continue;
+                //item.Value.Properties.ExaminedByDefault = true;
+            }
+            ItemUtils.RegisterFixItem();
+            EventManager.InitFixItemCompatibleEventEvent(context);
             EventManager.InitAfterModLoadedEvent(context);
             EventManager.InitPreRagfairLoadEvent(context);
             LocaleUtils.InitGiftBoxLocale(databaseService, localeService);

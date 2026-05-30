@@ -67,10 +67,14 @@ namespace EternalCycle
         {
             InitRagfairEvent(OnAfterModLoadedEvent, context);
         }
-
         public static void InitLoadItemEvent(OnRagfairLoadContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadItemEvent, context);
+        }
+
+        public static void InitFixItemCompatibleEventEvent(OnRagfairLoadContext context)
+        {
+            InitRagfairEvent(DataLoadEvent.FixItemCompatibleEvent, context);
         }
 
         public static void InitRagfairEvent (Action<OnRagfairLoadContext> targetEvent, OnRagfairLoadContext context)
