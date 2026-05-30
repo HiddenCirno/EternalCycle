@@ -47,28 +47,34 @@ namespace EternalCycle
         /// 用于物品兼容性修复的哈希表
         /// </summary>
         public static Dictionary<MongoId, List<CustomFixData>> FixDict = new Dictionary<MongoId, List<CustomFixData>>();
+
         /// <summary>
         /// 固定可打开包裹数据
         /// </summary>
         public static Dictionary<MongoId, StaticGiftBoxData> StaticBoxData = new Dictionary<MongoId, StaticGiftBoxData>();
+
         /// <summary>
         /// 特殊可打开包裹数据(技能, 好感度, etc)
         /// </summary>
         public static Dictionary<MongoId, List<GiftData>> SpecialBoxData = new Dictionary<MongoId, List<GiftData>>();
+
         /// <summary>
         /// 高级可打开包裹数据(米池抽卡)
         /// </summary>
         public static Dictionary<MongoId, AdvancedGiftBoxData> AdvancedBoxData = new Dictionary<MongoId, AdvancedGiftBoxData>();
+
         /// <summary>
         /// 卡池数据
         /// </summary>
         public static Dictionary<string, DrawPoolClass> DrawPoolData = new Dictionary<string, DrawPoolClass>();
         public static bool firstlogin = false;
+
         /// <summary>
         /// 当前Mod目录, 这东西是不是也应该挪到CommonUtils里去?
         /// 好像只在卡池读写用了, 那就不挪了....吧
         /// </summary>
         public static string modPath = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
         /// <summary>
         /// 从数据库返回某个物品的引用
         /// </summary>
@@ -97,6 +103,7 @@ namespace EternalCycle
             var item = handbook.Items.FirstOrDefault(x => x.Id == targetId);
             return item?.ParentId;
         }
+
         //这部分得大改
         public static int GetItemMinPrice(string itemid, DatabaseService databaseService)
         {
@@ -120,6 +127,7 @@ namespace EternalCycle
                 else return 1;
             }
         }
+
         public static int GetItemPrice(string itemid, DatabaseService databaseService)
         {
             var item = GetItem(itemid, databaseService);
@@ -145,6 +153,7 @@ namespace EternalCycle
                 else return 1;
             }
         }
+
         /// <summary>
         /// 从字典对象加载Mod物品
         /// </summary>
@@ -161,6 +170,7 @@ namespace EternalCycle
                 CreateAndAddItem(item.Value, item.Value.TargetId, creator, modname, databaseService, configServer, cloner);
             }
         }
+
         /// <summary>
         /// 从指定文件加载Mod物品
         /// </summary>
@@ -185,6 +195,7 @@ namespace EternalCycle
                 }
             }
         }
+
         /// <summary>
         /// 创建并添加一个物品
         /// </summary>
@@ -281,7 +292,7 @@ namespace EternalCycle
             {
                 EventManager.DataLoadEvent.LoadItemEvent += (context) =>
                 {
-                    try 
+                    try
                     {
                         //var item = context.JsonUtil.Deserialize<Dictionary<string, CustomItemTemplate>>(File.ReadAllText(path));
                         //var item = context.ModHelper.GetJsonDataFromFile<Dictionary<string, CustomItemTemplate>>("", path);
@@ -304,6 +315,7 @@ namespace EternalCycle
         //所有加载器计划变更为事件统一点
         //物品-任务-商人-预设-任务逻辑-任务奖励-报价单-配方
         //大概就是这样, Kappa涉及到任务数据所以放在物品后
+        //这玩意调用了QuestUtils....先放着吧
         public static void AddItemToKappa(CustomItemTemplate item, DatabaseService databaseService, ICloner cloner)
         {
             var kappa = QuestUtils.GetQuest(QuestTpl.COLLECTOR, databaseService);
@@ -341,7 +353,7 @@ namespace EternalCycle
             }
             return template;
         }
-        
+
         /// <summary>
         /// 为指定ID的物品处理黑名单数据
         /// </summary>
@@ -405,7 +417,7 @@ namespace EternalCycle
             foreach (AirdropLoot loot in lootConfig.Loot.Values)
             {
                 //你TM为什么是List呢?!
-                if(!loot.ItemBlacklist.Contains(itemid)) loot.ItemBlacklist.Add(itemid);
+                if (!loot.ItemBlacklist.Contains(itemid)) loot.ItemBlacklist.Add(itemid);
             }
         }
 
@@ -430,7 +442,7 @@ namespace EternalCycle
         /// <param name="configserver">配置实例</param>
         public static void AddScavCaseLootBlackList(string itemid, ConfigServer configserver)
         {
-            ScavCaseConfig lootConfig = configserver.GetConfig<ScavCaseConfig>();   
+            ScavCaseConfig lootConfig = configserver.GetConfig<ScavCaseConfig>();
             lootConfig.RewardItemBlacklist.Add(itemid);
         }
 
@@ -488,7 +500,7 @@ namespace EternalCycle
         public static CustomItemTemplate AddBuffItemData(this CustomItemTemplate template, ConfigServer configserver, DatabaseService databaseService)
         {
             Globals globals = databaseService.GetGlobals();
-            if (template.CustomProps is BuffItemProps itemProps && template.Props.StimulatorBuffs!=null)
+            if (template.CustomProps is BuffItemProps itemProps && template.Props.StimulatorBuffs != null)
             {
                 globals.Configuration.Health.Effects.Stimulator.Buffs[template.Props.StimulatorBuffs] = itemProps.BuffValue;
             }
@@ -584,7 +596,7 @@ namespace EternalCycle
             pricesDict[itemid] = finalRagfairPrice;
             return template;
         }
-        
+
         /// <summary>
         /// 复制物品基本数据
         /// </summary>
@@ -618,7 +630,7 @@ namespace EternalCycle
             }
             return template;
         }
-        
+
         /// <summary>
         /// 为自定义物品设置武器数据(专精)
         /// </summary>
@@ -702,7 +714,7 @@ namespace EternalCycle
                 if (looseloot != null)
                 {
                     //对战利品执行懒加载
-                    looseloot.AddTransformer(loostLoot=>
+                    looseloot.AddTransformer(loostLoot =>
                     {
                         //获取物品根节点
                         spawnpoint.Template.Root = spawnpoint.Template.Root.ConvertHashID();
@@ -756,7 +768,7 @@ namespace EternalCycle
             //重写了一下底层, ParentId在底层自动转换了, 这里可以直接原生搞定12
             return itemlist.ConvertAll(item => (Item)item);
         }
-        
+
         /// <summary>
         /// 清洗物品树, 将其转换为独立实例
         /// </summary>
@@ -793,8 +805,6 @@ namespace EternalCycle
             var items = databaseService.GetItems().Values;
             var quests = databaseService.GetQuests().Values;
             var globals = databaseService.GetGlobals();
-            var handbooks = databaseService.GetHandbook().Items;
-            var prices = databaseService.GetPrices();
             //施工中
             if (customFixData == null || customFixData.FixType == null) return;
             //不对, 反了, 这里应该foreach-item在外面
@@ -824,163 +834,45 @@ namespace EternalCycle
                     }
                 }
             }
-
-            foreach (var fixType in customFixData.FixType) 
+            foreach(var quest in quests)
+            {
+                foreach (var fixType in customFixData.FixType)
+                {
+                    var type = fixType.ToLower();
+                    switch (type)
+                    {
+                        case "questequip":
+                        case "questequipblacklist":
+                        case "questweapon":
+                        case "questweapongroup":
+                        case "handoveritem":
+                        case "handoveritemgroup":
+                        case "finditem":
+                        case "finditemgroup":
+                            {
+                                FixQuests(targetId, customFixData.ItemId, fixType, quest);
+                            }
+                            break;
+                    }
+                }
+            }
+            foreach (var fixType in customFixData.FixType)
             {
                 var type = fixType.ToLower();
                 switch (type)
                 {
-                    case "questequip":
-                    case "questequipblacklist":
-                    case "questweapon":
-                    case "questweapongroup":
-                    case "handoveritem":
-                    case "handoveritemgroup":
-                    case "finditem":
-                    case "finditemgroup":
-                        {
-
-                        }
-                        break;
                     case "inraidcountlimit":
                         {
-
+                            FixInRaidLimit(targetId, customFixData.ItemId, fixType, globals);
                         }
                         break;
                 }
             }
-
-            //已废弃
-            /* 废弃代码
-            foreach (var quest in quests.Values)
-            {
-                var finishes = quest.Conditions.AvailableForFinish;
-                if (customFixData != null)
-                {
-                    if (customFixData.FixType != null && finishes.Count > 0)
-                    {
-                        if (
-                            customFixData.FixType.Contains("QuestEquip") ||
-                            customFixData.FixType.Contains("QuestEquipBlackList") ||
-                            customFixData.FixType.Contains("QuestWeapon") ||
-                            customFixData.FixType.Contains("QuestWeaponGroup")
-                            )
-                        {
-                            foreach (var finish in finishes.Where(f => f.Type == "Elimination"))
-                            {
-                                var counters = finish.Counter?.Conditions;
-                                if (counters == null) continue; // 如果没有 Conditions 跳过
-                                                                // 遍历所有的 condition
-                                foreach (var condition in counters)
-                                {
-                                    if (condition.ConditionType != "Equipment" || condition.ConditionType != "Kills") continue;
-                                    // 处理 EquipmentInclusive
-                                    var inclusive = condition.EquipmentInclusive;
-                                    if (inclusive != null && customFixData.FixType.Contains("QuestEquip"))
-                                    {
-                                        // 只在需要时执行，避免重复遍历
-                                        if (inclusive.Any(equipment => equipment.Contains(customFixData.TargetId))) continue;
-                                        var list = inclusive.ToList();
-                                        list.Add(new List<string> { customFixData.TargetId });
-                                        condition.EquipmentInclusive = list;
-                                    }
-                                    // 处理 EquipmentExclusive
-                                    var exclusive = condition.EquipmentExclusive;
-                                    if (exclusive != null && customFixData.FixType.Contains("QuestEquipBlackList"))
-                                    {
-                                        // 只在需要时执行，避免重复遍历
-                                        if (exclusive.Any(equipment => equipment.Contains(customFixData.TargetId))) continue;
-                                        exclusive.Add(new List<string> { customFixData.TargetId });
-                                    }
-                                    var weapon = condition.Weapon;
-                                    if (weapon != null)
-                                    {
-                                        if (customFixData.FixType.Contains("QuestWeapon"))
-                                        {
-                                            if (weapon.Contains(customFixData.TargetId))
-                                            {
-                                                weapon.Add(customFixData.ItemId);
-                                            }
-                                        }
-                                        else if (customFixData.FixType.Contains("QuestWeaponGroup"))
-                                        {
-                                            if (weapon.Contains(customFixData.TargetId) && weapon.Count > 1)
-                                            {
-                                                weapon.Add(customFixData.ItemId);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        if (
-                            customFixData.FixType.Contains("HandoverItem") ||
-                            customFixData.FixType.Contains("HandoverItemGroup")
-                            )
-                        {
-                            foreach (var finish in finishes.Where(f => f.ConditionType == "HandoverItem"))
-                            {
-                                if (finish.Target == null) continue;
-                                if (finish.Target.IsList && finish.Target.List.Contains(customFixData.TargetId))
-                                {
-                                    if (customFixData.FixType.Contains("HandoverItem"))
-                                    {
-                                        finish.Target.List.Add(customFixData.ItemId);
-                                    }
-                                    else if (customFixData.FixType.Contains("HandoverItemGroup") && finish.Target.List.Count > 1)
-                                    {
-                                        finish.Target.List.Add(customFixData.ItemId);
-                                    }
-                                }
-                            }
-                        }
-                        if (
-                            customFixData.FixType.Contains("FindItem") ||
-                            customFixData.FixType.Contains("FindItemGroup")
-                            )
-                        {
-                            foreach (var finish in finishes.Where(f => f.ConditionType == "FindItem"))
-                            {
-                                if (finish.Target == null) continue;
-                                if (finish.Target.IsList && finish.Target.List.Contains(customFixData.TargetId))
-                                {
-                                    if (customFixData.FixType.Contains("FindItem"))
-                                    {
-                                        finish.Target.List.Add(customFixData.ItemId);
-                                    }
-                                    else if (customFixData.FixType.Contains("FindItemGroup") && finish.Target.List.Count > 1)
-                                    {
-                                        finish.Target.List.Add(customFixData.ItemId);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            if (customFixData != null && customFixData.FixType != null)
-            {
-                if (customFixData.FixType.Contains("InRaidCountLimit"))
-                {
-                    var limits = globals.Configuration.RestrictionsInRaid.ToList();
-                    var target = limits.FirstOrDefault(x => x.TemplateId == customFixData.TargetId);
-                    if (target != null)
-                    {
-                        limits.Add(new RestrictionsInRaid
-                        {
-                            TemplateId = customFixData.ItemId,
-                            MaxInLobby = target.MaxInLobby,
-                            MaxInRaid = target.MaxInRaid
-                        });
-                    }
-                    globals.Configuration.RestrictionsInRaid = limits.ToArray();
-                }
-            }
-            */
+            //施工完毕
         }
 
         /// <summary>
-        /// 处理物品兼容数据修复的工具方法
+        /// 处理物品在物品中的兼容数据修复的工具方法
         /// </summary>
         /// <param name="targetId">目标ID</param>
         /// <param name="itemId">物品ID</param>
@@ -1024,7 +916,7 @@ namespace EternalCycle
                     {
                         if (item.Properties == null || item.Properties.ConflictingItems == null) break;
                         var list = item.Properties.ConflictingItems;
-                        if(list.Contains(targetId) && !list.Contains(itemId))
+                        if (list.Contains(targetId) && !list.Contains(itemId))
                         {
                             list.Add(itemId);
                         }
@@ -1048,7 +940,7 @@ namespace EternalCycle
                             //你的定义怎么不一样??
                             //哦, 有Exclude
                             var filter = grid?.Properties?.Filters?.FirstOrDefault()?.Filter;
-                            if(filter!=null &&filter.Contains(targetId) && !filter.Contains(itemId))
+                            if (filter != null && filter.Contains(targetId) && !filter.Contains(itemId))
                             {
                                 filter.Add(itemId);
                             }
@@ -1104,6 +996,135 @@ namespace EternalCycle
         }
 
         /// <summary>
+        /// 处理物品在任务中的兼容数据修复的工具方法
+        /// </summary>
+        /// <param name="targetId">目标ID</param>
+        /// <param name="itemId">物品ID</param>
+        /// <param name="fixType">修复类型</param>
+        /// <param name="quest">任务对象</param>
+        public static void FixQuests(MongoId targetId, MongoId itemId, string fixType, Quest quest)
+        {
+            var finish = quest.Conditions.AvailableForFinish;
+            if (finish == null) return;
+            var kill = finish.Where(f => f.Type == "Elimination");
+            var handover = finish.Where(f => f.ConditionType == "HandoverItem");
+            var find = finish.Where(f => f.ConditionType == "FindItem");
+            var failed = quest.Conditions.Fail;
+            foreach (var conditions in kill)
+            {
+                var counter = conditions?.Counter?.Conditions;
+                if (counter == null) continue;
+                foreach (var condition in counter)
+                {
+                    if (condition.ConditionType != "Equipment" && condition.ConditionType != "Kills") continue;
+                    if (condition.EquipmentInclusive != null && fixType == "questequip")
+                    {
+                        //出门整点吃的先
+                        //imback
+                        if (condition.EquipmentInclusive.Any(x => x.Count > 0 && x.First() == targetId))
+                        {
+                            if (condition.EquipmentInclusive.Any(x => x.Count > 0 && x.First() == itemId)) continue;
+                            condition.EquipmentInclusive = Utils.AddToArray(condition.EquipmentInclusive.ToArray(), new List<string>() { itemId });
+                        }
+                    }
+                    //hyw, 你为什么和白名单不一样啊??
+                    if (condition.EquipmentExclusive != null)
+                    {
+                        if (fixType == "questequipblacklist")
+                        {
+                            if (condition.EquipmentExclusive.Any(x => x.Count > 0 && x.First() == targetId) && !condition.EquipmentExclusive.Any(x => x.Count > 0 && x.First() == itemId))
+                            {
+                                condition.EquipmentExclusive.Add(new List<string>() { itemId });
+                            }
+                        }
+                        if (fixType == "removequestequipblacklist")
+                        {
+                            var list = condition.EquipmentExclusive;
+                            for (int i = list.Count - 1; i >= 0; i--)
+                            {
+                                var slotList = list[i];
+                                if (slotList.Count > 0 && slotList.First() == itemId)
+                                {
+                                    list.RemoveAt(i);
+                                }
+                            }
+                        }
+                    }
+                    if (condition.Weapon != null)
+                    {
+                        var weapon = condition.Weapon;
+                        if (fixType == "questweapon")
+                        {
+                            //还是HashSet省心
+                            if (weapon.Contains(targetId) && !weapon.Contains(itemId))
+                            {
+                                weapon.Add(itemId);
+                            }
+                        }
+                        if (fixType == "questweapongroup")
+                        {
+                            //还是HashSet省心
+                            if (weapon.Contains(targetId) && !weapon.Contains(itemId) && weapon.Count > 1)
+                            {
+                                weapon.Add(itemId);
+                            }
+                        }
+                    }
+                }
+            }
+            foreach (var condition in handover)
+            {
+                //处理SPT特有的ListOrT, 感觉这个定义可以反向应用到战利品的应用目标上
+                if (condition.Target == null || !condition.Target.IsList || condition.Target.List == null) continue;
+                var list = condition.Target.List;
+                if (!list.Contains(targetId) || list.Contains(itemId)) continue;
+                if (fixType == "handoveritem")
+                {
+                    condition.Target.List.Add(itemId);
+                }
+                else if (fixType == "handoveritemgroup" && condition.Target.List.Count > 1)
+                {
+                    condition.Target.List.Add(itemId);
+                }
+            }
+            foreach (var condition in find)
+            {
+                if (condition.Target == null || !condition.Target.IsList || condition.Target.List == null) continue;
+                var list = condition.Target.List;
+                if (!list.Contains(targetId) || list.Contains(itemId)) continue;
+                if (fixType == "finditem")
+                {
+                    condition.Target.List.Add(itemId);
+                }
+                else if (fixType == "finditemgroup" && condition.Target.List.Count > 1)
+                {
+                    condition.Target.List.Add(itemId);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 处理物品携带数量的兼容数据修复的工具方法
+        /// </summary>
+        /// <param name="targetId">目标ID</param>
+        /// <param name="itemId">物品ID</param>
+        /// <param name="fixType">修复类型</param>
+        /// <param name="globals">配置器实例</param>
+        public static void FixInRaidLimit(MongoId targetId, MongoId itemId, string fixType, Globals globals)
+        {
+            var limits = globals.Configuration.RestrictionsInRaid;
+            var target = limits.FirstOrDefault(x => x.TemplateId == targetId);
+            var self = limits.FirstOrDefault(x => x.TemplateId == itemId);
+            if (target == null || self != null) return;
+            globals.Configuration.RestrictionsInRaid = Utils.AddToArray(globals.Configuration.RestrictionsInRaid, new RestrictionsInRaid
+            {
+                TemplateId = itemId,
+                MaxInLobby = target.MaxInLobby,
+                MaxInRaid = target.MaxInRaid
+            });
+        }
+
+        /// <summary>
         /// 初始化物品修复事件
         /// </summary>
         /// <param name="fixData">待修复的物品表</param>
@@ -1113,7 +1134,7 @@ namespace EternalCycle
             foreach (var data in fixData)
             {
                 var targetid = data.Key;
-                foreach(var fixdata in data.Value)
+                foreach (var fixdata in data.Value)
                 {
                     FixItemCompatible(targetid, fixdata, databaseService);
                 }
@@ -1121,7 +1142,7 @@ namespace EternalCycle
         }
 
         /// <summary>
-        /// 注册物品修复事件, 内部调用, 勿动
+        /// 注册物品修复事件, 内部调用, 勿动, 勿用
         /// </summary>
         public static void RegisterFixItem()
         {
@@ -1743,7 +1764,7 @@ namespace EternalCycle
         /// <returns>自定义物品对象</returns>
         public static CustomItemTemplate SetCustomPMCDogTag(this CustomItemTemplate template, ConfigServer configServer)
         {
-            if (template.CustomProps!=null && template.CustomProps.ApplyAsPMCDogTag == true)
+            if (template.CustomProps != null && template.CustomProps.ApplyAsPMCDogTag == true)
             {
                 var customprops = template.CustomProps;
                 if (customprops.ApplyToBEAR == true)
@@ -1786,16 +1807,12 @@ namespace EternalCycle
                 unheard.Add(itemid, 1);
             }
         }
-        
+
         public static List<string> GetItemListByRagfairTag(MongoId ragfairTag, DatabaseService databaseService)
         {
             var result = new List<string>();
             var handbooks = databaseService.GetHandbook().Items;
-            handbooks
-            .Where(x => x.ParentId == ragfairTag)
-            .ToList()?
-            .ForEach(x => result.Add(x.Id));
-            return result;
+            return handbooks.Where(x => x.ParentId == ragfairTag).Select(x => x.Id.ToString()).ToList();
         }
     }
 }
