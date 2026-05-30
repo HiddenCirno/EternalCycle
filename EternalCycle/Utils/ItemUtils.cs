@@ -514,7 +514,7 @@ namespace EternalCycle
         /// <returns>自定义物品对象</returns>
         public static CustomItemTemplate AddItemFixData(this CustomItemTemplate template)
         {
-            if (template.CustomProps is CustomFixedItemProps itemProps)
+            if (template.CustomProps is CustomFixedItemProps itemProps && itemProps.FixType !=null)
             {
                 //已调整为新的字典逻辑
                 var itemid = template.Id.ConvertHashID();
@@ -797,16 +797,14 @@ namespace EternalCycle
         /// <summary>
         /// 为物品修复兼容性
         /// </summary>
-        /// <param name="targetId">目标ID</param>
-        /// <param name="customFixData">自定义的修复数据</param>
+        /// <param name="fixDictionary">待修复列表</param>
         /// <param name="databaseService">数据库实例</param>
-        public static void FixItemCompatible(MongoId targetId, CustomFixData customFixData, DatabaseService databaseService)
+        public static void FixItemCompatible(Dictionary<MongoId, List<CustomFixData>> fixDictionary, DatabaseService databaseService)
         {
             var items = databaseService.GetItems().Values;
             var quests = databaseService.GetQuests().Values;
             var globals = databaseService.GetGlobals();
             //施工中
-            if (customFixData == null || customFixData.FixType == null) return;
             //不对, 反了, 这里应该foreach-item在外面
             //吗?
             //damn, 反了
@@ -814,59 +812,67 @@ namespace EternalCycle
             //哎呦不对, 反了我草
             foreach (var item in items)
             {
-                foreach (var fixType in customFixData.FixType)
+                fixDictionary.TryGetValue(item.Id, out var data);
+                if (data == null || data.Count == 0) continue;
+                foreach(var customFixData in data)
                 {
-                    var type = fixType.ToLower();
-                    switch (type)
+                    if (customFixData == null || customFixData.FixType == null) continue;
+                    foreach (var fixType in customFixData.FixType)
                     {
-                        case "mags":
-                        case "chamber":
-                        case "mods":
-                        case "modsblacklist":
-                        case "removemodsblacklist":
-                        case "container":
-                        case "containerblacklist":
-                        case "removecontainerblacklist":
-                            {
-                                FixItems(targetId, customFixData.ItemId, type, item);
-                            }
-                            break;
+                        var type = fixType.ToLower();
+                        switch (type)
+                        {
+                            case "mags":
+                            case "chamber":
+                            case "mods":
+                            case "modsblacklist":
+                            case "removemodsblacklist":
+                            case "container":
+                            case "containerblacklist":
+                            case "removecontainerblacklist":
+                                {
+                                    FixItems(item.Id, customFixData.ItemId, type, item);
+                                }
+                                break;
+                            case "inraidcountlimit":
+                                {
+                                    FixInRaidLimit(item.Id, customFixData.ItemId, type, globals);
+                                }
+                                break;
+                        }
                     }
                 }
+                
             }
             foreach(var quest in quests)
             {
-                foreach (var fixType in customFixData.FixType)
+                foreach(var data in fixDictionary)
                 {
-                    var type = fixType.ToLower();
-                    switch (type)
+                    foreach(var customFixData in data.Value)
                     {
-                        case "questequip":
-                        case "questequipblacklist":
-                        case "questweapon":
-                        case "questweapongroup":
-                        case "handoveritem":
-                        case "handoveritemgroup":
-                        case "finditem":
-                        case "finditemgroup":
+                        if (customFixData == null || customFixData.FixType == null) continue;
+                        foreach (var fixType in customFixData.FixType)
+                        {
+                            var type = fixType.ToLower();
+                            switch (type)
                             {
-                                FixQuests(targetId, customFixData.ItemId, fixType, quest);
+                                case "questequip":
+                                case "questequipblacklist":
+                                case "questweapon":
+                                case "questweapongroup":
+                                case "handoveritem":
+                                case "handoveritemgroup":
+                                case "finditem":
+                                case "finditemgroup":
+                                    {
+                                        FixQuests(data.Key, customFixData.ItemId, type, quest);
+                                    }
+                                    break;
                             }
-                            break;
+                        }
                     }
                 }
-            }
-            foreach (var fixType in customFixData.FixType)
-            {
-                var type = fixType.ToLower();
-                switch (type)
-                {
-                    case "inraidcountlimit":
-                        {
-                            FixInRaidLimit(targetId, customFixData.ItemId, fixType, globals);
-                        }
-                        break;
-                }
+                
             }
             //施工完毕
         }
@@ -1125,23 +1131,6 @@ namespace EternalCycle
         }
 
         /// <summary>
-        /// 初始化物品修复事件
-        /// </summary>
-        /// <param name="fixData">待修复的物品表</param>
-        /// <param name="databaseService"></param>
-        public static void FixItemCompatibleInit(Dictionary<MongoId, List<CustomFixData>> fixData, DatabaseService databaseService)
-        {
-            foreach (var data in fixData)
-            {
-                var targetid = data.Key;
-                foreach (var fixdata in data.Value)
-                {
-                    FixItemCompatible(targetid, fixdata, databaseService);
-                }
-            }
-        }
-
-        /// <summary>
         /// 注册物品修复事件, 内部调用, 勿动, 勿用
         /// </summary>
         public static void RegisterFixItem()
@@ -1150,7 +1139,9 @@ namespace EternalCycle
             {
                 try
                 {
-                    FixItemCompatibleInit(FixDict, context.DB);
+                    //古法Debug
+                    //File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportfixdata.json"), context.JsonUtil.Serialize(FixDict, true));
+                    FixItemCompatible(FixDict, context.DB);
                 }
                 catch (Exception ex)
                 {
