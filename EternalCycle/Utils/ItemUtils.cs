@@ -810,39 +810,45 @@ namespace EternalCycle
             //damn, 反了
             //不对, 没反
             //哎呦不对, 反了我草
+            //....
+            //我日你的, 不对, 这里逻辑错了!!
+            //item和quest必须都是m*n才能保证遍历!!
+            //那我TM改结构图什么....
+            //改都改了, 就不改回去了, 算了算了
+            //唉, 闹的....
             foreach (var item in items)
             {
-                fixDictionary.TryGetValue(item.Id, out var data);
-                if (data == null || data.Count == 0) continue;
-                foreach(var customFixData in data)
+                foreach(var data in fixDictionary)
                 {
-                    if (customFixData == null || customFixData.FixType == null) continue;
-                    foreach (var fixType in customFixData.FixType)
+                    foreach (var customFixData in data.Value)
                     {
-                        var type = fixType.ToLower();
-                        switch (type)
+                        if (customFixData == null || customFixData.FixType == null) continue;
+                        foreach (var fixType in customFixData.FixType)
                         {
-                            case "mags":
-                            case "chamber":
-                            case "mods":
-                            case "modsblacklist":
-                            case "removemodsblacklist":
-                            case "container":
-                            case "containerblacklist":
-                            case "removecontainerblacklist":
-                                {
-                                    FixItems(item.Id, customFixData.ItemId, type, item);
-                                }
-                                break;
-                            case "inraidcountlimit":
-                                {
-                                    FixInRaidLimit(item.Id, customFixData.ItemId, type, globals);
-                                }
-                                break;
+                            var type = fixType.ToLower();
+                            switch (type)
+                            {
+                                case "mags":
+                                case "chamber":
+                                case "mods":
+                                case "modsblacklist":
+                                case "removemodsblacklist":
+                                case "container":
+                                case "containerblacklist":
+                                case "removecontainerblacklist":
+                                    {
+                                        FixItems(data.Key, customFixData.ItemId, type, item);
+                                    }
+                                    break;
+                                case "inraidcountlimit":
+                                    {
+                                        FixInRaidLimit(data.Key, customFixData.ItemId, type, globals);
+                                    }
+                                    break;
+                            }
                         }
                     }
                 }
-                
             }
             foreach(var quest in quests)
             {
