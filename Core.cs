@@ -234,6 +234,7 @@ public class VulcanCore(
         EventManager.OnAfterModLoadedEvent += testmethod3;
         ItemUtils.RegisterItem(System.IO.Path.Combine(modPath, "items/"), "<color=#8FFF00>永恒时序-物品加载器</color>", "<color=#FFFF80>永恒时序</color>");
         ItemUtils.RegisterItem(System.IO.Path.Combine(modPath, "gunfight.json"), "<color=#8FFF00>永恒时序-物品加载器</color>", "<color=#FFFF80>枪械武术</color>");
+        ItemUtils.InitDrawPool(modHelper.GetJsonDataFromFile<Dictionary<string, DrawPoolClass>>(modPath, "newdrawpool.json"));
         //ItemUtils.InitItem(System.IO.Path.Combine(modPath, "items/"), "<color=#8FFF00>永恒时序-物品加载器</color>", "<color=#FFFF80>永恒时序</color>", databaseService, jsonutil, configServer, cloner);
         return Task.CompletedTask;
     }

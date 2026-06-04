@@ -1586,20 +1586,18 @@ namespace EternalCycle
         /// <param name="sessionId"></param>
         /// <param name="drawpoolname"></param>
         /// <param name="drawpool"></param>
+        /// <param name="drawrecord"></param>
         /// <param name="jsonUtil"></param>
         /// <param name="itemHelper"></param>
         /// <param name="databaseService"></param>
         /// <param name="modHelper"></param>
         /// <param name="logger"></param>
-        /// <param name="cloner"></param>
         /// <returns></returns>
-        public static List<Item> GetAdvancedBoxData(MongoId sessionId, string drawpoolname, DrawPoolClass drawpool, JsonUtil jsonUtil, ItemHelper itemHelper, DatabaseService databaseService, ModHelper modHelper, ISptLogger<VulcanCore> logger, ICloner cloner)
+        /// <param name="cloner"></param>
+        public static List<Item> GetAdvancedBoxData(MongoId sessionId, string drawpoolname, DrawPoolClass drawpool, Dictionary<MongoId, Dictionary<string, DrawRecord>> drawrecord, JsonUtil jsonUtil, ItemHelper itemHelper, DatabaseService databaseService, ModHelper modHelper, ISptLogger<VulcanCore> logger, ICloner cloner)
         {
             //var modPath = modHelper.GetAbsolutePathToModFolder(Assembly.GetExecutingAssembly());
-            var recordfile = System.IO.Path.Combine(modPath, "drawrecord.json");
-            var recordContent = File.ReadAllText(recordfile);
             var result = new List<Item>();
-            var drawrecord = jsonUtil.Deserialize<Dictionary<MongoId, Dictionary<string, DrawRecord>>>(recordContent);
             var localeService = ServiceLocator.ServiceProvider.GetService<LocaleService>();
             //var drawrecord = modHelper.GetJsonDataFromFile<Dictionary<MongoId, Dictionary<string, DrawRecord>>>(modPath, "drawrecord.json");
             Random random = new Random();
@@ -1733,9 +1731,6 @@ namespace EternalCycle
                     result = GetGiftItemByType(Utils.DrawFromList<GiftData>(normalpool.Normal), Utils.ConvertHashID($"{DateTime.Now.ToString()}_{srdata.Count}"), databaseService, cloner);
                 }
             }
-            var dwarrecordstring = jsonUtil.Serialize(drawrecord, true);
-            //VulcanLog.Access("抽卡统计结束", logger);
-            File.WriteAllText(recordfile, dwarrecordstring);
             //VulcanLog.Debug(dwarrecordstring, logger);
             //VulcanLog.Warn("警告! 无法获取卡池信息", logger);
             return result;

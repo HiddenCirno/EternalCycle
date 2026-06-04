@@ -92,14 +92,27 @@ namespace EternalCycle
                     ItemUtils.DrawPoolData.TryGetValue(drawpoolname, out var drawpool);
                     if (drawpool != null)
                     {
-                        for(var i = 0; i < boxdata.Count; i++)
+                        var modPath = modHelper.GetAbsolutePathToModFolder(Assembly.GetExecutingAssembly());
+                        var recordfile = System.IO.Path.Combine(modPath, "drawrecord.json");
+                        Dictionary<MongoId, Dictionary<string, DrawRecord>> currentRecordCache;
+                        if (File.Exists(recordfile))
                         {
-                            var result = ItemUtils.GetAdvancedBoxData(sessionId, drawpoolname, drawpool, jsonUtil, itemHelper, databaseService, modHelper, logger, cloner);
+                            currentRecordCache = jsonUtil.Deserialize<Dictionary<MongoId, Dictionary<string, DrawRecord>>>(File.ReadAllText(recordfile))
+                                                 ?? new Dictionary<MongoId, Dictionary<string, DrawRecord>>();
+                        }
+                        else
+                        {
+                            currentRecordCache = new Dictionary<MongoId, Dictionary<string, DrawRecord>>();
+                        }
+                        for (var i = 0; i < boxdata.Count; i++)
+                        {
+                            var result = ItemUtils.GetAdvancedBoxData(sessionId, drawpoolname, drawpool, currentRecordCache, jsonUtil, itemHelper, databaseService, modHelper, logger, cloner);
                             if (result.Count > 0)
                             {
                                 rewards.Add(result);
                             }
                         }
+                        File.WriteAllText(recordfile, jsonUtil.Serialize(currentRecordCache, true));
                     }
                 }
             }
