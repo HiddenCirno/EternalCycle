@@ -115,7 +115,7 @@ namespace EternalCycle
                     {
                         //VulcanLog.Debug("正在检查数据....", logger);
                         var hashkey = Utils.ConvertHashID(DateTime.Now.ToString());
-                        var reward = ItemUtils.GetGiftItemByType(data, hashkey, databaseService, logger, cloner);
+                        var reward = ItemUtils.GetGiftItemByType(data, hashkey, databaseService, cloner);
                         if (reward.Count > 0)
                         {
                             //VulcanLog.Debug("数据返回成功", logger);

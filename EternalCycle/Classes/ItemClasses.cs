@@ -209,10 +209,10 @@ public class AdvancedGiftBoxData
     public string PoolName { get; set; }
 }
 
-[JsonDerivedType(typeof(GiftDataCustomPreset), "CustomPreset")]
-[JsonDerivedType(typeof(GiftDataVanillaPreset), "VanillaPreset")]
-[JsonDerivedType(typeof(GiftDataItemData), "Item")]
-[JsonDerivedType(typeof(GiftDataContainerData), "Container")]
+[JsonDerivedType(typeof(GiftCustomPresetData), "CustomPreset")]
+[JsonDerivedType(typeof(GiftVanillaPresetData), "VanillaPreset")]
+[JsonDerivedType(typeof(GiftItemData), "Item")]
+[JsonDerivedType(typeof(GiftContainerData), "Container")]
 [JsonDerivedType(typeof(GiftDataSkillData), "Skill")]
 [JsonDerivedType(typeof(GiftDataExperienceData), "Experience")]
 [JsonDerivedType(typeof(GiftDataTraderStandingData), "Standing")]
@@ -221,18 +221,18 @@ public class GiftData
     [JsonPropertyName("name")]
     public string Name { get; set; }
 }
-public class GiftDataCustomPreset : GiftData
+public class GiftCustomPresetData : GiftData
 {
     [JsonPropertyName("item")]
     public List<CustomItem> Item { get; set; }
 }
-public class GiftDataVanillaPreset : GiftData
+public class GiftVanillaPresetData : GiftData
 {
     [JsonPropertyName("item")]
     [JsonConverter(typeof(MongoIdConverter))]
     public MongoId Item { get; set; }
 }
-public class GiftDataItemData : GiftData
+public class GiftItemData : GiftData
 {
     [JsonPropertyName("itemid")]
     [JsonConverter(typeof(MongoIdConverter))]
@@ -240,7 +240,7 @@ public class GiftDataItemData : GiftData
     [JsonPropertyName("stackcount")]
     public int Count { get; set; }
 }
-public class GiftDataContainerData : GiftData
+public class GiftContainerData : GiftData
 {
     [JsonPropertyName("item")]
     public List<CustomItem> Item { get; set; }

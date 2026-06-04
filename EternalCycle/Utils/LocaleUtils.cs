@@ -340,17 +340,17 @@ namespace EternalCycle
                 {
                     switch (gift)
                     {
-                        case GiftDataItemData itemData:
+                        case GiftItemData itemData:
                             {
                                 srupstring += $"{LocaleUtils.GetItemName(itemData.ItemId, localeService)}x{itemData.Count}, ";
                             }
                             break;
-                        case GiftDataVanillaPreset vanillaPreset:
+                        case GiftVanillaPresetData vanillaPreset:
                             {
                                 srupstring += $"{LocaleUtils.GetItemName(vanillaPreset.Item, localeService)}x1, ";
                             }
                             break;
-                        case GiftDataCustomPreset customPreset:
+                        case GiftCustomPresetData customPreset:
                             {
                                 srupstring += $"{LocaleUtils.GetItemName(customPreset.Item.First().Template, localeService)}x1, ";
                             }
@@ -361,17 +361,17 @@ namespace EternalCycle
                 {
                     switch (gift)
                     {
-                        case GiftDataItemData itemData:
+                        case GiftItemData itemData:
                             {
                                 srnormalstring += $"{LocaleUtils.GetItemName(itemData.ItemId, localeService)}x{itemData.Count}, ";
                             }
                             break;
-                        case GiftDataVanillaPreset vanillaPreset:
+                        case GiftVanillaPresetData vanillaPreset:
                             {
                                 srnormalstring += $"{LocaleUtils.GetItemName(vanillaPreset.Item, localeService)}x1, ";
                             }
                             break;
-                        case GiftDataCustomPreset customPreset:
+                        case GiftCustomPresetData customPreset:
                             {
                                 srnormalstring += $"{LocaleUtils.GetItemName(customPreset.Item.First().Template, localeService)}x1, ";
                             }
@@ -382,17 +382,17 @@ namespace EternalCycle
                 {
                     switch (gift)
                     {
-                        case GiftDataItemData itemData:
+                        case GiftItemData itemData:
                             {
                                 rupstring += $"{LocaleUtils.GetItemName(itemData.ItemId, localeService)}x{itemData.Count}, ";
                             }
                             break;
-                        case GiftDataVanillaPreset vanillaPreset:
+                        case GiftVanillaPresetData vanillaPreset:
                             {
                                 rupstring += $"{LocaleUtils.GetItemName(vanillaPreset.Item, localeService)}x1, ";
                             }
                             break;
-                        case GiftDataCustomPreset customPreset:
+                        case GiftCustomPresetData customPreset:
                             {
                                 rupstring += $"{LocaleUtils.GetItemName(customPreset.Item.First().Template, localeService)}x1, ";
                             }
@@ -403,17 +403,17 @@ namespace EternalCycle
                 {
                     switch (gift)
                     {
-                        case GiftDataItemData itemData:
+                        case GiftItemData itemData:
                             {
                                 rnormalstring += $"{LocaleUtils.GetItemName(itemData.ItemId, localeService)}x{itemData.Count}, ";
                             }
                             break;
-                        case GiftDataVanillaPreset vanillaPreset:
+                        case GiftVanillaPresetData vanillaPreset:
                             {
                                 rnormalstring += $"{LocaleUtils.GetItemName(vanillaPreset.Item, localeService)}x1, ";
                             }
                             break;
-                        case GiftDataCustomPreset customPreset:
+                        case GiftCustomPresetData customPreset:
                             {
                                 rnormalstring += $"{LocaleUtils.GetItemName(customPreset.Item.First().Template, localeService)}x1, ";
                             }
@@ -424,17 +424,17 @@ namespace EternalCycle
                 {
                     switch (gift)
                     {
-                        case GiftDataItemData itemData:
+                        case GiftItemData itemData:
                             {
                                 normalstring += $"{LocaleUtils.GetItemName(itemData.ItemId, localeService)}x{itemData.Count}, ";
                             }
                             break;
-                        case GiftDataVanillaPreset vanillaPreset:
+                        case GiftVanillaPresetData vanillaPreset:
                             {
                                 normalstring += $"{LocaleUtils.GetItemName(vanillaPreset.Item, localeService)}x1, ";
                             }
                             break;
-                        case GiftDataCustomPreset customPreset:
+                        case GiftCustomPresetData customPreset:
                             {
                                 normalstring += $"{LocaleUtils.GetItemName(customPreset.Item.First().Template, localeService)}x1, ";
                             }
