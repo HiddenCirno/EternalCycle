@@ -1543,7 +1543,7 @@ namespace EternalCycle
                 });
             }
         }
-        
+
         /// <summary>
         /// 加载卡池数据
         /// </summary>
@@ -1579,35 +1579,40 @@ namespace EternalCycle
                 }
             }
         }
+        //差个卡池注册
 
         /// <summary>
         /// 抽卡方法
         /// </summary>
-        /// <param name="sessionId"></param>
-        /// <param name="drawpoolname"></param>
-        /// <param name="drawpool"></param>
-        /// <param name="drawrecord"></param>
-        /// <param name="jsonUtil"></param>
-        /// <param name="itemHelper"></param>
-        /// <param name="databaseService"></param>
-        /// <param name="modHelper"></param>
-        /// <param name="logger"></param>
-        /// <returns></returns>
-        /// <param name="cloner"></param>
-        public static List<Item> GetAdvancedBoxData(MongoId sessionId, string drawpoolname, DrawPoolClass drawpool, Dictionary<MongoId, Dictionary<string, DrawRecord>> drawrecord, JsonUtil jsonUtil, ItemHelper itemHelper, DatabaseService databaseService, ModHelper modHelper, ISptLogger<VulcanCore> logger, ICloner cloner)
+        /// <param name="sessionId">pmc存档ID</param>
+        /// <param name="drawpoolname">卡池名称</param>
+        /// <param name="drawpool">卡池数据</param>
+        /// <param name="drawrecord">抽卡记录</param>
+        /// <param name="jsonUtil">json工具实例</param>
+        /// <param name="itemHelper">物品帮助实例</param>
+        /// <param name="databaseService">数据库实例</param>
+        /// <param name="modHelper">mod帮助实例</param>
+        /// <param name="cloner">克隆器实例</param>
+        /// <returns>返回一个物品表</returns>
+        /// 
+        public static List<Item> GetAdvancedBoxData(MongoId sessionId, string drawpoolname, DrawPoolClass drawpool, Dictionary<MongoId, Dictionary<string, DrawRecord>> drawrecord, JsonUtil jsonUtil, ItemHelper itemHelper, DatabaseService databaseService, ModHelper modHelper, ICloner cloner)
         {
-            //var modPath = modHelper.GetAbsolutePathToModFolder(Assembly.GetExecutingAssembly());
+            //输出结果
             var result = new List<Item>();
-            var localeService = ServiceLocator.ServiceProvider.GetService<LocaleService>();
-            //var drawrecord = modHelper.GetJsonDataFromFile<Dictionary<MongoId, Dictionary<string, DrawRecord>>>(modPath, "drawrecord.json");
-            Random random = new Random();
+            //随机种子, 这里是不是应该存一个全局实例?
+            //这个, 不需要了
+            //Random random = new Random();
+            //检查是否有抽卡记录
             if (!drawrecord.TryGetValue(sessionId, out var pmcrecord))
             {
+                //没有就创建一个新的
                 pmcrecord = new Dictionary<string, DrawRecord>();
-                drawrecord[sessionId] = pmcrecord;  // 将新创建的 pmcrecord 存回 drawrecord
+                drawrecord[sessionId] = pmcrecord;
             }
+            //检查是否有当前卡池记录
             if (!pmcrecord.TryGetValue(drawpoolname, out var pooldata))
             {
+                //没有就创建一个新的
                 pooldata = new DrawRecord
                 {
                     SuperRare = new SuperRareRecord
@@ -1623,9 +1628,10 @@ namespace EternalCycle
                         Count = 0,
                         UpAddChance = 0
                     }
-                };  // 可以创建一个新的 DrawRecord
-                pmcrecord[drawpoolname] = pooldata;  // 如果没有找到，则添加新的记录
+                };
+                pmcrecord[drawpoolname] = pooldata;
             }
+            //卡池基础数据
             var basedata = drawpool.BaseReward;
             var itempool = drawpool.ItemPool;
             var sr = basedata.SuperRare;
@@ -1636,9 +1642,11 @@ namespace EternalCycle
             var normalpool = itempool.Normal;
             var srdata = pooldata.SuperRare;
             var rdata = pooldata.Rare;
-            var randomchance = Math.Floor(random.NextDouble() * 1000) / 1000;
+            //概率计算
+            var randomchance = Math.Floor(Random.Shared.NextDouble() * 1000) / 1000;
             var srrealchance = Math.Floor((1 / (sr.ChanceGrowCount + 1 + ((1 - sr.Chance) / sr.ChanceGrowPerCount))) * 1000) / 1000;
-            var upchance = Math.Floor(random.NextDouble() * 1000) / 1000;
+            var upchance = Math.Floor(Random.Shared.NextDouble() * 1000) / 1000;
+            //保底计算
             if (sr.HaveBaseReward)
             {
                 //保底计算
@@ -1663,9 +1671,11 @@ namespace EternalCycle
             //VulcanLog.Debug($"当前金色数据: 累加概率: {srdata.AddChance}, 抽取次数: {srdata.Count}, 保底叠加概率: {srdata.UpAddChance}", logger);
             //VulcanLog.Debug($"当前紫色数据: 累加概率: {rdata.AddChance}, 抽取次数: {rdata.Count}, 保底叠加概率: {rdata.UpAddChance}", logger);
             //VulcanLog.Debug($"当前金色概率: {randomchance}/{srrealchance + srdata.AddChance}", logger);
+            //抽到五星
             if ((randomchance <= (srrealchance + srdata.AddChance)) || (srdata.Count == (sr.ChanceGrowCount + 1 + Math.Floor(((1 - sr.Chance) / sr.ChanceGrowPerCount)))))
             {
                 //VulcanLog.Warn("你抽到了金色传说! ", logger);
+                //记录抽卡结果
                 var cachererord = new SuperRareCardRecord
                 {
                     ItemId = "",
@@ -1673,33 +1683,38 @@ namespace EternalCycle
                     Count = srdata.Count,
                     IsUpReward = false
                 };
+                //清空抽卡历史
                 srdata.AddChance = 0;
                 srdata.Count = 0;
                 rdata.AddChance = 0;
                 rdata.Count = 0;
+                //小保底命中
                 if (upchance <= (sr.UpChance + srdata.UpAddChance))
                 {
                     //VulcanLog.Access("小保底没歪", logger);
                     srdata.UpAddChance = 0;
-                    result = GetGiftItemByType(Utils.DrawFromList<GiftData>(srpool.ChanceUp), Utils.ConvertHashID($"{DateTime.Now.ToString()}_{srdata.Count}"), databaseService, cloner);
+                    result = GetGiftItemByType(Utils.DrawFromList<GiftData>(srpool.ChanceUp), $"{DateTime.Now}_{srdata.Count}_{Guid.NewGuid()}".ConvertHashID(), databaseService, cloner);
                     var tpl = result.First().Template;
                     cachererord.ItemId = tpl;
                     cachererord.ItemName = itemHelper.GetItemName(tpl);
                     cachererord.IsUpReward = true;
                     srdata.Record.Add(cachererord);
                 }
+                //小保底歪了
                 else
                 {
                     //VulcanLog.Error("哎呀, 小保底歪了", logger);
                     srdata.UpAddChance += sr.UpAddChance;
-                    result = GetGiftItemByType(Utils.DrawFromList<GiftData>(srpool.Normal), Utils.ConvertHashID($"{DateTime.Now.ToString()}_{srdata.Count}"), databaseService, cloner);
+                    result = GetGiftItemByType(Utils.DrawFromList<GiftData>(srpool.Normal), $"{DateTime.Now}_{srdata.Count}_{Guid.NewGuid()}".ConvertHashID(), databaseService, cloner);
                     var tpl = result.First().Template;
                     cachererord.ItemId = tpl;
                     cachererord.ItemName = itemHelper.GetItemName(tpl);
                     srdata.Record.Add(cachererord);
 
                 }
+                //itemHelper后面会换掉
             }
+            //四星保底
             else if (randomchance <= (r.Chance) || (rdata.Count == Math.Floor((r.ChanceGrowCount + 1 + ((1 - r.Chance) / r.ChanceGrowPerCount)))))
             {
                 //VulcanLog.Warn("你抽到了紫色史诗 ", logger);
@@ -1709,56 +1724,64 @@ namespace EternalCycle
                 {
                     //VulcanLog.Access("保底没歪", logger);
                     rdata.UpAddChance = 0;
-                    result = GetGiftItemByType(Utils.DrawFromList<GiftData>(rpool.ChanceUp), Utils.ConvertHashID($"{DateTime.Now.ToString()}_{srdata.Count}"), databaseService, cloner);
+                    result = GetGiftItemByType(Utils.DrawFromList<GiftData>(rpool.ChanceUp), $"{DateTime.Now.ToString()}_{rdata.Count}_{Guid.NewGuid()}".ConvertHashID(), databaseService, cloner);
                 }
                 else
                 {
                     //VulcanLog.Error("哎呀, 保底歪了", logger);
                     rdata.UpAddChance += r.UpAddChance;
-                    result = GetGiftItemByType(Utils.DrawFromList<GiftData>(rpool.Normal), Utils.ConvertHashID($"{DateTime.Now.ToString()}_{srdata.Count}"), databaseService, cloner);
+                    result = GetGiftItemByType(Utils.DrawFromList<GiftData>(rpool.Normal), ($"{DateTime.Now}_{rdata.Count}_{Guid.NewGuid()}").ConvertHashID(), databaseService, cloner);
                 }
             }
+            //三星小垃圾
             else
             {
                 //VulcanLog.Debug("很遗憾, 你抽到了一坨垃圾:( ", logger);
                 //VulcanLog.Debug("无需灰心, 霉运乃人生常事, 少侠请重新来过", logger);
                 if (upchance < normal.UpChance)
                 {
-                    result = GetGiftItemByType(Utils.DrawFromList<GiftData>(normalpool.ChanceUp), Utils.ConvertHashID($"{DateTime.Now.ToString()}_{srdata.Count}"), databaseService, cloner);
+                    result = GetGiftItemByType(Utils.DrawFromList<GiftData>(normalpool.ChanceUp), $"{DateTime.Now}_{srdata.Count}_{Guid.NewGuid()}".ConvertHashID(), databaseService, cloner);
                 }
                 else
                 {
-                    result = GetGiftItemByType(Utils.DrawFromList<GiftData>(normalpool.Normal), Utils.ConvertHashID($"{DateTime.Now.ToString()}_{srdata.Count}"), databaseService, cloner);
+                    result = GetGiftItemByType(Utils.DrawFromList<GiftData>(normalpool.Normal), $"{DateTime.Now}_{srdata.Count}_{Guid.NewGuid()}".ConvertHashID(), databaseService, cloner);
                 }
             }
             //VulcanLog.Debug(dwarrecordstring, logger);
             //VulcanLog.Warn("警告! 无法获取卡池信息", logger);
             return result;
         }
-        public static void AddModsToInventory(BotBaseInventory inventory, MongoId itemid, MongoId targetid, string slotid, ISptLogger<VulcanCore> logger)
+
+        /// <summary>
+        /// 向物品栏添加装备
+        /// </summary>
+        /// <param name="inventory"></param>
+        /// <param name="itemid"></param>
+        /// <param name="targetid"></param>
+        /// <param name="slotid"></param>
+        /// 
+        //不对啊, 这个方法有用吗?
+        public static void AddModsToInventory(BotBaseInventory inventory, MongoId itemid, MongoId targetid, string slotid)
         {
+            //查找目标
+            if (inventory == null || inventory.Items == null) return;
             var items = inventory.Items.FirstOrDefault(x => x.Template == targetid);
-            if (items == null)
+            if (items == null) return;
+            var parentid = items.Id;
+            //生成装备节点
+            var newitems = new Item
             {
-                return;
-            }
-            else
-            {
-                var parentid = items.Id;
-                var newitems = new Item
+                Id = new MongoId(),
+                Template = itemid,
+                ParentId = parentid,
+                SlotId = slotid,
+                Upd = new Upd
                 {
-                    Id = new MongoId(),
-                    Template = itemid,
-                    ParentId = parentid,
-                    SlotId = slotid,
-                    Upd = new Upd
-                    {
-                        StackObjectsCount = 1,
-                        SpawnedInSession = true
-                    }
-                };
-                inventory.Items.Add(newitems);
-            }
+                    StackObjectsCount = 1,
+                    SpawnedInSession = true
+                }
+            };
+            inventory.Items.Add(newitems);
             //logger.LogWithColor("尝试生成箭头", LogTextColor.Magenta);
         }
 
@@ -1849,11 +1872,15 @@ namespace EternalCycle
             }
         }
 
-        public static List<string> GetItemListByRagfairTag(MongoId ragfairTag, DatabaseService databaseService)
+        /// <summary>
+        /// 返回基于手册分类的物品列表
+        /// </summary>
+        /// <param name="ragfairTag">分类标签</param>
+        /// <param name="databaseService">数据库实例</param>
+        /// <returns>符合标签的物品ID表</returns>
+        public static List<MongoId> GetItemListByRagfairTag(MongoId ragfairTag, DatabaseService databaseService)
         {
-            var result = new List<string>();
-            var handbooks = databaseService.GetHandbook().Items;
-            return handbooks.Where(x => x.ParentId == ragfairTag).Select(x => x.Id.ToString()).ToList();
+            return databaseService.GetHandbook().Items.Where(x => x.ParentId == ragfairTag).Select(x => x.Id).ToList();
         }
     }
 }

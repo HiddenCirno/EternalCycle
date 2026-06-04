@@ -106,7 +106,7 @@ namespace EternalCycle
                         }
                         for (var i = 0; i < boxdata.Count; i++)
                         {
-                            var result = ItemUtils.GetAdvancedBoxData(sessionId, drawpoolname, drawpool, currentRecordCache, jsonUtil, itemHelper, databaseService, modHelper, logger, cloner);
+                            var result = ItemUtils.GetAdvancedBoxData(sessionId, drawpoolname, drawpool, currentRecordCache, jsonUtil, itemHelper, databaseService, modHelper, cloner);
                             if (result.Count > 0)
                             {
                                 rewards.Add(result);
