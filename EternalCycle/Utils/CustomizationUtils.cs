@@ -103,7 +103,7 @@ public class CustomizationUtils
             ItemId = customCustomHideoutCustomization.Target,
             Type = customCustomHideoutCustomization.Type,
         };
-        QuestUtils.InitQuestConditions(conditions.Conditions, customCustomHideoutCustomization.Conditions, databaseService, cloner, logger);
+        QuestUtils.InitQuestConditions(conditions.Conditions, customCustomHideoutCustomization.Conditions, databaseService, cloner);
         customs.Add(conditions);
         zhCNLang.AddTransformer(lang =>
         {

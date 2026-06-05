@@ -37,7 +37,7 @@ public class AssortUtils
             {
                 case CustomNormalAssortData customAssortData:
                     {
-                        InitAssort(assort, databaseService, cloner, logger);
+                        InitAssort(assort, databaseService, cloner);
                     }
                     break;
                 case CustomLockedAssortData customLockedAssortData:
@@ -50,7 +50,7 @@ public class AssortUtils
                             IsUnknownReward = customLockedAssortData.IsUnknownReward,
                             AssortData = customLockedAssortData,
                         };
-                        QuestUtils.InitAssortUnlockRewards(assortUnlockRewardData, databaseService, cloner, logger);
+                        QuestUtils.InitAssortUnlockRewards(assortUnlockRewardData, databaseService, cloner);
                     }
                     break;
             }
@@ -70,7 +70,7 @@ public class AssortUtils
         }
     }
 
-    public static void InitAssort(CustomAssortData assortData, DatabaseService databaseService, ICloner cloner, ISptLogger<VulcanCore> logger)
+    public static void InitAssort(CustomAssortData assortData, DatabaseService databaseService, ICloner cloner)
     {
         var assort = assortData;
         var assortid = Utils.ConvertHashID(assort.Id);

@@ -65,7 +65,7 @@ public class AchievementUtils
             AvailableForFinish = new List<QuestCondition>(),
             Fail = new List<QuestCondition>()
         };
-        QuestUtils.InitQuestConditions(achievementPattern.Conditions.AvailableForFinish, achievementData.Conditions.AchievementFinishData, databaseService, cloner, logger);
+        QuestUtils.InitQuestConditions(achievementPattern.Conditions.AvailableForFinish, achievementData.Conditions.AchievementFinishData, databaseService, cloner);
         achievementPattern.InstantComplete = achievementData.InstantComplete;
         achievementPattern.ShowConditions = achievementData.ShowConditions;
         achievementPattern.ShowNotificationsInGame = achievementData.ShowNotificationsInGame;
@@ -85,7 +85,7 @@ public class AchievementUtils
             return lang;
         });
         achievements.Add(achievementPattern);
-        QuestUtils.InitQuestRewards(achievementData.AchievementRewards, databaseService, cloner, logger);
+        QuestUtils.InitQuestRewards(achievementData.AchievementRewards, databaseService, cloner);
     }
 }
 
