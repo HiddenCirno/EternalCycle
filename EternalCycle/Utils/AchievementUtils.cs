@@ -32,14 +32,14 @@ public class AchievementUtils
     {
         return databaseService.GetAchievements().FirstOrDefault(x => x.Id == (MongoId)achievementId);
     }
-    public static void InitAchievementData(List<CustomAchievementData> achievementData, DatabaseService databaseService, ICloner cloner, ISptLogger<VulcanCore> logger)
+    public static void InitAchievementData(List<CustomAchievementData> achievementData, DatabaseService databaseService, ICloner cloner, ISptLogger<EternalCycle> logger)
     {
         foreach (var achievement in achievementData)
         {
             InitAchievement(achievement, databaseService, cloner, logger);
         }
     }
-    public static void InitAchievementData(string folderpath, DatabaseService databaseService, ModHelper modHelper, ICloner cloner, ISptLogger<VulcanCore> logger)
+    public static void InitAchievementData(string folderpath, DatabaseService databaseService, ModHelper modHelper, ICloner cloner, ISptLogger<EternalCycle> logger)
     {
         List<string> files = Directory.GetFiles(folderpath).ToList();
         if (files.Count > 0)
@@ -52,7 +52,7 @@ public class AchievementUtils
             }
         }
     }
-    public static void InitAchievement(CustomAchievementData achievementData, DatabaseService databaseService, ICloner cloner, ISptLogger<VulcanCore> logger)
+    public static void InitAchievement(CustomAchievementData achievementData, DatabaseService databaseService, ICloner cloner, ISptLogger<EternalCycle> logger)
     {
         var zhCNLang = databaseService.GetLocales().Global["ch"];
         var achievements = databaseService.GetAchievements();

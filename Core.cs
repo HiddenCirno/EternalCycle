@@ -64,7 +64,7 @@ public static class Init
 }
 [Injectable(TypePriority = OnLoadOrder.PreSptModLoader + 1)]
 public class CorePreSptLoad(
-    ISptLogger<VulcanCore> logger,
+    ISptLogger<EternalCycle> logger,
     DatabaseService databaseService,
     CustomItemService customItemService,
     ModHelper modHelper,
@@ -90,8 +90,8 @@ public class CorePreSptLoad(
 }
 // We want to load after PreSptModLoader is complete, so we set our type priority to that, plus 1.
 [Injectable(TypePriority = OnLoadOrder.PostDBModLoader + 1)]
-public class VulcanCore(
-    ISptLogger<VulcanCore> logger,
+public class EternalCycle(
+    ISptLogger<EternalCycle> logger,
     DatabaseService databaseService,
     CustomItemService customItemService,
     ModHelper modHelper,
@@ -234,6 +234,7 @@ public class VulcanCore(
         EventManager.OnAfterModLoadedEvent += testmethod3;
         ItemUtils.RegisterItem(System.IO.Path.Combine(modPath, "items/"), "<color=#8FFF00>永恒时序-物品加载器</color>", "<color=#FFFF80>永恒时序</color>");
         ItemUtils.RegisterItem(System.IO.Path.Combine(modPath, "gunfight.json"), "<color=#8FFF00>永恒时序-物品加载器</color>", "<color=#FFFF80>枪械武术</color>");
+        QuestUtils.RegisterQuest(System.IO.Path.Combine(modPath, "init.json"), "<color=#8FFF00>永恒时序-调试任务加载</color>", "<color=#FFFF80>永恒时序</color>");
         ItemUtils.InitDrawPool(modHelper.GetJsonDataFromFile<Dictionary<string, DrawPoolClass>>(modPath, "newdrawpool.json"));
         //ItemUtils.InitItem(System.IO.Path.Combine(modPath, "items/"), "<color=#8FFF00>永恒时序-物品加载器</color>", "<color=#FFFF80>永恒时序</color>", databaseService, jsonutil, configServer, cloner);
         return Task.CompletedTask;
@@ -248,9 +249,9 @@ public class VulcanCore(
         private static JsonUtil _jsonUtil;
         private static RagfairOfferService _ragfairOfferService;
         private static ItemHelper _itemHelper;
-        private static ISptLogger<VulcanCore> _logger;
+        private static ISptLogger<EternalCycle> _logger;
         private static ICloner _cloner;
-        private static VulcanCore _vulcanCore;
+        private static EternalCycle _vulcanCore;
 
         public VulcanCoreAwakeRouter(
             JsonUtil jsonUtil,
@@ -259,9 +260,9 @@ public class VulcanCore(
             RagfairController ragfairController,
             RagfairOfferService ragfairOfferService,
             ItemHelper itemHelper,
-            ISptLogger<VulcanCore> logger,
+            ISptLogger<EternalCycle> logger,
             ICloner cloner,
-            VulcanCore vulcanCore)
+            EternalCycle vulcanCore)
             : base(jsonUtil, GetCustomRoutes())
         {
             _httpResponseUtil = httpResponseUtil;
@@ -337,9 +338,9 @@ public class VulcanCore(
             RagfairController ragfairController,
             RagfairOfferService ragfairOfferService,
             ItemHelper itemHelper,
-            ISptLogger<VulcanCore> logger,
+            ISptLogger<EternalCycle> logger,
             ICloner cloner,
-            VulcanCore vulcanCore
+            EternalCycle vulcanCore
             )
         {
             var localeService = ServiceLocator.ServiceProvider.GetService<LocaleService>();
@@ -365,9 +366,9 @@ public class VulcanCore(
             RagfairController ragfairController,
             RagfairOfferService ragfairOfferService,
             ItemHelper itemHelper,
-            ISptLogger<VulcanCore> logger,
+            ISptLogger<EternalCycle> logger,
             ICloner cloner,
-            VulcanCore vulcanCore
+            EternalCycle vulcanCore
             )
         {
             var localeService = ServiceLocator.ServiceProvider.GetService<LocaleService>();
@@ -385,9 +386,9 @@ public class VulcanCore(
             RagfairController ragfairController,
             RagfairOfferService ragfairOfferService,
             ItemHelper itemHelper,
-            ISptLogger<VulcanCore> logger,
+            ISptLogger<EternalCycle> logger,
             ICloner cloner,
-            VulcanCore vulcanCore
+            EternalCycle vulcanCore
             )
         {
             var localeService = ServiceLocator.ServiceProvider.GetService<LocaleService>();

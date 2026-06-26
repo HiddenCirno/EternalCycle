@@ -54,7 +54,7 @@ namespace EternalCycle
             var dialogueHelper = ServiceLocator.ServiceProvider.GetService<DialogueHelper>();
             var randomUtil = ServiceLocator.ServiceProvider.GetService<RandomUtil>();
             var mailSendService = ServiceLocator.ServiceProvider.GetService<MailSendService>();
-            var logger = ServiceLocator.ServiceProvider.GetService<ISptLogger<VulcanCore>>();
+            var logger = ServiceLocator.ServiceProvider.GetService<ISptLogger<EternalCycle>>();
 
             var dialogs = dialogueHelper.GetDialogsForProfile(sessionId);
             if (!dialogs.TryGetValue(dialogueId, out var dialog))

@@ -81,14 +81,14 @@ public class CustomizationUtils
             return lang;
         });
     }
-    public static void InitHideoutCustomiaztionData(Dictionary<string, CustomHideoutCustomization> customData, DatabaseService databaseService, ICloner cloner, ISptLogger<VulcanCore> logger)
+    public static void InitHideoutCustomiaztionData(Dictionary<string, CustomHideoutCustomization> customData, DatabaseService databaseService, ICloner cloner, ISptLogger<EternalCycle> logger)
     {
         foreach (var item in customData)
         {
             InitHideoutCustomization(item.Value, databaseService, cloner, logger);
         }
     }
-    public static void InitHideoutCustomization(CustomHideoutCustomization customCustomHideoutCustomization, DatabaseService databaseService, ICloner cloner, ISptLogger<VulcanCore> logger)
+    public static void InitHideoutCustomization(CustomHideoutCustomization customCustomHideoutCustomization, DatabaseService databaseService, ICloner cloner, ISptLogger<EternalCycle> logger)
     {
         var zhCNLang = databaseService.GetLocales().Global["ch"];
         var customs = databaseService.GetHideout().Customisation.Globals;

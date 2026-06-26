@@ -1,13 +1,4 @@
-﻿using HarmonyLib.Tools;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc.TagHelpers;
-using Microsoft.AspNetCore.Razor.TagHelpers;
-using Microsoft.Extensions.Logging;
-using SPTarkov.Common.Extensions;
-using SPTarkov.DI.Annotations;
-using SPTarkov.Server.Core.Controllers;
-using SPTarkov.Server.Core.DI;
-using SPTarkov.Server.Core.Generators;
+﻿using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.Helpers;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common;

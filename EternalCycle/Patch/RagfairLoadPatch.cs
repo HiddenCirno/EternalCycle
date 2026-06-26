@@ -60,6 +60,7 @@ namespace EternalCycle
                 Cloner = cloner
             };
             EventManager.InitLoadItemEvent(context);
+            EventManager.InitLoadQuestEvent(context);
 
             //ต๗สิด๚ย๋
             var items = databaseService.GetItems();

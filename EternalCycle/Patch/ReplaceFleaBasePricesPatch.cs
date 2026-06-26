@@ -49,7 +49,7 @@ namespace EternalCycle
         {
             var databaseService = ServiceLocator.ServiceProvider.GetService<DatabaseService>();
             var databaseServer = ServiceLocator.ServiceProvider.GetService<DatabaseServer>();
-            var logger = ServiceLocator.ServiceProvider.GetService<ISptLogger<VulcanCore>>();
+            var logger = ServiceLocator.ServiceProvider.GetService<ISptLogger<EternalCycle>>();
             var configServer = ServiceLocator.ServiceProvider.GetService<ConfigServer>();
             var itemHelper = ServiceLocator.ServiceProvider.GetService<ItemHelper>();
             var inventoryHelper = ServiceLocator.ServiceProvider.GetService<InventoryHelper>();

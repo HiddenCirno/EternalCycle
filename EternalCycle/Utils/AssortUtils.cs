@@ -29,7 +29,7 @@ using Path = System.IO.Path;
 namespace EternalCycle;
 public class AssortUtils
 {
-    public static void InitAssortData(List<CustomAssortData> assortData, DatabaseService databaseService, ICloner cloner, ISptLogger<VulcanCore> logger)
+    public static void InitAssortData(List<CustomAssortData> assortData, DatabaseService databaseService, ICloner cloner, ISptLogger<EternalCycle> logger)
     {
         foreach (CustomAssortData assort in assortData)
         {
@@ -56,7 +56,7 @@ public class AssortUtils
             }
         }
     }
-    public static void InitAssortData(string folderpath, DatabaseService databaseService, ModHelper modHelper, ICloner cloner, ISptLogger<VulcanCore> logger)
+    public static void InitAssortData(string folderpath, DatabaseService databaseService, ModHelper modHelper, ICloner cloner, ISptLogger<EternalCycle> logger)
     {
         List<string> files = Directory.GetFiles(folderpath).ToList();
         if (files.Count > 0)

@@ -28,14 +28,14 @@ using Path = System.IO.Path;
 namespace EternalCycle;
 public class PresetUtils
 {
-    public static void InitPresetData(List<CustomPresetData> presetData, DatabaseService databaseService, ICloner cloner, ISptLogger<VulcanCore> logger)
+    public static void InitPresetData(List<CustomPresetData> presetData, DatabaseService databaseService, ICloner cloner, ISptLogger<EternalCycle> logger)
     {
         foreach (var preset in presetData)
         {
             InitPreset(preset, databaseService, cloner, logger);
         }
     }
-    public static void InitPresetData(string folderpath, DatabaseService databaseService, ModHelper modHelper, ICloner cloner, ISptLogger<VulcanCore> logger)
+    public static void InitPresetData(string folderpath, DatabaseService databaseService, ModHelper modHelper, ICloner cloner, ISptLogger<EternalCycle> logger)
     {
         List<string> files = Directory.GetFiles(folderpath).ToList();
         if (files.Count > 0)
@@ -48,7 +48,7 @@ public class PresetUtils
             }
         }
     }
-    public static void InitPreset(CustomPresetData preset, DatabaseService databaseService, ICloner cloner, ISptLogger<VulcanCore> logger)
+    public static void InitPreset(CustomPresetData preset, DatabaseService databaseService, ICloner cloner, ISptLogger<EternalCycle> logger)
     {
         var Preset = databaseService.GetGlobals().ItemPresets;
         var zhCNLang = databaseService.GetLocales().Global["ch"];

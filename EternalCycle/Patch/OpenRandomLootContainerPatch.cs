@@ -49,7 +49,7 @@ namespace EternalCycle
         public static bool Prefix(InventoryController __instance, PmcData pmcData, OpenRandomLootContainerRequestData request, MongoId sessionId, ItemEventRouterResponse output)
         {
             var databaseService = ServiceLocator.ServiceProvider.GetService<DatabaseService>();
-            var logger = ServiceLocator.ServiceProvider.GetService<ISptLogger<VulcanCore>>();
+            var logger = ServiceLocator.ServiceProvider.GetService<ISptLogger<EternalCycle>>();
             var configServer = ServiceLocator.ServiceProvider.GetService<ConfigServer>();
             var itemHelper = ServiceLocator.ServiceProvider.GetService<ItemHelper>();
             var inventoryHelper = ServiceLocator.ServiceProvider.GetService<InventoryHelper>();
