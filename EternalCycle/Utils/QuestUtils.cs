@@ -83,252 +83,266 @@ namespace EternalCycle
             return null;
         }
 
-        /// <summary>
-        /// 从序列化对象加载任务
-        /// </summary>
-        /// <param name="questData">任务数据</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="cloner">克隆器实例</param>
-        public static void InitQuestData(Dictionary<string, CustomQuest> questData, DatabaseService databaseService, ICloner cloner)
-        {
-            foreach (var customquest in questData)
+            /// <summary>
+            /// 从序列化对象加载任务
+            /// </summary>
+            /// <param name="questData">任务数据</param>
+            /// <param name="databaseService">数据库实例</param>
+            /// <param name="cloner">克隆器实例</param>
+            public static void InitQuestData(Dictionary<string, CustomQuest> questData, DatabaseService databaseService, ICloner cloner)
             {
-                InitQuest(customquest.Value, databaseService, cloner);
-            }
-        }
-
-        /// <summary>
-        /// 从指定目录加载任务
-        /// </summary>
-        /// <param name="folderpath">文件夹路径</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="modHelper">mod帮助</param>
-        /// <param name="cloner">克隆器实例</param>
-        public static void InitQuestData(string folderpath, DatabaseService databaseService, ModHelper modHelper, ICloner cloner)
-        {
-            List<string> files = Directory.GetFiles(folderpath).ToList();
-            if (files.Count > 0)
-            {
-                foreach (var file in files)
+                foreach (var customquest in questData)
                 {
-                    string fileName = Path.GetFileName(file);
-                    var customquest = modHelper.GetJsonDataFromFile<CustomQuest>(folderpath, fileName);
-                    InitQuest(customquest, databaseService, cloner);
+                    InitQuest(customquest.Value, databaseService, cloner);
                 }
             }
-        }
 
-        /// <summary>
-        /// 从自定义结构序列化完整任务数据
-        /// </summary>
-        /// <param name="customQuest">自定义任务数据</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="cloner">克隆器实例</param>
-        public static void InitQuest(CustomQuest customQuest, DatabaseService databaseService, ICloner cloner)
-        {
-            var questid = customQuest.QuestId;
-            //短缺
-            var pattern = GetQuest(QuestTpl.SHORTAGE, databaseService);
-            if (pattern == null) return; //怎么可能呢?
-            Quest? questPattern = cloner.Clone(pattern);
-            if (questPattern == null) return; //神经病....
-            //哎我尼玛的不改了, 防空防空十防九空, 我防你妈, 报错拉倒
-            //清空任务数据
-            questPattern.Conditions.AvailableForStart.Clear();
-            questPattern.Conditions.AvailableForFinish.Clear();
-            questPattern.Conditions.Fail.Clear();
-            //清空并重建任务奖励
-            questPattern.Rewards = new Dictionary<string, List<Reward>>
+            /// <summary>
+            /// 从指定目录加载任务
+            /// </summary>
+            /// <param name="folderpath">文件夹路径</param>
+            /// <param name="databaseService">数据库实例</param>
+            /// <param name="modHelper">mod帮助</param>
+            /// <param name="cloner">克隆器实例</param>
+            public static void InitQuestData(string folderpath, DatabaseService databaseService, ModHelper modHelper, ICloner cloner)
             {
-                ["Started"] = new List<Reward>(),
-                ["Success"] = new List<Reward>(),
-                ["Fail"] = new List<Reward>(),
-            };
-            //覆盖任务基础数据
-            questPattern.Type = (QuestTypeEnum)customQuest.QuestType;
-            questPattern.AcceptPlayerMessage = $"{questid} acceptPlayerMessage";
-            questPattern.ChangeQuestMessageText = $"{questid} changeQuestMessageText";
-            questPattern.CompletePlayerMessage = $"{questid} completePlayerMessage";
-            questPattern.Description = $"{questid} description";
-            questPattern.FailMessageText = $"{questid} failMessageText";
-            questPattern.Name = $"{questid} name";
-            questPattern.Note = $"{questid} note";
-            questPattern.StartedMessageText = $"{questid} startedMessageText";
-            questPattern.SuccessMessageText = $"{questid} successMessageText";
-            questPattern.Id = questid;
-            questPattern.Image = customQuest.QuestImagePath;
-            questPattern.TraderId = customQuest.QuestTraderId;
-            questPattern.TemplateId = questid;
-            questPattern.Location = customQuest.Location;
-            questPattern.Restartable = customQuest.IsRestartableQuest;
-            InitQuestConditions(questPattern.Conditions.AvailableForFinish, customQuest.QuestConditions.QuestFinishData, databaseService, cloner);
-            InitQuestConditions(questPattern.Conditions.Fail, customQuest.QuestConditions.QuestFailedData, databaseService, cloner);
-            //临时
-            databaseService.GetQuests().TryAdd(questid, questPattern);
-            var imageRouter = ServiceLocator.ServiceProvider.GetService<ImageRouter>();
-            ImageUtils.RegisterQuestRoute(questPattern.Image, Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "res/questimage/"), imageRouter);
-            //为了完成原版兼容, 奖励定义有任务ID, 必须在任务初始化后添加
-            //应该可以重载
-            InitQuestRewards(customQuest.QuestRewards, databaseService, cloner);
-
-        }
-
-        /// <summary>
-        /// 加载任务数据
-        /// </summary>
-        /// <param name="conditions">目标列表</param>
-        /// <param name="customquestdata">自定义任务对象列表</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="cloner">克隆器实例</param>
-        public static void InitQuestConditions(List<QuestCondition> conditions, List<CustomQuestData> customquestdata, DatabaseService databaseService, ICloner cloner)
-        {
-            var zhCNLang = databaseService.GetLocales().Global["ch"];
-            foreach (CustomQuestData data in customquestdata)
-            {
-                switch (data)
+                List<string> files = Directory.GetFiles(folderpath).ToList();
+                if (files.Count > 0)
                 {
-                    case FindItemData finditemdata:
-                        {
-                            InitFindItemDataConditions(conditions, finditemdata, databaseService, cloner);
-                        }
-                        break;
-                    case FindItemGroupData finditemgroupdata:
-                        {
-                            InitFindItemGroupDataConditions(conditions, finditemgroupdata, databaseService, cloner);
-                        }
-                        break;
-                    case HandoverItemData handitemdata:
-                        {
-                            InitHandoverItemDataConditions(conditions, handitemdata, databaseService, cloner);
-                        }
-                        break;
-                    case HandoverItemGroupData handitemgroupdata:
-                        {
-                            InitHandoverItemGroupDataConditions(conditions, handitemgroupdata, databaseService, cloner);
-                        }
-                        break;
-                    case KillTargetData killtargetdata:
-                        {
-                            InitKillTargetDataConditions(conditions, killtargetdata, databaseService, cloner);
-                        }
-                        break;
-                    case ReachLevelData reachleveldata:
-                        {
-                            InitReachLevelDataConditions(conditions, reachleveldata, databaseService, cloner);
-                        }
-                        break;
-                    case ReachPrestigeLevelData reachprestigeleveldata:
-                        {
-                            InitReachPrestigeLevelDataConditions(conditions, reachprestigeleveldata, databaseService, cloner);
-                        }
-                        break;
-                    case VisitPlaceData visitplacedata:
-                        {
-                            InitVisitPlaceDataConditions(conditions, visitplacedata, databaseService, cloner);
-                        }
-                        break;
-                    case PlaceItemData placeitemdata:
-                        {
-                            InitPlaceItemDataConditions(conditions, placeitemdata, databaseService, cloner);
-                        }
-                        break;
-                    case ExitLocationData exitlocationdata:
-                        {
-                            InitExitLocationDataConditions(conditions, exitlocationdata, databaseService, cloner);
-                        }
-                        break;
-                    case ReachTraderStandingData reachtraderstandingdata:
-                        {
-                            InitReachTraderStandingDataConditions(conditions, reachtraderstandingdata, databaseService, cloner);
-                        }
-                        break;
-                    case ReachTraderTrustLevelData reachtradertrustleveldata:
-                        {
-                            InitReachTraderTrustLevelDataConditions(conditions, reachtradertrustleveldata, databaseService, cloner);
-                        }
-                        break;
-                    case ReachSkillLevelData reachskillleveldata:
-                        {
-                            InitReachSkillLevelDataConditions(conditions, reachskillleveldata, databaseService, cloner);
-                        }
-                        break;
-                    case CompleteQuestData completequestdata:
-                        {
-                            InitCompleteQuestDataConditions(conditions, completequestdata, databaseService, cloner);
-                        }
-                        break;
-                    case CustomizationBlockData customizationblockdata:
-                        {
-                            InitCustomizationBlockDataConditions(conditions, customizationblockdata, databaseService, cloner);
-                        }
-                        break;
-                    default:
-                        {
-                            //VulcanLog.Warn($"发现未处理的任务属性({data.Id})! ", logger);
-                        }
-                        break;
-                }
-                //自动本地化
-                if (data.Locale != null)
-                {
-                    zhCNLang.AddTransformer(lang =>
+                    foreach (var file in files)
                     {
-                        lang[$"{data.Id}"] = data.Locale;
-                        return lang;
-                    });
+                        string fileName = Path.GetFileName(file);
+                        var customquest = modHelper.GetJsonDataFromFile<CustomQuest>(folderpath, fileName);
+                        InitQuest(customquest, databaseService, cloner);
+                    }
                 }
             }
-        }
 
-        /// <summary>
-        /// 将自定义任务注册到加载事件
-        /// </summary>
-        /// <param name="path">指定的存放任务文件的路径或完整的任务文件路径</param>
-        /// <param name="creator">创建者</param>
-        /// <param name="modname">Mod名</param>
-        public static void RegisterQuest(string path, string creator, string modname)
-        {
-            // 文件夹加载模式
-            if (Directory.Exists(path))
+            /// <summary>
+            /// 从自定义结构序列化完整任务数据
+            /// </summary>
+            /// <param name="customQuest">自定义任务数据</param>
+            /// <param name="databaseService">数据库实例</param>
+            /// <param name="cloner">克隆器实例</param>
+            public static void InitQuest(CustomQuest customQuest, DatabaseService databaseService, ICloner cloner)
             {
-                EventManager.DataLoadEvent.LoadQuestEvent += (context) =>
+                var questid = customQuest.QuestId;
+                //短缺
+                var pattern = GetQuest(QuestTpl.SHORTAGE, databaseService);
+                if (pattern == null) return; //怎么可能呢?
+                Quest? questPattern = cloner.Clone(pattern);
+                if (questPattern == null) return; //神经病....
+                //哎我尼玛的不改了, 防空防空十防九空, 我防你妈, 报错拉倒
+                //清空任务数据
+                questPattern.Conditions.AvailableForStart.Clear();
+                questPattern.Conditions.AvailableForFinish.Clear();
+                questPattern.Conditions.Fail.Clear();
+                //清空并重建任务奖励
+                questPattern.Rewards = new Dictionary<string, List<Reward>>
+                {
+                    ["Started"] = new List<Reward>(),
+                    ["Success"] = new List<Reward>(),
+                    ["Fail"] = new List<Reward>(),
+                };
+                //覆盖任务基础数据
+                questPattern.Type = (QuestTypeEnum)customQuest.QuestType;
+                questPattern.AcceptPlayerMessage = $"{questid} acceptPlayerMessage";
+                questPattern.ChangeQuestMessageText = $"{questid} changeQuestMessageText";
+                questPattern.CompletePlayerMessage = $"{questid} completePlayerMessage";
+                questPattern.Description = $"{questid} description";
+                questPattern.FailMessageText = $"{questid} failMessageText";
+                questPattern.Name = $"{questid} name";
+                questPattern.Note = $"{questid} note";
+                questPattern.StartedMessageText = $"{questid} startedMessageText";
+                questPattern.SuccessMessageText = $"{questid} successMessageText";
+                questPattern.Id = questid;
+                questPattern.Image = customQuest.QuestImagePath;
+                questPattern.TraderId = customQuest.QuestTraderId;
+                questPattern.TemplateId = questid;
+                questPattern.Location = customQuest.Location;
+                questPattern.Restartable = customQuest.IsRestartableQuest;
+                //InitQuestConditions(questPattern.Conditions.AvailableForFinish, customQuest.QuestConditions.QuestFinishData, databaseService, cloner);
+                //InitQuestConditions(questPattern.Conditions.Fail, customQuest.QuestConditions.QuestFailedData, databaseService, cloner);
+                //临时
+                databaseService.GetQuests().TryAdd(questid, questPattern);
+                var imageRouter = ServiceLocator.ServiceProvider.GetService<ImageRouter>();
+                ImageUtils.RegisterQuestRoute(questPattern.Image, Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "res/questimage/"), imageRouter);
+                //为了完成原版兼容, 奖励定义有任务ID, 必须在任务初始化后添加
+                //应该可以重载
+                EventManager.DataLoadEvent.LoadQuestDataEvent += (context) =>
                 {
                     try
                     {
-                        // 对应调用已有的文件夹重载方法
-                        InitQuestData(path, context.DB, context.ModHelper, context.Cloner);
-                        //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务模块(文件夹)注册成功");
+                        // 此时闭包已经捕获了上方的 questPattern 实例和 customQuest 数据，直接操作引用
+                        InitQuestConditions(questPattern.Conditions.AvailableForFinish, customQuest.QuestConditions.QuestFinishData, context.DB, context.Cloner);
+                        InitQuestConditions(questPattern.Conditions.Fail, customQuest.QuestConditions.QuestFailedData, context.DB, context.Cloner);
+                        //InitQuestRewards(customQuest.QuestRewards, context.DB, context.Cloner);
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册任务时发生错误：指定的文件夹 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注入任务数据层时发生异常：{questid}", ex);
                     }
                 };
-            }
-            // 单文件加载模式
-            else if (File.Exists(path))
-            {
-                EventManager.DataLoadEvent.LoadQuestEvent += (context) =>
-                {
-                    try
-                    {
-                        // 反序列化为字典字典，对应已有的 Dictionary 重载方法
-                        var questData = context.JsonUtil.Deserialize<Dictionary<string, CustomQuest>>(File.ReadAllText(path));
-                        InitQuestData(questData, context.DB, context.Cloner);
+                //InitQuestRewards(customQuest.QuestRewards, databaseService, cloner);
 
-                        //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务模块(单文件)注册成功");
-                    }
-                    catch (Exception ex)
-                    {
-                        EventManager.EventLogger.Error($"注册任务时发生错误：指定的文件 {path} 存在问题", ex);
-                    }
-                };
             }
-            else
+
+            /// <summary>
+            /// 加载任务数据
+            /// </summary>
+            /// <param name="conditions">目标列表</param>
+            /// <param name="customquestdata">自定义任务对象列表</param>
+            /// <param name="databaseService">数据库实例</param>
+            /// <param name="cloner">克隆器实例</param>
+            public static void InitQuestConditions(List<QuestCondition> conditions, List<CustomQuestData> customquestdata, DatabaseService databaseService, ICloner cloner)
             {
-                EventManager.EventLogger.Warn($"注册任务时发生异常：找不到指定的文件或文件夹 {path}");
+                var zhCNLang = databaseService.GetLocales().Global["ch"];
+                foreach (CustomQuestData data in customquestdata)
+                {
+                    switch (data)
+                    {
+                        case FindItemData finditemdata:
+                            {
+                                InitFindItemDataConditions(conditions, finditemdata, databaseService, cloner);
+                            }
+                            break;
+                        case FindItemGroupData finditemgroupdata:
+                            {
+                                InitFindItemGroupDataConditions(conditions, finditemgroupdata, databaseService, cloner);
+                            }
+                            break;
+                        case HandoverItemData handitemdata:
+                            {
+                                InitHandoverItemDataConditions(conditions, handitemdata, databaseService, cloner);
+                            }
+                            break;
+                        case HandoverItemGroupData handitemgroupdata:
+                            {
+                                InitHandoverItemGroupDataConditions(conditions, handitemgroupdata, databaseService, cloner);
+                            }
+                            break;
+                        case KillTargetData killtargetdata:
+                            {
+                                InitKillTargetDataConditions(conditions, killtargetdata, databaseService, cloner);
+                            }
+                            break;
+                        case ReachLevelData reachleveldata:
+                            {
+                                InitReachLevelDataConditions(conditions, reachleveldata, databaseService, cloner);
+                            }
+                            break;
+                        case ReachPrestigeLevelData reachprestigeleveldata:
+                            {
+                                InitReachPrestigeLevelDataConditions(conditions, reachprestigeleveldata, databaseService, cloner);
+                            }
+                            break;
+                        case VisitPlaceData visitplacedata:
+                            {
+                                InitVisitPlaceDataConditions(conditions, visitplacedata, databaseService, cloner);
+                            }
+                            break;
+                        case PlaceItemData placeitemdata:
+                            {
+                                InitPlaceItemDataConditions(conditions, placeitemdata, databaseService, cloner);
+                            }
+                            break;
+                        case ExitLocationData exitlocationdata:
+                            {
+                                InitExitLocationDataConditions(conditions, exitlocationdata, databaseService, cloner);
+                            }
+                            break;
+                        case ReachTraderStandingData reachtraderstandingdata:
+                            {
+                                InitReachTraderStandingDataConditions(conditions, reachtraderstandingdata, databaseService, cloner);
+                            }
+                            break;
+                        case ReachTraderTrustLevelData reachtradertrustleveldata:
+                            {
+                                InitReachTraderTrustLevelDataConditions(conditions, reachtradertrustleveldata, databaseService, cloner);
+                            }
+                            break;
+                        case ReachSkillLevelData reachskillleveldata:
+                            {
+                                InitReachSkillLevelDataConditions(conditions, reachskillleveldata, databaseService, cloner);
+                            }
+                            break;
+                        case CompleteQuestData completequestdata:
+                            {
+                                InitCompleteQuestDataConditions(conditions, completequestdata, databaseService, cloner);
+                            }
+                            break;
+                        case CustomizationBlockData customizationblockdata:
+                            {
+                                InitCustomizationBlockDataConditions(conditions, customizationblockdata, databaseService, cloner);
+                            }
+                            break;
+                        default:
+                            {
+                                //VulcanLog.Warn($"发现未处理的任务属性({data.Id})! ", logger);
+                            }
+                            break;
+                    }
+                    //自动本地化
+                    if (data.Locale != null)
+                    {
+                        zhCNLang.AddTransformer(lang =>
+                        {
+                            lang[$"{data.Id}"] = data.Locale;
+                            return lang;
+                        });
+                    }
+                }
             }
-        }
+
+            /// <summary>
+            /// 将自定义任务注册到加载事件
+            /// </summary>
+            /// <param name="path">指定的存放任务文件的路径或完整的任务文件路径</param>
+            /// <param name="creator">创建者</param>
+            /// <param name="modname">Mod名</param>
+            public static void RegisterQuest(string path, string creator, string modname)
+            {
+                // 文件夹加载模式
+                if (Directory.Exists(path))
+                {
+                    EventManager.DataLoadEvent.LoadQuestEvent += (context) =>
+                    {
+                        try
+                        {
+                            // 对应调用已有的文件夹重载方法
+                            InitQuestData(path, context.DB, context.ModHelper, context.Cloner);
+                            //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务模块(文件夹)注册成功");
+                        }
+                        catch (Exception ex)
+                        {
+                            EventManager.EventLogger.Error($"注册任务时发生错误：指定的文件夹 {path} 存在问题", ex);
+                        }
+                    };
+                }
+                // 单文件加载模式
+                else if (File.Exists(path))
+                {
+                    EventManager.DataLoadEvent.LoadQuestEvent += (context) =>
+                    {
+                        try
+                        {
+                            // 反序列化为字典字典，对应已有的 Dictionary 重载方法
+                            var questData = context.JsonUtil.Deserialize<Dictionary<string, CustomQuest>>(File.ReadAllText(path));
+                            InitQuestData(questData, context.DB, context.Cloner);
+
+                            //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务模块(单文件)注册成功");
+                        }
+                        catch (Exception ex)
+                        {
+                            EventManager.EventLogger.Error($"注册任务时发生错误：指定的文件 {path} 存在问题", ex);
+                        }
+                    };
+                }
+                else
+                {
+                    EventManager.EventLogger.Warn($"注册任务时发生异常：找不到指定的文件或文件夹 {path}");
+                }
+            }
 
         /// <summary>
         /// 获取任务条件的工具方法

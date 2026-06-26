@@ -40,7 +40,7 @@ namespace EternalCycle
             public static Action<OnRagfairLoadContext> LoadQuestEvent;
             public static Action<OnRagfairLoadContext> LoadQuestLogicEvent;
             public static Action<OnRagfairLoadContext> LoadQuestDataEvent;
-            public static Action<OnRagfairLoadContext> LoadQuestRewardsEvent;
+            public static Action<OnRagfairLoadContext> LoadQuestRewardEvent;
             public static Action<OnRagfairLoadContext> LoadTraderBaseEvent;
             public static Action<OnRagfairLoadContext> LoadPresetEvent;
             public static Action<OnRagfairLoadContext> LoadTraderAssortEvent;
@@ -74,6 +74,14 @@ namespace EternalCycle
         public static void InitLoadQuestEvent(OnRagfairLoadContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadQuestEvent, context);
+        }
+        public static void InitLoadQuestDataEvent(OnRagfairLoadContext context)
+        {
+            InitRagfairEvent(DataLoadEvent.LoadQuestDataEvent, context);
+        }
+        public static void InitLoadQuestRewarddEvent(OnRagfairLoadContext context)
+        {
+            InitRagfairEvent(DataLoadEvent.LoadQuestRewardEvent, context);
         }
 
         public static void InitFixItemCompatibleEventEvent(OnRagfairLoadContext context)
