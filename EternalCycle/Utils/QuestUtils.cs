@@ -438,7 +438,7 @@ namespace EternalCycle
             copycondition.Value = (double)handItemData.Count;
             conditions.Add(copycondition);
         }
-        
+
 
         /// <summary>
         /// 处理击杀任务条件的工具方法
@@ -575,235 +575,285 @@ namespace EternalCycle
             }
             conditions.Add(copycondition);
         }
+
+        /// <summary>
+        /// 处理达到等级条件的工具方法
+        /// </summary>
+        /// <param name="conditions">目标列表</param>
+        /// <param name="reachLevelData">自定义任务数据</param>
+        /// <param name="databaseService">数据库实例</param>
+        /// <param name="cloner">克隆器实例</param>
         public static void InitReachLevelDataConditions(List<QuestCondition> conditions, ReachLevelData reachLevelData, DatabaseService databaseService, ICloner cloner)
         {
-            var condition = databaseService.GetQuests()
-                .SelectMany(q => q.Value.Conditions.AvailableForStart)
-                .FirstOrDefault(c => c.ConditionType == "Level");
-            if (condition != null)
-            {
-                var copycondition = cloner.Clone(condition);
-                copycondition.Id = reachLevelData.Id;
-                copycondition.Index = conditions.Count;
-                copycondition.VisibilityConditions.Clear();
-                copycondition.CompareMethod = ">=";
-                copycondition.Value = (double)reachLevelData.Count;
-                conditions.Add(copycondition);
-            }
+            var condition = GetConditionTemplate(EQuestConditionsTypeCache.Level, "Level", databaseService);
+            if (condition == null) return;
+            var copycondition = cloner.Clone(condition);
+            copycondition.Id = reachLevelData.Id;
+            copycondition.Index = conditions.Count;
+            copycondition.VisibilityConditions.Clear();
+            copycondition.CompareMethod = ">=";
+            copycondition.Value = (double)reachLevelData.Count;
+            conditions.Add(copycondition);
         }
+
+        /// <summary>
+        /// 处理达到转生等级条件的工具方法
+        /// </summary>
+        /// <param name="conditions">目标列表</param>
+        /// <param name="reachPrestigeLevelData">自定义任务数据</param>
+        /// <param name="databaseService">数据库实例</param>
+        /// <param name="cloner">克隆器实例</param>
         public static void InitReachPrestigeLevelDataConditions(List<QuestCondition> conditions, ReachPrestigeLevelData reachPrestigeLevelData, DatabaseService databaseService, ICloner cloner)
         {
-            var condition = databaseService.GetQuests()
-                .SelectMany(q => q.Value.Conditions.AvailableForStart)
-                .FirstOrDefault(c => c.ConditionType == "Level");
-            if (condition != null)
-            {
-                var copycondition = cloner.Clone(condition);
-                copycondition.Id = reachPrestigeLevelData.Id;
-                copycondition.ConditionType = "PrestigeLevel";
-                copycondition.Index = conditions.Count;
-                copycondition.VisibilityConditions.Clear();
-                copycondition.CompareMethod = EnumUtils.GetCompareType(reachPrestigeLevelData.CompareType);
-                copycondition.Value = (double)reachPrestigeLevelData.Level;
-                conditions.Add(copycondition);
-            }
+            var condition = GetConditionTemplate(EQuestConditionsTypeCache.Level, "Level", databaseService);
+            if (condition == null) return;
+            var copycondition = cloner.Clone(condition);
+            copycondition.Id = reachPrestigeLevelData.Id;
+            copycondition.ConditionType = "PrestigeLevel";
+            copycondition.Index = conditions.Count;
+            copycondition.VisibilityConditions.Clear();
+            copycondition.CompareMethod = EnumUtils.GetCompareType(reachPrestigeLevelData.CompareType);
+            copycondition.Value = (double)reachPrestigeLevelData.Level;
+            conditions.Add(copycondition);
         }
+
+        /// <summary>
+        /// 处理访问地点条件的工具方法
+        /// </summary>
+        /// <param name="conditions">目标列表</param>
+        /// <param name="visitPlaceData">自定义任务数据</param>
+        /// <param name="databaseService">数据库实例</param>
+        /// <param name="cloner">克隆器实例</param>
         public static void InitVisitPlaceDataConditions(List<QuestCondition> conditions, VisitPlaceData visitPlaceData, DatabaseService databaseService, ICloner cloner)
         {
-            var condition = databaseService.GetQuests()
+            cacheConditions.TryGetValue(EQuestConditionsTypeCache.Completion, out var condition);
+            if (condition == null)
+            {
+                condition = databaseService.GetQuests()
                 .SelectMany(q => q.Value.Conditions.AvailableForFinish)
                 .FirstOrDefault(c => c.ConditionType == "CounterCreator" && c.Type == "Completion");
-            if (condition != null)
-            {
-                var copycondition = cloner.Clone(condition);
-                copycondition.Id = visitPlaceData.Id;
-                copycondition.Counter.Id = Utils.ConvertHashID($"{visitPlaceData.Id}_Counter");
-                copycondition.Counter.Conditions.Clear();
-                copycondition.OneSessionOnly = visitPlaceData.CompleteInOneRaid;
-                copycondition.Value = (double)1;
-                copycondition.Index = conditions.Count;
-                copycondition.VisibilityConditions.Clear();
-                var visittargets = databaseService.GetQuests()
-                    .SelectMany(q => q.Value.Conditions.AvailableForFinish)   // 所有 AvailableForFinish 条件
-                    .Where(c => c.ConditionType == "CounterCreator")         // 过滤 CounterCreator
-                    .SelectMany(c => c.Counter?.Conditions).FirstOrDefault(c => c.ConditionType == "VisitPlace"); // 获取 Counter 的 Conditions
-                if (visittargets != null)
-                {
-                    var copytargets = cloner.Clone(visittargets);
-                    copytargets.Id = Utils.ConvertHashID($"{visitPlaceData.Id}_VisitCounter");
-                    copytargets.Target = copytargets.Target = new ListOrT<string>(null, visitPlaceData.ZoneId);
-                    copycondition.Counter.Conditions.Add(copytargets);
-                }
-                conditions.Add(copycondition);
+                cacheConditions[EQuestConditionsTypeCache.Completion] = condition;
             }
+            if (condition == null) return;
+            var copycondition = cloner.Clone(condition);
+            copycondition.Id = visitPlaceData.Id;
+            copycondition.Counter.Id = $"{visitPlaceData.Id}_Counter".ConvertHashID();
+            copycondition.Counter.Conditions.Clear();
+            copycondition.OneSessionOnly = visitPlaceData.CompleteInOneRaid;
+            copycondition.Value = (double)1;
+            copycondition.Index = conditions.Count;
+            copycondition.VisibilityConditions.Clear();
+            var visittargets = GetCounterConditionTemplate(EQuestCountersCacheType.VisitPlace, "VisitPlace", databaseService);
+            if (visittargets == null) return;
+            var copytargets = cloner.Clone(visittargets);
+            copytargets.Id = $"{visitPlaceData.Id}_VisitCounter".ConvertHashID();
+            copytargets.Target = new ListOrT<string>(null, visitPlaceData.ZoneId);
+            copycondition.Counter.Conditions.Add(copytargets);
+            conditions.Add(copycondition);
         }
+
+        /// <summary>
+        /// 处理在指定地点安放物品条件的工具方法
+        /// </summary>
+        /// <param name="conditions">目标列表</param>
+        /// <param name="placeItemData">自定义任务数据</param>
+        /// <param name="databaseService">数据库实例</param>
+        /// <param name="cloner">克隆器实例</param>
         public static void InitPlaceItemDataConditions(List<QuestCondition> conditions, PlaceItemData placeItemData, DatabaseService databaseService, ICloner cloner)
         {
-            var condition = databaseService.GetQuests()
-                .SelectMany(q => q.Value.Conditions.AvailableForFinish)
-                .FirstOrDefault(c => c.ConditionType == "LeaveItemAtLocation");
-            if (condition != null)
-            {
-                var copycondition = cloner.Clone(condition);
-                copycondition.Id = placeItemData.Id;
-                copycondition.Index = conditions.Count;
-                copycondition.VisibilityConditions.Clear();
-                copycondition.Target = new ListOrT<string>(new List<string>(), null);
-                copycondition.Target.List.Add(placeItemData.ItemId);
-                copycondition.Value = (double)placeItemData.Count;
-                copycondition.PlantTime = (double)placeItemData.Time;
-                copycondition.ZoneId = placeItemData.ZoneId;
-                conditions.Add(copycondition);
-            }
+            var condition = GetConditionTemplate(EQuestConditionsTypeCache.LeaveItemAtLocation, "LeaveItemAtLocation", databaseService);
+            if (condition == null) return;
+            var copycondition = cloner.Clone(condition);
+            copycondition.Id = placeItemData.Id;
+            copycondition.Index = conditions.Count;
+            copycondition.VisibilityConditions.Clear();
+            copycondition.Target = new ListOrT<string>(new List<string>(), null);
+            copycondition.Target.List.Add(placeItemData.ItemId);
+            copycondition.Value = (double)placeItemData.Count;
+            copycondition.PlantTime = (double)placeItemData.Time;
+            copycondition.ZoneId = placeItemData.ZoneId;
+            conditions.Add(copycondition);
         }
+
+        /// <summary>
+        /// 处理从指定地图撤离的工具方法
+        /// </summary>
+        /// <param name="conditions">目标列表</param>
+        /// <param name="exitLocationData">自定义任务数据</param>
+        /// <param name="databaseService">数据库实例</param>
+        /// <param name="cloner">克隆器实例</param>
         public static void InitExitLocationDataConditions(List<QuestCondition> conditions, ExitLocationData exitLocationData, DatabaseService databaseService, ICloner cloner)
         {
-            var condition = databaseService.GetQuests()
+            cacheConditions.TryGetValue(EQuestConditionsTypeCache.Completion, out var condition);
+            if (condition == null)
+            {
+                condition = databaseService.GetQuests()
                 .SelectMany(q => q.Value.Conditions.AvailableForFinish)
                 .FirstOrDefault(c => c.ConditionType == "CounterCreator" && c.Type == "Completion");
-            if (condition != null)
-            {
-                var copycondition = cloner.Clone(condition);
-                copycondition.Id = exitLocationData.Id;
-                copycondition.Counter.Id = Utils.ConvertHashID($"{exitLocationData.Id}_Counter");
-                copycondition.Counter.Conditions.Clear();
-                copycondition.OneSessionOnly = exitLocationData.CompleteInOneRaid;
-                copycondition.Value = (double)exitLocationData.Count;
-                copycondition.Index = conditions.Count;
-                copycondition.VisibilityConditions.Clear();
-                var locationtargets = databaseService.GetQuests()
-                    .SelectMany(q => q.Value.Conditions.AvailableForFinish)   // 所有 AvailableForFinish 条件
-                    .Where(c => c.ConditionType == "CounterCreator")         // 过滤 CounterCreator
-                    .SelectMany(c => c.Counter?.Conditions).FirstOrDefault(c => c.ConditionType == "Location"); // 获取 Counter 的 Conditions
-                var exitstatustargets = databaseService.GetQuests()
-                    .SelectMany(q => q.Value.Conditions.AvailableForFinish)   // 所有 AvailableForFinish 条件
-                    .Where(c => c.ConditionType == "CounterCreator")         // 过滤 CounterCreator
-                    .SelectMany(c => c.Counter?.Conditions).FirstOrDefault(c => c.ConditionType == "ExitStatus"); // 获取 Counter 的 Conditions
-                if (locationtargets != null)
-                {
-                    var copytargets = cloner.Clone(locationtargets);
-                    copytargets.Id = Utils.ConvertHashID($"{exitLocationData.Id}_LocationCounter");
-                    var locations = BitMapUtils.GetLocationCode(exitLocationData.Locations);
-                    copytargets.Target = new ListOrT<string>(new List<string>(), null);
-                    foreach (string location in locations)
-                    {
-                        copytargets.Target.List.Add(location);
-                    }
-                    copycondition.Counter.Conditions.Add(copytargets);
-                }
-                if (exitstatustargets != null)
-                {
-                    var copytargets = cloner.Clone(exitstatustargets);
-                    copytargets.Id = Utils.ConvertHashID($"{exitLocationData.Id}_ExitStatusCounter");
-                    var statuslist = BitMapUtils.GetExitStatusCode(exitLocationData.ExitStatus);
-                    copytargets.Status.Clear();
-                    foreach (string status in statuslist)
-                    {
-                        copytargets.Status.Add(status);
-                    }
-                    copycondition.Counter.Conditions.Add(copytargets);
-                }
-                if (exitLocationData.ChooseExitPoint == true)
-                {
-                    var exitpointtargets = databaseService.GetQuests()
-                    .SelectMany(q => q.Value.Conditions.AvailableForFinish)   // 所有 AvailableForFinish 条件
-                    .Where(c => c.ConditionType == "CounterCreator")         // 过滤 CounterCreator
-                    .SelectMany(c => c.Counter?.Conditions).FirstOrDefault(c => c.ConditionType == "ExitName"); // 获取 Counter 的 Conditions
-                    if (exitpointtargets != null)
-                    {
-                        var copytargets = cloner.Clone(exitpointtargets);
-                        copytargets.Id = Utils.ConvertHashID($"{exitLocationData.Id}_ExitPointCounter");
-                        copytargets.ExitName = exitLocationData.ExitPoint;
-                        copycondition.Counter.Conditions.Add(copytargets);
-                    }
-                }
-                conditions.Add(copycondition);
+                cacheConditions[EQuestConditionsTypeCache.Completion] = condition;
             }
+            if (condition == null) return;
+            var copycondition = cloner.Clone(condition);
+            copycondition.Id = exitLocationData.Id;
+            copycondition.Counter.Id = $"{exitLocationData.Id}_Counter".ConvertHashID();
+            copycondition.Counter.Conditions.Clear();
+            copycondition.OneSessionOnly = exitLocationData.CompleteInOneRaid;
+            copycondition.Value = (double)exitLocationData.Count;
+            copycondition.Index = conditions.Count;
+            copycondition.VisibilityConditions.Clear();
+            var locationtargets = GetCounterConditionTemplate(EQuestCountersCacheType.Location, "Location", databaseService);
+            var exitstatustargets = GetCounterConditionTemplate(EQuestCountersCacheType.ExitStatus, "ExitStatus", databaseService);
+            if (locationtargets != null)
+            {
+                var copytargets = cloner.Clone(locationtargets);
+                copytargets.Id = $"{exitLocationData.Id}_LocationCounter".ConvertHashID();
+                var locations = BitMapUtils.GetLocationCode(exitLocationData.Locations);
+                copytargets.Target = new ListOrT<string>(new List<string>(), null);
+                foreach (string location in locations)
+                {
+                    copytargets.Target.List.Add(location);
+                }
+                copycondition.Counter.Conditions.Add(copytargets);
+            }
+            if (exitstatustargets != null)
+            {
+                var copytargets = cloner.Clone(exitstatustargets);
+                copytargets.Id = $"{exitLocationData.Id}_ExitStatusCounter".ConvertHashID();
+                var statuslist = BitMapUtils.GetExitStatusCode(exitLocationData.ExitStatus);
+                copytargets.Status.Clear();
+                foreach (string status in statuslist)
+                {
+                    copytargets.Status.Add(status);
+                }
+                copycondition.Counter.Conditions.Add(copytargets);
+            }
+            if (exitLocationData.ChooseExitPoint == true)
+            {
+
+                var exitpointtargets = GetCounterConditionTemplate(EQuestCountersCacheType.ExitName, "ExitName", databaseService);
+                if (exitpointtargets != null)
+                {
+                    var copytargets = cloner.Clone(exitpointtargets);
+                    copytargets.Id = $"{exitLocationData.Id}_ExitPointCounter".ConvertHashID();
+                    copytargets.ExitName = exitLocationData.ExitPoint;
+                    copycondition.Counter.Conditions.Add(copytargets);
+                }
+            }
+            conditions.Add(copycondition);
         }
+
+        /// <summary>
+        /// 处理到达指定商人信任度的工具方法
+        /// </summary>
+        /// <param name="conditions">目标列表</param>
+        /// <param name="reachTraderStandingData">自定义任务数据</param>
+        /// <param name="databaseService">数据库实例</param>
+        /// <param name="cloner">克隆器实例</param>
         public static void InitReachTraderStandingDataConditions(List<QuestCondition> conditions, ReachTraderStandingData reachTraderStandingData, DatabaseService databaseService, ICloner cloner)
         {
-            var condition = databaseService.GetQuests()
-                .SelectMany(q => q.Value.Conditions.AvailableForStart)
-                .FirstOrDefault(c => c.ConditionType == "Level");
-            if (condition != null)
-            {
-                var copycondition = cloner.Clone(condition);
-                copycondition.Id = reachTraderStandingData.Id;
-                copycondition.Index = conditions.Count;
-                copycondition.VisibilityConditions.Clear();
-                copycondition.CompareMethod = ">=";
-                copycondition.ConditionType = "TraderStanding";
-                copycondition.Target = new ListOrT<string>(null, reachTraderStandingData.TraderId);
-                copycondition.Value = reachTraderStandingData.TrustStanding;
-                conditions.Add(copycondition);
-            }
+            var condition = GetConditionTemplate(EQuestConditionsTypeCache.Level, "Level", databaseService);
+            if (condition == null) return;
+            var copycondition = cloner.Clone(condition);
+            copycondition.Id = reachTraderStandingData.Id;
+            copycondition.Index = conditions.Count;
+            copycondition.VisibilityConditions.Clear();
+            copycondition.CompareMethod = ">=";
+            copycondition.ConditionType = "TraderStanding";
+            copycondition.Target = new ListOrT<string>(null, reachTraderStandingData.TraderId);
+            copycondition.Value = reachTraderStandingData.TrustStanding;
+            conditions.Add(copycondition);
         }
+
+        /// <summary>
+        /// 处理到达指定商人信任等级的工具方法
+        /// </summary>
+        /// <param name="conditions">目标列表</param>
+        /// <param name="reachTraderTrustLevelData">自定义任务数据</param>
+        /// <param name="databaseService">数据库实例</param>
+        /// <param name="cloner">克隆器实例</param>
         public static void InitReachTraderTrustLevelDataConditions(List<QuestCondition> conditions, ReachTraderTrustLevelData reachTraderTrustLevelData, DatabaseService databaseService, ICloner cloner)
         {
-            var condition = databaseService.GetQuests()
-                .SelectMany(q => q.Value.Conditions.AvailableForFinish)
-                .FirstOrDefault(c => c.ConditionType == "TraderLoyalty");
-            if (condition != null)
-            {
-                var copycondition = cloner.Clone(condition);
-                copycondition.Id = reachTraderTrustLevelData.Id;
-                copycondition.Index = conditions.Count;
-                copycondition.VisibilityConditions.Clear();
-                copycondition.CompareMethod = ">=";
-                copycondition.Target = new ListOrT<string>(null, reachTraderTrustLevelData.TraderId);
-                copycondition.Value = (double)reachTraderTrustLevelData.TrustLevel;
-                conditions.Add(copycondition);
-            }
+
+            var condition = GetConditionTemplate(EQuestConditionsTypeCache.TraderLoyalty, "TraderLoyalty", databaseService);
+            if (condition == null) return;
+            var copycondition = cloner.Clone(condition);
+            copycondition.Id = reachTraderTrustLevelData.Id;
+            copycondition.Index = conditions.Count;
+            copycondition.VisibilityConditions.Clear();
+            copycondition.CompareMethod = ">=";
+            copycondition.Target = new ListOrT<string>(null, reachTraderTrustLevelData.TraderId);
+            copycondition.Value = (double)reachTraderTrustLevelData.TrustLevel;
+            conditions.Add(copycondition);
         }
-        public static void InitReachSkillLevelDataConditions(List<QuestCondition> conditions, ReachSkillLevelData reachTraderTrustLevelData, DatabaseService databaseService, ICloner cloner)
+
+        /// <summary>
+        /// 处理到达指定技能等级的工具方法
+        /// </summary>
+        /// <param name="conditions">目标列表</param>
+        /// <param name="reachSkillLevelData">自定义任务数据</param>
+        /// <param name="databaseService">数据库实例</param>
+        /// <param name="cloner">克隆器实例</param>
+        public static void InitReachSkillLevelDataConditions(List<QuestCondition> conditions, ReachSkillLevelData reachSkillLevelData, DatabaseService databaseService, ICloner cloner)
         {
-            var condition = databaseService.GetQuests()
-                .SelectMany(q => q.Value.Conditions.AvailableForFinish)
-                .FirstOrDefault(c => c.ConditionType == "Skill");
-            if (condition != null)
-            {
-                var copycondition = cloner.Clone(condition);
-                copycondition.Id = reachTraderTrustLevelData.Id;
-                copycondition.Index = conditions.Count;
-                copycondition.VisibilityConditions.Clear();
-                copycondition.CompareMethod = ">=";
-                copycondition.Target = new ListOrT<string>(null, reachTraderTrustLevelData.SkillType);
-                copycondition.Value = (double)reachTraderTrustLevelData.Level;
-                conditions.Add(copycondition);
-            }
+            var condition = GetConditionTemplate(EQuestConditionsTypeCache.Skill, "Skill", databaseService);
+            if (condition == null) return;
+            var copycondition = cloner.Clone(condition);
+            copycondition.Id = reachSkillLevelData.Id;
+            copycondition.Index = conditions.Count;
+            copycondition.VisibilityConditions.Clear();
+            copycondition.CompareMethod = ">=";
+            copycondition.Target = new ListOrT<string>(null, reachSkillLevelData.SkillType);
+            copycondition.Value = (double)reachSkillLevelData.Level;
+            conditions.Add(copycondition);
         }
+
+        /// <summary>
+        /// 处理完成指定任务的工具方法
+        /// </summary>
+        /// <param name="conditions">目标列表</param>
+        /// <param name="completeQuestData">自定义任务数据</param>
+        /// <param name="databaseService">数据库实例</param>
+        /// <param name="cloner">克隆器实例</param>
         public static void InitCompleteQuestDataConditions(List<QuestCondition> conditions, CompleteQuestData completeQuestData, DatabaseService databaseService, ICloner cloner)
         {
-            var condition = databaseService.GetQuests()
-                .SelectMany(q => q.Value.Conditions.AvailableForStart)
-                .FirstOrDefault(c => c.ConditionType == "Quest");
-            if (condition != null)
-            {
-                var copycondition = cloner.Clone(condition);
-                copycondition.Id = completeQuestData.Id;
-                copycondition.Index = conditions.Count;
-                copycondition.VisibilityConditions.Clear();
-                copycondition.Target = new ListOrT<string>(null, completeQuestData.QuestId);
-                copycondition.Status = BitMapUtils.GetQuestStatusCode(completeQuestData.QuestStatus);
-                conditions.Add(copycondition);
-            }
+            var condition = GetConditionTemplate(EQuestConditionsTypeCache.Quest, "Quest", databaseService);
+            if (condition == null) return;
+            var copycondition = cloner.Clone(condition);
+            copycondition.Id = completeQuestData.Id;
+            copycondition.Index = conditions.Count;
+            copycondition.VisibilityConditions.Clear();
+            copycondition.Target = new ListOrT<string>(null, completeQuestData.QuestId);
+            copycondition.Status = BitMapUtils.GetQuestStatusCode(completeQuestData.QuestStatus);
+            conditions.Add(copycondition);
         }
+
+        /// <summary>
+        /// 处理装饰封锁条件的工具方法
+        /// </summary>
+        /// <param name="conditions">目标列表</param>
+        /// <param name="customizationBlockData">自定义任务数据</param>
+        /// <param name="databaseService">数据库实例</param>
+        /// <param name="cloner">克隆器实例</param>
         public static void InitCustomizationBlockDataConditions(List<QuestCondition> conditions, CustomizationBlockData customizationBlockData, DatabaseService databaseService, ICloner cloner)
         {
-            var condition = databaseService.GetHideout()
-                .Customisation
-                .Globals
-                .SelectMany(q => q.Conditions)
-                .FirstOrDefault(c => c.ConditionType == "Block");
-            if (condition != null)
+            cacheConditions.TryGetValue(EQuestConditionsTypeCache.Block, out var condition);
+            if (condition == null)
             {
-                var copycondition = cloner.Clone(condition);
-                copycondition.Id = customizationBlockData.Id;
-                copycondition.Index = conditions.Count;
-                copycondition.VisibilityConditions.Clear();
-                conditions.Add(copycondition);
+                condition = databaseService.GetHideout()
+                 .Customisation
+                 .Globals
+                 .SelectMany(q => q.Conditions)
+                 .FirstOrDefault(c => c.ConditionType == "Block");
+                cacheConditions[EQuestConditionsTypeCache.Block] = condition;
             }
+            if (condition == null) return;
+            var copycondition = cloner.Clone(condition);
+            copycondition.Id = customizationBlockData.Id;
+            copycondition.Index = conditions.Count;
+            copycondition.VisibilityConditions.Clear();
+            conditions.Add(copycondition);
         }
+
         public static void InitQuestRewards(string folderpath, DatabaseService databaseService, ModHelper modHelper, ICloner cloner)
         {
             List<string> files = Directory.GetFiles(folderpath).ToList();

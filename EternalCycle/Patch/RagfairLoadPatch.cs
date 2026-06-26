@@ -66,7 +66,7 @@ namespace EternalCycle
             foreach (var item in items)
             {
                 if (item.Value == null || item.Value.Properties == null) continue;
-                item.Value.Properties.ExaminedByDefault = true;
+                //item.Value.Properties.ExaminedByDefault = true;
             }
             ItemUtils.RegisterFixItem();
             EventManager.InitFixItemCompatibleEventEvent(context);
