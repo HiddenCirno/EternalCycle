@@ -21,62 +21,29 @@ namespace EternalCycle
             imageRouter.AddRoute(path, routepath);
         }
 
-        public static void RegisterAvatarRoute(string avatarPath, string imageRoot, ImageRouter router)
+        private static void RegisterCustomFilteredRoute(string assetPath, string imageRoot, ImageRouter router)
         {
-            string fileName = Path.GetFileName(avatarPath);
+            string fileName = Path.GetFileName(assetPath);
+            string fileKey = Path.GetFileNameWithoutExtension(fileName);
 
-            string routeKey = avatarPath
-                .Replace(".png", "")
-                .Replace(".jpg", "");
-
-            string fileKey = fileName
-                .Replace(".png", "")
-                .Replace(".jpg", "");
-
+            // 过滤原版 24 位 Hex ID
             if (!fileKey.IsHex24())
             {
+                // 路由键仍然保留你原本的替换逻辑，以防 assetPath 包含多级目录路径
+                string routeKey = assetPath.Replace(".png", "").Replace(".jpg", "");
                 string fullPath = Path.Combine(imageRoot, fileName);
+
                 router.AddRoute(routeKey, fullPath);
             }
         }
+
+        public static void RegisterAvatarRoute(string avatarPath, string imageRoot, ImageRouter router)
+            => RegisterCustomFilteredRoute(avatarPath, imageRoot, router);
 
         public static void RegisterIconRoute(string iconPath, string imageRoot, ImageRouter router)
-        {
-            string fileName = Path.GetFileName(iconPath);
-
-            string routeKey = iconPath
-                .Replace(".png", "")
-                .Replace(".jpg", "");
-
-            string fileKey = fileName
-                .Replace(".png", "")
-                .Replace(".jpg", "");
-
-            if (!fileKey.IsHex24())
-            {
-                string fullPath = Path.Combine(imageRoot, fileName);
-                router.AddRoute(routeKey, fullPath);
-            }
-        }
+            => RegisterCustomFilteredRoute(iconPath, imageRoot, router);
 
         public static void RegisterQuestRoute(string questPath, string imageRoot, ImageRouter router)
-        {
-            string fileName = Path.GetFileName(questPath);
-
-            string routeKey = questPath
-                .Replace(".png", "")
-                .Replace(".jpg", "");
-
-            string fileKey = fileName
-                .Replace(".png", "")
-                .Replace(".jpg", "");
-
-            if (!fileKey.IsHex24())
-            {
-                string fullPath = Path.Combine(imageRoot, fileName);
-                router.AddRoute(routeKey, fullPath);
-            }
-
-        }
+            => RegisterCustomFilteredRoute(questPath, imageRoot, router);
     }
 }

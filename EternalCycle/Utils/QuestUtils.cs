@@ -1294,7 +1294,7 @@ namespace EternalCycle
                 if (rewardtarget != null)
                 {
                     var copyreward = InitCopiedReward(rewardtarget, target[queststage], customPocketRewardData, cloner);
-                    copyreward.Target = (string)customPocketRewardData.TargetId;
+                    copyreward.Target = customPocketRewardData.TargetId;
                     target[queststage].Add(copyreward);
                 }
             }
