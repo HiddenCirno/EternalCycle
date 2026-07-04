@@ -79,9 +79,13 @@ namespace EternalCycle
         {
             InitRagfairEvent(DataLoadEvent.LoadQuestDataEvent, context);
         }
-        public static void InitLoadQuestRewarddEvent(OnRagfairLoadContext context)
+        public static void InitLoadQuestRewardEvent(OnRagfairLoadContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadQuestRewardEvent, context);
+        }
+        public static void InitLoadQuestLogicEvent(OnRagfairLoadContext context)
+        {
+            InitRagfairEvent(DataLoadEvent.LoadQuestLogicEvent, context);
         }
 
         public static void InitFixItemCompatibleEventEvent(OnRagfairLoadContext context)

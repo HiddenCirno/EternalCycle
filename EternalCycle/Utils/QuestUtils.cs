@@ -1,34 +1,13 @@
 using HarmonyLib;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.Extensions.Logging;
-using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.Helpers;
-using SPTarkov.Server.Core.Models.Common;
-using SPTarkov.Server.Core.Models.Eft.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
-using SPTarkov.Server.Core.Models.Eft.Inventory;
 using SPTarkov.Server.Core.Models.Enums;
-using SPTarkov.Server.Core.Models.Logging;
-using SPTarkov.Server.Core.Models.Spt.Config;
-using SPTarkov.Server.Core.Models.Spt.Mod;
-using SPTarkov.Server.Core.Models.Spt.Server;
-using SPTarkov.Server.Core.Models.Spt.Templates;
-using SPTarkov.Server.Core.Models.Utils;
 using SPTarkov.Server.Core.Routers;
-using SPTarkov.Server.Core.Servers;
 using SPTarkov.Server.Core.Services;
-using SPTarkov.Server.Core.Services.Mod;
-using SPTarkov.Server.Core.Utils;
 using SPTarkov.Server.Core.Utils.Cloners;
 using SPTarkov.Server.Core.Utils.Json;
-using SPTarkov.Server.Core.Utils.Logger;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text.Json;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using Path = System.IO.Path;
 
 namespace EternalCycle
@@ -173,7 +152,6 @@ namespace EternalCycle
                 {
                     try
                     {
-                        // 此时闭包已经捕获了上方的 questPattern 实例和 customQuest 数据，直接操作引用
                         InitQuestConditions(questPattern.Conditions.AvailableForFinish, customQuest.QuestConditions.QuestFinishData, context.DB, context.Cloner);
                         InitQuestConditions(questPattern.Conditions.Fail, customQuest.QuestConditions.QuestFailedData, context.DB, context.Cloner);
                         //InitQuestRewards(customQuest.QuestRewards, context.DB, context.Cloner);
@@ -183,8 +161,17 @@ namespace EternalCycle
                         EventManager.EventLogger.Error($"注入任务数据层时发生异常：{questid}", ex);
                     }
                 };
-                //InitQuestRewards(customQuest.QuestRewards, databaseService, cloner);
-
+                EventManager.DataLoadEvent.LoadQuestRewardEvent += (context) =>
+                {
+                    try
+                    {
+                        InitQuestRewards(customQuest.QuestRewards, context.DB, context.Cloner);
+                    }
+                    catch (Exception ex)
+                    {
+                        EventManager.EventLogger.Error($"注入任务数据层时发生异常：{questid}", ex);
+                    }
+                };
             }
 
             /// <summary>
@@ -921,19 +908,91 @@ namespace EternalCycle
             conditions.Add(copycondition);
         }
 
+        /// <summary>
+        /// 将自定义任务奖励注册到加载事件
+        /// </summary>
+        /// <param name="path">指定路径</param>
+        /// <param name="creator">创建者</param>
+        /// <param name="modname">Mod名</param>
+        public static void RegisterQuestRewards(string path, string creator, string modname)
+        {
+            // 文件夹加载模式
+            if (Directory.Exists(path))
+            {
+                EventManager.DataLoadEvent.LoadQuestRewardEvent += (context) =>
+                {
+                    try
+                    {
+                        //对应调用已有的文件夹重载方法
+                        InitQuestRewards(path, context.DB, context.ModHelper, context.Cloner);
+                        //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务奖励模块(文件夹)注册成功");
+                    }
+                    catch (Exception ex)
+                    {
+                        EventManager.EventLogger.Error($"注册任务奖励时发生错误：指定的文件夹 {path} 存在问题", ex);
+                    }
+                };
+            }
+            // 单文件加载模式
+            else if (File.Exists(path))
+            {
+                EventManager.DataLoadEvent.LoadQuestRewardEvent += (context) =>
+                {
+                    try
+                    {
+                        // 反序列化为 List 集合，对应已有的 List 重载方法
+                        var rewardsData = context.JsonUtil.Deserialize<List<CustomQuestRewardData>>(File.ReadAllText(path));
+                        InitQuestRewards(rewardsData, context.DB, context.Cloner);
+
+                        //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务奖励模块(单文件)注册成功");
+                    }
+                    catch (Exception ex)
+                    {
+                        EventManager.EventLogger.Error($"注册任务奖励时发生错误：指定的文件 {path} 存在问题", ex);
+                    }
+                };
+            }
+            else
+            {
+                EventManager.EventLogger.Warn($"注册任务奖励时发生异常：找不到指定的文件或文件夹 {path}");
+            }
+        }
+
+        //傻逼哈基米
+        /// <summary>
+        /// 从文件夹加载奖励的重载, 感觉没必要
+        /// </summary>
+        /// <param name="folderpath">路径</param>
+        /// <param name="databaseService">数据库</param>
+        /// <param name="modHelper">modHelper实例啦啦啦</param>
+        /// <param name="cloner">克隆器实例</param>
         public static void InitQuestRewards(string folderpath, DatabaseService databaseService, ModHelper modHelper, ICloner cloner)
         {
-            List<string> files = Directory.GetFiles(folderpath).ToList();
-            if (files.Count > 0)
+            if (Directory.Exists(folderpath))
             {
-                foreach (var file in files)
+                List<string> files = Directory.GetFiles(folderpath).ToList();
+                if (files.Count > 0)
                 {
-                    string fileName = Path.GetFileName(file);
-                    var rewards = modHelper.GetJsonDataFromFile<List<CustomQuestRewardData>>(folderpath, fileName);
-                    InitQuestRewards(rewards, databaseService, cloner);
+                    foreach (var file in files)
+                    {
+                        string fileName = Path.GetFileName(file);
+                        var rewards = modHelper.GetJsonDataFromFile<List<CustomQuestRewardData>>(folderpath, fileName);
+
+                        if (rewards != null)
+                        {
+                            InitQuestRewards(rewards, databaseService, cloner);
+                        }
+                    }
                 }
             }
         }
+
+        /// <summary>
+        /// 加载任务奖励
+        /// </summary>
+        /// <param name="rewards">奖励List结构</param>
+        /// <param name="databaseService">数据库实例</param>
+        /// <param name="cloner">克隆器实例</param>
         public static void InitQuestRewards(List<CustomQuestRewardData> rewards, DatabaseService databaseService, ICloner cloner)
         {
             foreach (CustomQuestRewardData reward in rewards)
@@ -998,6 +1057,7 @@ namespace EternalCycle
                 }
             }
         }
+        
         public static void InitItemRewards(CustomItemRewardData itemRewardData, DatabaseService databaseService, ICloner cloner)
         {
             var queststage = EnumUtils.GetQuestStageType(itemRewardData.QuestStage);
@@ -1028,6 +1088,7 @@ namespace EternalCycle
                 AchievementUtils.GetAchievement(itemRewardData.QuestId, databaseService).Rewards = target;
             }
         }
+        
         public static void InitRecipeUnlockRewards(CustomRecipeUnlockRewardData recipeUnlockRewardData, DatabaseService databaseService, ICloner cloner)
         {
             //wip
@@ -1064,6 +1125,7 @@ namespace EternalCycle
                 }
             }
         }
+        
         public static void InitAssortUnlockRewards(CustomAssortUnlockRewardData assortUnlockRewardData, DatabaseService databaseService, ICloner cloner)
         {
             var queststage = EnumUtils.GetQuestStageType(assortUnlockRewardData.QuestStage);
@@ -1096,6 +1158,7 @@ namespace EternalCycle
                 }
             }
         }
+        
         public static void InitExperienceRewards(CustomExperienceRewardData experienceRewardData, DatabaseService databaseService, ICloner cloner)
         {
             var queststage = EnumUtils.GetQuestStageType(experienceRewardData.QuestStage);
@@ -1113,6 +1176,7 @@ namespace EternalCycle
                 }
             }
         }
+        
         public static void InitTraderStandingRewards(CustomTraderStandingRewardData traderStandingRewardData, DatabaseService databaseService, ICloner cloner)
         {
             var queststage = EnumUtils.GetQuestStageType(traderStandingRewardData.QuestStage);
@@ -1131,6 +1195,7 @@ namespace EternalCycle
                 }
             }
         }
+        
         public static void InitCustomizationRewards(CustomCustomizationRewardData customiazationRewardData, DatabaseService databaseService, ICloner cloner)
         {
             var queststage = EnumUtils.GetQuestStageType(customiazationRewardData.QuestStage);
@@ -1161,6 +1226,7 @@ namespace EternalCycle
                 AchievementUtils.GetAchievement(customiazationRewardData.QuestId, databaseService).Rewards = target;
             }
         }
+        
         public static void InitAchievementRewards(CustomAchievementRewardData achievementRewardData, DatabaseService databaseService, ICloner cloner)
         {
             var queststage = EnumUtils.GetQuestStageType(achievementRewardData.QuestStage);
@@ -1178,6 +1244,7 @@ namespace EternalCycle
                 }
             }
         }
+        
         public static void InitTraderUnlockRewards(CustomTraderUnlockRewardData traderUnlockRewardData, DatabaseService databaseService, ICloner cloner)
         {
             var queststage = EnumUtils.GetQuestStageType(traderUnlockRewardData.QuestStage);
@@ -1195,6 +1262,7 @@ namespace EternalCycle
                 }
             }
         }
+        
         public static void InitSkillExperienceRewards(CustomSkillExperienceRewardData skillExperienceRewardData, DatabaseService databaseService, ICloner cloner)
         {
             var queststage = EnumUtils.GetQuestStageType(skillExperienceRewardData.QuestStage);
@@ -1213,6 +1281,7 @@ namespace EternalCycle
                 }
             }
         }
+        
         public static void InitPocketRewards(CustomPocketRewardData customPocketRewardData, DatabaseService databaseService, ICloner cloner)
         {
             var queststage = EnumUtils.GetQuestStageType(customPocketRewardData.QuestStage);
@@ -1230,26 +1299,97 @@ namespace EternalCycle
                 }
             }
         }
-        public static void InitQuestLogicTreeData(Dictionary<string, QuestLogicTree> questLogicTree, DatabaseService databaseService, ICloner cloner)
+
+        /// <summary>
+        /// 将自定义任务逻辑树注册到加载事件
+        /// </summary>
+        /// <param name="path">指定的存放任务逻辑文件的路径或完整的任务逻辑文件路径</param>
+        /// <param name="creator">创建者</param>
+        /// <param name="modname">Mod名</param>
+        public static void RegisterQuestLogicTree(string path, string creator, string modname)
         {
-            foreach (var data in questLogicTree)
+            // 文件夹加载模式
+            if (Directory.Exists(path))
             {
-                InitQuestLogicTree(data.Value, databaseService, cloner);
+                EventManager.DataLoadEvent.LoadQuestLogicEvent += (context) =>
+                {
+                    try
+                    {
+                        // 对应调用已有的文件夹重载方法
+                        InitQuestLogicTreeData(path, context.DB, context.ModHelper, context.Cloner);
+                        //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务逻辑模块(文件夹)注册成功");
+                    }
+                    catch (Exception ex)
+                    {
+                        EventManager.EventLogger.Error($"注册任务逻辑时发生错误：指定的文件夹 {path} 存在问题", ex);
+                    }
+                };
+            }
+            // 单文件加载模式
+            else if (File.Exists(path))
+            {
+                EventManager.DataLoadEvent.LoadQuestLogicEvent += (context) =>
+                {
+                    try
+                    {
+                        // 反序列化为字典字典，对应已有的 Dictionary 重载方法
+                        var logicTreeData = context.JsonUtil.Deserialize<Dictionary<string, QuestLogicTree>>(File.ReadAllText(path));
+                        InitQuestLogicTreeData(logicTreeData, context.DB, context.Cloner);
+
+                        //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务逻辑模块(单文件)注册成功");
+                    }
+                    catch (Exception ex)
+                    {
+                        EventManager.EventLogger.Error($"注册任务逻辑时发生错误：指定的文件 {path} 存在问题", ex);
+                    }
+                };
+            }
+            else
+            {
+                EventManager.EventLogger.Warn($"注册任务逻辑时发生异常：找不到指定的文件或文件夹 {path}");
             }
         }
+
+        /// <summary>
+        /// Init重载 1：处理文件夹路径，遍历文件并解析单体数据
+        /// </summary>
         public static void InitQuestLogicTreeData(string folderpath, DatabaseService databaseService, ModHelper modHelper, ICloner cloner)
         {
-            List<string> files = Directory.GetFiles(folderpath).ToList();
-            if (files.Count > 0)
+            if (Directory.Exists(folderpath))
             {
-                foreach (var file in files)
+                List<string> files = Directory.GetFiles(folderpath).ToList();
+                if (files.Count > 0)
                 {
-                    string fileName = Path.GetFileName(file);
-                    var logictree = modHelper.GetJsonDataFromFile<QuestLogicTree>(folderpath, fileName);
-                    InitQuestLogicTree(logictree, databaseService, cloner);
+                    foreach (var file in files)
+                    {
+                        string fileName = Path.GetFileName(file);
+                        var logictree = modHelper.GetJsonDataFromFile<QuestLogicTree>(folderpath, fileName);
+
+                        if (logictree != null)
+                        {
+                            InitQuestLogicTree(logictree, databaseService, cloner);
+                        }
+                    }
                 }
             }
         }
+
+        /// <summary>
+        /// Init重载 2：处理实际的反序列化数据（字典形式处理）
+        /// </summary>
+        public static void InitQuestLogicTreeData(Dictionary<string, QuestLogicTree> questLogicTree, DatabaseService databaseService, ICloner cloner)
+        {
+            if (questLogicTree == null || questLogicTree.Count == 0) return;
+
+            foreach (var data in questLogicTree)
+            {
+                if (data.Value != null)
+                {
+                    InitQuestLogicTree(data.Value, databaseService, cloner);
+                }
+            }
+        }
+
         public static void InitQuestLogicTree(QuestLogicTree questLogicTree, DatabaseService databaseService, ICloner cloner)
         {
             var questTarget = GetQuest((string)questLogicTree.Id, databaseService);
@@ -1306,6 +1446,7 @@ namespace EternalCycle
                 databaseService, cloner);
             }
         }
+        
         public static Reward InitCopiedReward(Reward reward, List<Reward> target, CustomQuestRewardData rewardData, ICloner cloner)
         {
             var copyreward = cloner.Clone(reward);
@@ -1330,6 +1471,7 @@ namespace EternalCycle
             }
             return copyreward;
         }
+        
         public static Reward GetItemReward(Reward rewardtarget, List<Reward> target, CustomItemRewardData itemRewardData, ICloner cloner)
         {
             var copyreward = InitCopiedReward(rewardtarget, target, itemRewardData, cloner);
@@ -1346,6 +1488,7 @@ namespace EternalCycle
             copyreward.Value = (double)itemRewardData.Count;
             return copyreward;
         }
+        
         public static Reward GetCustomizationReward(Reward rewardtarget, List<Reward> target, CustomCustomizationRewardData customizationRewardData, ICloner cloner)
         {
             var copyreward = InitCopiedReward(rewardtarget, target, customizationRewardData, cloner);

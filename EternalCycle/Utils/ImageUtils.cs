@@ -29,9 +29,15 @@ namespace EternalCycle
                 .Replace(".png", "")
                 .Replace(".jpg", "");
 
-            string fullPath = Path.Combine(imageRoot, fileName);
+            string fileKey = fileName
+                .Replace(".png", "")
+                .Replace(".jpg", "");
 
-            router.AddRoute(routeKey, fullPath);
+            if (!fileKey.IsHex24())
+            {
+                string fullPath = Path.Combine(imageRoot, fileName);
+                router.AddRoute(routeKey, fullPath);
+            }
         }
 
         public static void RegisterIconRoute(string iconPath, string imageRoot, ImageRouter router)
@@ -42,9 +48,15 @@ namespace EternalCycle
                 .Replace(".png", "")
                 .Replace(".jpg", "");
 
-            string fullPath = Path.Combine(imageRoot, fileName);
+            string fileKey = fileName
+                .Replace(".png", "")
+                .Replace(".jpg", "");
 
-            router.AddRoute(routeKey, fullPath);
+            if (!fileKey.IsHex24())
+            {
+                string fullPath = Path.Combine(imageRoot, fileName);
+                router.AddRoute(routeKey, fullPath);
+            }
         }
 
         public static void RegisterQuestRoute(string questPath, string imageRoot, ImageRouter router)
@@ -55,9 +67,16 @@ namespace EternalCycle
                 .Replace(".png", "")
                 .Replace(".jpg", "");
 
-            string fullPath = Path.Combine(imageRoot, fileName);
+            string fileKey = fileName
+                .Replace(".png", "")
+                .Replace(".jpg", "");
 
-            router.AddRoute(routeKey, fullPath);
+            if (!fileKey.IsHex24())
+            {
+                string fullPath = Path.Combine(imageRoot, fileName);
+                router.AddRoute(routeKey, fullPath);
+            }
+
         }
     }
 }

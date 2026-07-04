@@ -59,9 +59,12 @@ namespace EternalCycle
                 Logger = Utils.commonLogger,
                 Cloner = cloner
             };
+
             EventManager.InitLoadItemEvent(context);
             EventManager.InitLoadQuestEvent(context);
             EventManager.InitLoadQuestDataEvent(context);
+            EventManager.InitLoadQuestRewardEvent(context);
+            EventManager.InitLoadQuestLogicEvent(context);
 
             //ต๗สิด๚ย๋
             var items = databaseService.GetItems();
