@@ -68,11 +68,11 @@ namespace EternalCycle
             /// <param name="questData">任务数据</param>
             /// <param name="databaseService">数据库实例</param>
             /// <param name="cloner">克隆器实例</param>
-            public static void InitQuestData(Dictionary<string, CustomQuest> questData, DatabaseService databaseService, ICloner cloner)
+            public static void InitQuestData(Dictionary<string, CustomQuest> questData, string respath, DatabaseService databaseService, ICloner cloner)
             {
                 foreach (var customquest in questData)
                 {
-                    InitQuest(customquest.Value, databaseService, cloner);
+                    InitQuest(customquest.Value, respath, databaseService, cloner);
                 }
             }
 
@@ -83,7 +83,7 @@ namespace EternalCycle
             /// <param name="databaseService">数据库实例</param>
             /// <param name="modHelper">mod帮助</param>
             /// <param name="cloner">克隆器实例</param>
-            public static void InitQuestData(string folderpath, DatabaseService databaseService, ModHelper modHelper, ICloner cloner)
+            public static void InitQuestData(string folderpath, string respath, DatabaseService databaseService, ModHelper modHelper, ICloner cloner)
             {
                 List<string> files = Directory.GetFiles(folderpath).ToList();
                 if (files.Count > 0)
@@ -92,7 +92,7 @@ namespace EternalCycle
                     {
                         string fileName = Path.GetFileName(file);
                         var customquest = modHelper.GetJsonDataFromFile<CustomQuest>(folderpath, fileName);
-                        InitQuest(customquest, databaseService, cloner);
+                        InitQuest(customquest, respath, databaseService, cloner);
                     }
                 }
             }
@@ -103,7 +103,7 @@ namespace EternalCycle
             /// <param name="customQuest">自定义任务数据</param>
             /// <param name="databaseService">数据库实例</param>
             /// <param name="cloner">克隆器实例</param>
-            public static void InitQuest(CustomQuest customQuest, DatabaseService databaseService, ICloner cloner)
+            public static void InitQuest(CustomQuest customQuest, string respath, DatabaseService databaseService, ICloner cloner)
             {
                 var questid = customQuest.QuestId;
                 //短缺
@@ -145,7 +145,7 @@ namespace EternalCycle
                 //临时
                 databaseService.GetQuests().TryAdd(questid, questPattern);
                 var imageRouter = ServiceLocator.ServiceProvider.GetService<ImageRouter>();
-                ImageUtils.RegisterQuestRoute(questPattern.Image, Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "res/questimage/"), imageRouter);
+                ImageUtils.RegisterQuestRoute(questPattern.Image, Path.Combine(respath, "res/questimage/"), imageRouter);
                 //为了完成原版兼容, 奖励定义有任务ID, 必须在任务初始化后添加
                 //应该可以重载
                 EventManager.DataLoadEvent.LoadQuestDataEvent += (context) =>
@@ -287,7 +287,7 @@ namespace EternalCycle
             /// <param name="path">指定的存放任务文件的路径或完整的任务文件路径</param>
             /// <param name="creator">创建者</param>
             /// <param name="modname">Mod名</param>
-            public static void RegisterQuest(string path, string creator, string modname)
+            public static void RegisterQuest(string path, string respath, string creator, string modname)
             {
                 // 文件夹加载模式
                 if (Directory.Exists(path))
@@ -297,7 +297,7 @@ namespace EternalCycle
                         try
                         {
                             // 对应调用已有的文件夹重载方法
-                            InitQuestData(path, context.DB, context.ModHelper, context.Cloner);
+                            InitQuestData(path, respath, context.DB, context.ModHelper, context.Cloner);
                             //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务模块(文件夹)注册成功");
                         }
                         catch (Exception ex)
@@ -315,7 +315,7 @@ namespace EternalCycle
                         {
                             // 反序列化为字典字典，对应已有的 Dictionary 重载方法
                             var questData = context.JsonUtil.Deserialize<Dictionary<string, CustomQuest>>(File.ReadAllText(path));
-                            InitQuestData(questData, context.DB, context.Cloner);
+                            InitQuestData(questData, respath, context.DB, context.Cloner);
 
                             //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务模块(单文件)注册成功");
                         }
