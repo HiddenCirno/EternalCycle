@@ -87,6 +87,10 @@ namespace EternalCycle
         {
             InitRagfairEvent(DataLoadEvent.LoadQuestLogicEvent, context);
         }
+        public static void InitLoadTraderBaseEvent(OnRagfairLoadContext context)
+        {
+            InitRagfairEvent(DataLoadEvent.LoadTraderBaseEvent, context);
+        }
 
         public static void InitFixItemCompatibleEventEvent(OnRagfairLoadContext context)
         {

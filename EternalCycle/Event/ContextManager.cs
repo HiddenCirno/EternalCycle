@@ -1,6 +1,7 @@
 using SPTarkov.Server.Core.Helpers;
 using SPTarkov.Server.Core.Models.Logging;
 using SPTarkov.Server.Core.Models.Utils;
+using SPTarkov.Server.Core.Routers;
 using SPTarkov.Server.Core.Servers;
 using SPTarkov.Server.Core.Services;
 using SPTarkov.Server.Core.Services.Mod;
@@ -23,6 +24,7 @@ namespace EternalCycle
             public required ModHelper ModHelper { get; init; }
 
             public required ECLogger Logger { get; init; }
+            public required ImageRouter ImageRouter { get; init; }
 
             public required ICloner Cloner { get; init; }
         }

@@ -50,6 +50,7 @@ namespace EternalCycle
             var modHelper = ServiceLocator.ServiceProvider.GetService<ModHelper>();
             var cloner = ServiceLocator.ServiceProvider.GetService<ICloner>();
             var localeService = ServiceLocator.ServiceProvider.GetService<LocaleService>();
+            var imageRouter = ServiceLocator.ServiceProvider.GetService<ImageRouter>();
             var context = new ContextManager.OnRagfairLoadContext
             {
                 DB = databaseService,
@@ -57,10 +58,12 @@ namespace EternalCycle
                 ConfigServer = configServer,
                 ModHelper = modHelper,
                 Logger = Utils.commonLogger,
+                ImageRouter = imageRouter,
                 Cloner = cloner
             };
 
             EventManager.InitLoadItemEvent(context);
+            EventManager.InitLoadTraderBaseEvent(context);
             EventManager.InitLoadQuestEvent(context);
             EventManager.InitLoadQuestDataEvent(context);
             EventManager.InitLoadQuestRewardEvent(context);
@@ -95,6 +98,7 @@ namespace EternalCycle
             var configServer = ServiceLocator.ServiceProvider.GetService<ConfigServer>();
             var modHelper = ServiceLocator.ServiceProvider.GetService<ModHelper>();
             var cloner = ServiceLocator.ServiceProvider.GetService<ICloner>();
+            var imageRouter = ServiceLocator.ServiceProvider.GetService<ImageRouter>();
             var logger = new ECLogger("PostRagfairLoadEvent", true);
             var context = new ContextManager.OnRagfairLoadContext
             {
@@ -103,6 +107,7 @@ namespace EternalCycle
                 ConfigServer = configServer,
                 ModHelper = modHelper,
                 Logger = Utils.commonLogger,
+                ImageRouter = imageRouter,
                 Cloner = cloner
             };
             EventManager.InitPostRagfairLoadEvent(context);
