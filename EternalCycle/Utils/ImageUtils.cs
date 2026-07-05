@@ -45,5 +45,7 @@ namespace EternalCycle
 
         public static void RegisterQuestRoute(string questPath, string imageRoot, ImageRouter router)
             => RegisterCustomFilteredRoute(questPath, imageRoot, router);
+        public static void RegisterAchievementRoute(string iconPath, string imageRoot, ImageRouter router)
+            => RegisterCustomFilteredRoute(iconPath, imageRoot, router);
     }
 }

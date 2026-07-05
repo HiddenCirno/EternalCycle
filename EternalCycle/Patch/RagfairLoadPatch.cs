@@ -65,6 +65,7 @@ namespace EternalCycle
             EventManager.InitLoadItemEvent(context);
             EventManager.InitLoadTraderBaseEvent(context);
             EventManager.InitLoadQuestEvent(context);
+            EventManager.InitLoadAchievementEvent(context);
             EventManager.InitLoadTraderAssortEvent(context);
             EventManager.InitLoadQuestDataEvent(context);
             EventManager.InitLoadQuestRewardEvent(context);

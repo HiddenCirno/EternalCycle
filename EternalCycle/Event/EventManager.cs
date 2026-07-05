@@ -45,6 +45,7 @@ namespace EternalCycle
             public static Action<OnRagfairLoadContext> LoadTraderBaseEvent;
             public static Action<OnRagfairLoadContext> LoadPresetEvent;
             public static Action<OnRagfairLoadContext> LoadTraderAssortEvent;
+            public static Action<OnRagfairLoadContext> LoadAchievementEvent;
             public static Action<OnRagfairLoadContext> FixItemCompatibleEvent;
             //tbc
         }
@@ -106,6 +107,10 @@ namespace EternalCycle
         public static void InitLoadTraderAssortEvent(OnRagfairLoadContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadTraderAssortEvent, context);
+        }
+        public static void InitLoadAchievementEvent(OnRagfairLoadContext context)
+        {
+            InitRagfairEvent(DataLoadEvent.LoadAchievementEvent, context);
         }
 
 
