@@ -34,101 +34,136 @@ namespace EternalCycle
     /// </summary>
     public class LocaleUtils
     {
+
+        /// <summary>
+        /// 将自定义任务本地化文本注册到加载事件
+        /// </summary>
+        /// <param name="path">存放本地化文件的文件夹路径，或单个多语言文件的路径</param>
+        /// <param name="creator">创建者</param>
+        /// <param name="modname">Mod名</param>
+        public static void RegisterQuestLocale(string path, string creator, string modname)
+        {
+            // 文件夹加载模式 (文件夹里是 ch.json, en.json...)
+            if (Directory.Exists(path))
+            {
+                // 注意：挂载的事件请根据你的实际情况调整（可能是 LoadLocaleEvent 或与任务同级）
+                EventManager.DataLoadEvent.LoadQuestLocaleEvent += (context) =>
+                {
+                    try
+                    {
+                        InitQuestLocale(path, creator, modname, context.DB, context.ModHelper);
+                    }
+                    catch (Exception ex)
+                    {
+                        EventManager.EventLogger.Error($"注册任务本地化时发生错误：指定的文件夹 {path} 存在问题", ex);
+                    }
+                };
+            }
+            // 单文件加载模式 (单个文件里包含了所有语言的数据)
+            else if (File.Exists(path))
+            {
+                EventManager.DataLoadEvent.LoadQuestLocaleEvent += (context) =>
+                {
+                    try
+                    {
+                        // 解析为: Dictionary<语言Key, Dictionary<任务ID, 本地化数据>>
+                        var customLocaleData = context.JsonUtil.Deserialize<Dictionary<string, Dictionary<string, CustomQuestLocaleData>>>(File.ReadAllText(path));
+                        InitQuestLocale(customLocaleData, creator, modname, context.DB);
+                    }
+                    catch (Exception ex)
+                    {
+                        EventManager.EventLogger.Error($"注册任务本地化时发生错误：指定的文件 {path} 存在问题", ex);
+                    }
+                };
+            }
+            else
+            {
+                EventManager.EventLogger.Warn($"注册任务本地化时发生异常：找不到指定的文件或文件夹 {path}");
+            }
+        }
+
+        /// <summary>
+        /// Init重载 1：处理文件夹路径，提取文件名作为语言Key
+        /// </summary>
         public static void InitQuestLocale(string folderpath, string creator, string modname, DatabaseService databaseService, ModHelper modHelper)
         {
+            if (!Directory.Exists(folderpath)) return;
+
             List<string> files = Directory.GetFiles(folderpath).ToList();
-            if (files.Count > 0)
+            foreach (var file in files)
             {
-                foreach (var file in files)
+                // 文件名就是语言Key (比如 ch.json -> ch)
+                string langKey = Path.GetFileNameWithoutExtension(file);
+                var quests = modHelper.GetJsonDataFromFile<Dictionary<string, CustomQuestLocaleData>>(folderpath, Path.GetFileName(file));
+
+                if (quests != null)
                 {
-                    string fileName = Path.GetFileName(file);
-                    var quests = modHelper.GetJsonDataFromFile<Dictionary<string, CustomQuestLocaleData>>(folderpath, fileName);
-                    string lang = Path.GetFileNameWithoutExtension(file);
-                    if (!databaseService.GetLocales().Global.TryGetValue(lang, out var locales))
-                    {
-                        continue;
-                    }
-                    locales.AddTransformer(language =>
-                    {
-                        foreach (var questEntry in quests)
-                        {
-                            string questId = Utils.ConvertHashID(questEntry.Key);
-                            var modstring = $"<color=#FFFFFF><b>\n由{creator}创建\n添加者: {modname}\n任务API：永恒时序\n任务ID：{questId}</b></color>";         // 例如 "PersicariaTask1"
-                            var locale = questEntry.Value;                 // CustomQuestLocaleData 对象
-
-                            // 写入任务主要字段
-                            language.TryAdd($"{questId} name", locale.QuestName);
-                            language.TryAdd($"{questId} description", $"{locale.QuestDescription}{modstring}");
-                            language.TryAdd($"{questId} note", locale.QuestNote ?? "");
-                            language.TryAdd($"{questId} failMessageText", locale.QuestFailMessage ?? "");
-                            language.TryAdd($"{questId} startedMessageText", locale.QuestStartMessaage ?? "");
-                            language.TryAdd($"{questId} successMessageText", locale.QuestSuccessMessage ?? "");
-                            language.TryAdd($"{questId} location", locale.QuestLocation ?? "");
-
-                            // 写入每个条件文本（如 Hand/Find 条件）
-                            if (locale.QuestConditions != null)
-                            {
-                                foreach (var cond in locale.QuestConditions)
-                                {
-                                    // cond.Key = "PersicariaTask1Find1"
-                                    // cond.Value = "在战局中找到电线"
-                                    language.TryAdd(Utils.ConvertHashID(cond.Key), cond.Value);
-                                    //localeData[VulcanUtil.ConvertHashID(cond.Key)] = cond.Value;
-                                }
-                            }
-                        }
-                        return language;
-                    });
-
+                    // 调用底层核心方法
+                    InitQuestLocale(langKey, quests, creator, modname, databaseService);
                 }
             }
         }
+
+        /// <summary>
+        /// Init重载 2：处理反序列化好的多语言字典
+        /// </summary>
         public static void InitQuestLocale(Dictionary<string, Dictionary<string, CustomQuestLocaleData>> customLocaleData, string creator, string modname, DatabaseService databaseService)
         {
-            // 遍历语言，例如 ch / en / ru ...
+            if (customLocaleData == null || customLocaleData.Count == 0) return;
+
             foreach (var languageEntry in customLocaleData)
             {
-                string langKey = languageEntry.Key; // "ch"
-                var quests = languageEntry.Value;   // Dictionary<string, CustomQuestLocaleData>
+                string langKey = languageEntry.Key; // "ch", "en", etc.
+                var quests = languageEntry.Value;
 
-                // 获取目标语言对应的全局本地化 LazyLoad
-                if (!databaseService.GetLocales().Global.TryGetValue(langKey, out LazyLoad<Dictionary<string, string>> lazyLocale))
-                    continue;
-
-                // 为该语言添加 transformer（延迟加载时注入翻译数据）
-                lazyLocale.AddTransformer(localeData =>
+                if (quests != null)
                 {
-                    foreach (var questEntry in quests)
+                    // 调用底层核心方法
+                    InitQuestLocale(langKey, quests, creator, modname, databaseService);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 底层核心方法：负责给特定的语言注入任务文本（解决代码重复的根本）
+        /// </summary>
+        public static void InitQuestLocale(string langKey, Dictionary<string, CustomQuestLocaleData> quests, string creator, string modname, DatabaseService databaseService)
+        {
+            // 获取目标语言对应的全局本地化 LazyLoad
+            if (!databaseService.GetLocales().Global.TryGetValue(langKey, out var lazyLocale))
+            {
+                return; // 找不到对应语言（比如玩家端没有这种语言）直接跳过
+            }
+
+            // 添加 Transformer 进行延迟加载
+            lazyLocale.AddTransformer(localeData =>
+            {
+                foreach (var questEntry in quests)
+                {
+                    string questId = Utils.ConvertHashID(questEntry.Key);
+                    var locale = questEntry.Value;
+                    var modstring = $"<color=#FFFFFF><b>\n由{creator}创建\n添加者: {modname}\n任务API：永恒时序\n任务ID：{questId}</b></color>";
+
+                    // 写入任务主要字段
+                    localeData.TryAdd($"{questId} name", locale.QuestName);
+                    localeData.TryAdd($"{questId} description", $"{locale.QuestDescription}{modstring}");
+                    localeData.TryAdd($"{questId} note", locale.QuestNote ?? "");
+                    localeData.TryAdd($"{questId} failMessageText", locale.QuestFailMessage ?? "");
+                    localeData.TryAdd($"{questId} startedMessageText", locale.QuestStartMessaage ?? "");
+                    localeData.TryAdd($"{questId} successMessageText", locale.QuestSuccessMessage ?? "");
+                    localeData.TryAdd($"{questId} location", locale.QuestLocation ?? "");
+
+                    // 写入条件文本
+                    if (locale.QuestConditions != null)
                     {
-                        string questId = Utils.ConvertHashID(questEntry.Key);
-                        var modstring = $"<color=#FFFFFF><b>\n由{creator}创建\n添加者: {modname}\n任务API：火神之心\n任务ID：{questId}</b></color>";         // 例如 "PersicariaTask1"
-                        var locale = questEntry.Value;                 // CustomQuestLocaleData 对象
-
-                        // 写入任务主要字段
-                        localeData.TryAdd($"{questId} name", locale.QuestName);
-                        localeData.TryAdd($"{questId} description", $"{locale.QuestDescription}{modstring}");
-                        localeData.TryAdd($"{questId} note", locale.QuestNote ?? "");
-                        localeData.TryAdd($"{questId} failMessageText", locale.QuestFailMessage ?? "");
-                        localeData.TryAdd($"{questId} startedMessageText", locale.QuestStartMessaage ?? "");
-                        localeData.TryAdd($"{questId} successMessageText", locale.QuestSuccessMessage ?? "");
-                        localeData.TryAdd($"{questId} location", locale.QuestLocation ?? "");
-
-                        // 写入每个条件文本（如 Hand/Find 条件）
-                        if (locale.QuestConditions != null)
+                        foreach (var cond in locale.QuestConditions)
                         {
-                            foreach (var cond in locale.QuestConditions)
-                            {
-                                // cond.Key = "PersicariaTask1Find1"
-                                // cond.Value = "在战局中找到电线"
-                                localeData.TryAdd(Utils.ConvertHashID(cond.Key), cond.Value);
-                                //localeData[VulcanUtil.ConvertHashID(cond.Key)] = cond.Value;
-                            }
+                            localeData.TryAdd(Utils.ConvertHashID(cond.Key), cond.Value);
                         }
                     }
-
-                    return localeData;
-                });
-            }
+                }
+                return localeData;
+            });
         }
 
         /// <summary>
@@ -207,7 +242,7 @@ namespace EternalCycle
         {
             var locales = databaseService.GetTables().Locales.Global;
             var newTraderId = baseJson.Id;
-            var modstring = $"<color=#FFFFFF><b>\n由{creator}创建\n添加者: {modname}\n商人API：火神之心\n商人ID：{newTraderId}</b></color>";
+            var modstring = $"<color=#FFFFFF><b>\n由{creator}创建\n添加者: {modname}\n商人API：永恒时序\n商人ID：{newTraderId}</b></color>";
 
             foreach (var (localeKey, localeKvP) in locales)
             {

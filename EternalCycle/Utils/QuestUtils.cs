@@ -287,7 +287,7 @@ namespace EternalCycle
             /// <param name="path">指定的存放任务文件的路径或完整的任务文件路径</param>
             /// <param name="creator">创建者</param>
             /// <param name="modname">Mod名</param>
-            public static void RegisterQuest(string path, string respath, string creator, string modname)
+            public static void RegisterQuest(string path, string respath)
             {
                 // 文件夹加载模式
                 if (Directory.Exists(path))

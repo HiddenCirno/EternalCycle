@@ -69,6 +69,7 @@ namespace EternalCycle
             EventManager.InitLoadQuestDataEvent(context);
             EventManager.InitLoadQuestRewardEvent(context);
             EventManager.InitLoadQuestLogicEvent(context);
+            EventManager.InitLoadQuestLocaleEvent(context);
 
             //ต๗สิด๚ย๋
             var items = databaseService.GetItems();

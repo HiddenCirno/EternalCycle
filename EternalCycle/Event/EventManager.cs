@@ -38,6 +38,7 @@ namespace EternalCycle
         {
             public static Action<OnRagfairLoadContext> LoadItemEvent;
             public static Action<OnRagfairLoadContext> LoadQuestEvent;
+            public static Action<OnRagfairLoadContext> LoadQuestLocaleEvent;
             public static Action<OnRagfairLoadContext> LoadQuestLogicEvent;
             public static Action<OnRagfairLoadContext> LoadQuestDataEvent;
             public static Action<OnRagfairLoadContext> LoadQuestRewardEvent;
@@ -76,6 +77,10 @@ namespace EternalCycle
         public static void InitLoadQuestEvent(OnRagfairLoadContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadQuestEvent, context);
+        }
+        public static void InitLoadQuestLocaleEvent(OnRagfairLoadContext context)
+        {
+            InitRagfairEvent(DataLoadEvent.LoadQuestLocaleEvent, context);
         }
 
         public static void InitLoadQuestDataEvent(OnRagfairLoadContext context)
