@@ -17,14 +17,19 @@ namespace EternalCycle
     /// </summary>
     public class TraderUtils
     {
-
+        /// <summary>
+        /// 获取商人引用
+        /// </summary>
+        /// <param name="traderid"></param>
+        /// <param name="databaseService"></param>
+        /// <returns></returns>
         public static Trader GetTrader(string traderid, DatabaseService databaseService)
         {
             return databaseService.GetTraders().FirstOrDefault(x => x.Value.Base.Id == (MongoId)traderid).Value;
         }
 
         /// <summary>
-        /// 将自定义商人注册到加载事件 (提供给依赖此库的 Mod 调用)
+        /// 将自定义商人注册到加载事件
         /// </summary>
         /// <param name="path">指定的存放商人文件的文件夹路径或单个商人文件路径</param>
         /// <param name="imagePath">调用者(子Mod)的商人头像图片存放路径</param>

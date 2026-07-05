@@ -67,30 +67,42 @@ namespace EternalCycle
         {
             InitRagfairEvent(OnAfterModLoadedEvent, context);
         }
+
         public static void InitLoadItemEvent(OnRagfairLoadContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadItemEvent, context);
         }
+
         public static void InitLoadQuestEvent(OnRagfairLoadContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadQuestEvent, context);
         }
+
         public static void InitLoadQuestDataEvent(OnRagfairLoadContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadQuestDataEvent, context);
         }
+
         public static void InitLoadQuestRewardEvent(OnRagfairLoadContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadQuestRewardEvent, context);
         }
+
         public static void InitLoadQuestLogicEvent(OnRagfairLoadContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadQuestLogicEvent, context);
         }
+
         public static void InitLoadTraderBaseEvent(OnRagfairLoadContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadTraderBaseEvent, context);
         }
+
+        public static void InitLoadTraderAssortEvent(OnRagfairLoadContext context)
+        {
+            InitRagfairEvent(DataLoadEvent.LoadTraderAssortEvent, context);
+        }
+
 
         public static void InitFixItemCompatibleEventEvent(OnRagfairLoadContext context)
         {

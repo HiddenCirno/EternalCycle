@@ -639,7 +639,9 @@ namespace EternalCycle
         /// <param name="cloner">克隆器实例</param>
         public static void InitReachLevelDataConditions(List<QuestCondition> conditions, ReachLevelData reachLevelData, DatabaseService databaseService, ICloner cloner)
         {
-            var condition = GetConditionTemplate(EQuestConditionsTypeCache.Level, "Level", databaseService);
+            var condition = databaseService.GetQuests()
+                .SelectMany(q => q.Value.Conditions.AvailableForStart)
+                .FirstOrDefault(c => c.ConditionType == "Level");
             if (condition == null) return;
             var copycondition = cloner.Clone(condition);
             copycondition.Id = reachLevelData.Id;
@@ -659,7 +661,9 @@ namespace EternalCycle
         /// <param name="cloner">克隆器实例</param>
         public static void InitReachPrestigeLevelDataConditions(List<QuestCondition> conditions, ReachPrestigeLevelData reachPrestigeLevelData, DatabaseService databaseService, ICloner cloner)
         {
-            var condition = GetConditionTemplate(EQuestConditionsTypeCache.Level, "Level", databaseService);
+            var condition = databaseService.GetQuests()
+                .SelectMany(q => q.Value.Conditions.AvailableForStart)
+                .FirstOrDefault(c => c.ConditionType == "Level");
             if (condition == null) return;
             var copycondition = cloner.Clone(condition);
             copycondition.Id = reachPrestigeLevelData.Id;
@@ -805,7 +809,9 @@ namespace EternalCycle
         /// <param name="cloner">克隆器实例</param>
         public static void InitReachTraderStandingDataConditions(List<QuestCondition> conditions, ReachTraderStandingData reachTraderStandingData, DatabaseService databaseService, ICloner cloner)
         {
-            var condition = GetConditionTemplate(EQuestConditionsTypeCache.Level, "Level", databaseService);
+            var condition = databaseService.GetQuests()
+                .SelectMany(q => q.Value.Conditions.AvailableForStart)
+                .FirstOrDefault(c => c.ConditionType == "Level");
             if (condition == null) return;
             var copycondition = cloner.Clone(condition);
             copycondition.Id = reachTraderStandingData.Id;
@@ -914,7 +920,7 @@ namespace EternalCycle
         /// <param name="path">指定路径</param>
         /// <param name="creator">创建者</param>
         /// <param name="modname">Mod名</param>
-        public static void RegisterQuestRewards(string path, string creator, string modname)
+        public static void RegisterQuestRewards(string path)
         {
             // 文件夹加载模式
             if (Directory.Exists(path))
@@ -1306,7 +1312,7 @@ namespace EternalCycle
         /// <param name="path">指定的存放任务逻辑文件的路径或完整的任务逻辑文件路径</param>
         /// <param name="creator">创建者</param>
         /// <param name="modname">Mod名</param>
-        public static void RegisterQuestLogicTree(string path, string creator, string modname)
+        public static void RegisterQuestLogicTree(string path)
         {
             // 文件夹加载模式
             if (Directory.Exists(path))
