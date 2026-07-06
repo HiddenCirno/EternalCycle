@@ -25,18 +25,19 @@ using SPTarkov.Server.Core.Utils.Logger;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
+using static EternalCycle.ContextManager;
 using Path = System.IO.Path;
 namespace EternalCycle;
 public class CustomizationUtils
 {
-    public static void InitCustomiaztionData(Dictionary<string, CustomCustomizationItem> customData, DatabaseService databaseService, ICloner cloner)
+    public static void InitCustomiaztionData(Dictionary<string, CustomCustomizationItem> customData, LoadModContext context)
     {
         foreach (var item in customData)
         {
-            InitCustomization(item.Value, databaseService, cloner);
+            InitCustomization(item.Value, context);
         }
     }
-    public static void InitCustomiaztionData(string folderpath, DatabaseService databaseService, ModHelper modHelper, ICloner cloner)
+    public static void InitCustomiaztionData(string folderpath, LoadModContext context)
     {
         List<string> files = Directory.GetFiles(folderpath).ToList();
         if (files.Count > 0)
@@ -44,15 +45,15 @@ public class CustomizationUtils
             foreach (var file in files)
             {
                 string fileName = Path.GetFileName(file);
-                var customization = modHelper.GetJsonDataFromFile<Dictionary<string, CustomCustomizationItem>>(folderpath, fileName);
-                InitCustomiaztionData(customization, databaseService, cloner);
+                var customization = context.ModHelper.GetJsonDataFromFile<Dictionary<string, CustomCustomizationItem>>(folderpath, fileName);
+                InitCustomiaztionData(customization, context);
             }
         }
     }
-    public static void InitCustomization(CustomCustomizationItem customCustomizationItem, DatabaseService databaseService, ICloner cloner)
+    public static void InitCustomization(CustomCustomizationItem customCustomizationItem, LoadModContext context)
     {
-        var zhCNLang = databaseService.GetLocales().Global["ch"];
-        var customs = databaseService.GetCustomization();
+        var zhCNLang = context.DB.GetLocales().Global["ch"];
+        var customs = context.DB.GetCustomization();
         var customid = customCustomizationItem.Id;
         customs.TryAdd(customid, new CustomizationItem
         {
@@ -65,7 +66,7 @@ public class CustomizationUtils
         });
         if (customCustomizationItem.Properties.Prefab != null && customCustomizationItem.Properties.IsVoice == true)
         {
-            var storage = databaseService.GetTables().Templates.CustomisationStorage;
+            var storage = context.DB.GetTables().Templates.CustomisationStorage;
             storage.Add(new CustomisationStorage
             {
                 Id = customid,
@@ -81,17 +82,17 @@ public class CustomizationUtils
             return lang;
         });
     }
-    public static void InitHideoutCustomiaztionData(Dictionary<string, CustomHideoutCustomization> customData, DatabaseService databaseService, ICloner cloner, ISptLogger<EternalCycle> logger)
+    public static void InitHideoutCustomiaztionData(Dictionary<string, CustomHideoutCustomization> customData, LoadModContext context)
     {
         foreach (var item in customData)
         {
-            InitHideoutCustomization(item.Value, databaseService, cloner, logger);
+            InitHideoutCustomization(item.Value, context);
         }
     }
-    public static void InitHideoutCustomization(CustomHideoutCustomization customCustomHideoutCustomization, DatabaseService databaseService, ICloner cloner, ISptLogger<EternalCycle> logger)
+    public static void InitHideoutCustomization(CustomHideoutCustomization customCustomHideoutCustomization, LoadModContext context)
     {
-        var zhCNLang = databaseService.GetLocales().Global["ch"];
-        var customs = databaseService.GetHideout().Customisation.Globals;
+        var zhCNLang = context.DB.GetLocales().Global["ch"];
+        var customs = context.DB.GetHideout().Customisation.Globals;
         var customid = customCustomHideoutCustomization.Id;
         var conditions = new HideoutCustomisationGlobal
         {
@@ -103,7 +104,7 @@ public class CustomizationUtils
             ItemId = customCustomHideoutCustomization.Target,
             Type = customCustomHideoutCustomization.Type,
         };
-        QuestUtils.InitQuestConditions(conditions.Conditions, customCustomHideoutCustomization.Conditions, databaseService, cloner);
+        QuestUtils.InitQuestConditions(conditions.Conditions, customCustomHideoutCustomization.Conditions, context);
         customs.Add(conditions);
         zhCNLang.AddTransformer(lang =>
         {
@@ -114,13 +115,3 @@ public class CustomizationUtils
         });
     }
 }
-
-
-
-
-
-
-
-
-
-

@@ -4,6 +4,7 @@ using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Services;
 using SPTarkov.Server.Core.Utils.Cloners;
+using static EternalCycle.ContextManager;
 using Path = System.IO.Path;
 
 namespace EternalCycle
@@ -29,7 +30,7 @@ namespace EternalCycle
                     {
                         // 对应调用已有的文件夹重载方法
                         // 假设 context 提供了 Logger，如果没有，请使用 ServiceLocator.ServiceProvider.GetService<ISptLogger<EternalCycle>>()
-                        InitAssortData(path, context.DB, context.ModHelper, context.Cloner);
+                        InitAssortData(path, context);
                     }
                     catch (Exception ex)
                     {
@@ -49,7 +50,7 @@ namespace EternalCycle
 
                         if (assortData != null)
                         {
-                            InitAssortData(assortData, context.DB, context.Cloner);
+                            InitAssortData(assortData, context);
                         }
                     }
                     catch (Exception ex)
@@ -68,9 +69,8 @@ namespace EternalCycle
         /// 加载报价单数据
         /// </summary>
         /// <param name="assortData"></param>
-        /// <param name="databaseService"></param>
-        /// <param name="cloner"></param>
-        public static void InitAssortData(List<CustomAssortData> assortData, DatabaseService databaseService, ICloner cloner)
+        /// <param name="context">上下文实例</param>
+        public static void InitAssortData(List<CustomAssortData> assortData, LoadModContext context)
         {
             foreach (CustomAssortData assort in assortData)
             {
@@ -78,7 +78,7 @@ namespace EternalCycle
                 {
                     case CustomNormalAssortData customAssortData:
                         {
-                            InitAssort(assort, databaseService, cloner);
+                            InitAssort(assort, context);
                         }
                         break;
                     case CustomLockedAssortData customLockedAssortData:
@@ -91,7 +91,7 @@ namespace EternalCycle
                                 IsUnknownReward = customLockedAssortData.IsUnknownReward,
                                 AssortData = customLockedAssortData,
                             };
-                            QuestUtils.InitAssortUnlockRewards(assortUnlockRewardData, databaseService, cloner);
+                            QuestUtils.InitAssortUnlockRewards(assortUnlockRewardData, context);
                         }
                         break;
                 }
@@ -102,10 +102,8 @@ namespace EternalCycle
         /// 从文件夹加载报价单数据
         /// </summary>
         /// <param name="folderpath"></param>
-        /// <param name="databaseService"></param>
-        /// <param name="modHelper"></param>
-        /// <param name="cloner"></param>
-        public static void InitAssortData(string folderpath, DatabaseService databaseService, ModHelper modHelper, ICloner cloner)
+        /// <param name="context">上下文实例</param>
+        public static void InitAssortData(string folderpath, LoadModContext context)
         {
             List<string> files = Directory.GetFiles(folderpath).ToList();
             if (files.Count > 0)
@@ -113,23 +111,23 @@ namespace EternalCycle
                 foreach (var file in files)
                 {
                     string fileName = Path.GetFileName(file);
-                    var assort = modHelper.GetJsonDataFromFile<List<CustomAssortData>>(folderpath, fileName);
-                    InitAssortData(assort, databaseService, cloner);
+                    var assort = context.ModHelper.GetJsonDataFromFile<List<CustomAssortData>>(folderpath, fileName);
+                    InitAssortData(assort, context);
                 }
             }
         }
 
-        public static void InitAssort(CustomAssortData assortData, DatabaseService databaseService, ICloner cloner)
+        public static void InitAssort(CustomAssortData assortData, LoadModContext context)
         {
             var assort = assortData;
             var assortid = Utils.ConvertHashID(assort.Id);
-            var traderassort = TraderUtils.GetTrader((string)assort.Trader, databaseService).Assort;
-            var items = ItemUtils.ConvertItemListData(assort.Item, cloner);
+            var traderassort = TraderUtils.GetTrader((string)assort.Trader, context.DB).Assort;
+            var items = ItemUtils.ConvertItemListData(assort.Item, context);
             var mainitem = items[0];
             var mainitemid = mainitem.Template;
-            if (ItemUtils.GetItemRagfairTag(mainitemid, databaseService) == ERagfairTagsType.弹药包)
+            if (ItemUtils.GetItemRagfairTag(mainitemid, context) == ERagfairTagsType.弹药包)
             {
-                ItemUtils.AddAmmoToAmmoBoxInList(mainitem.Id, mainitemid, items, databaseService);
+                ItemUtils.AddAmmoToAmmoBoxInList(mainitem.Id, mainitemid, items, context);
             }
             foreach (Item item in items)
             {
@@ -162,9 +160,9 @@ namespace EternalCycle
             traderassort.LoyalLevelItems.Add((MongoId)assortid, assort.TrustLevel);
         }
 
-        public static void AddAssortToTrader(MongoId itemid, MongoId traderid, int price, DatabaseService databaseService)
+        public static void AddAssortToTrader(MongoId itemid, MongoId traderid, int price, LoadModContext context)
         {
-            var trader = databaseService.GetTrader(traderid);
+            var trader = context.DB.GetTrader(traderid);
             if (trader != null)
             {
                 var id = new MongoId();
@@ -195,9 +193,9 @@ namespace EternalCycle
             }
         }
 
-        public static void AddAssortToTrader(MongoId itemid, MongoId traderid, int price, MongoId money, DatabaseService databaseService)
+        public static void AddAssortToTrader(MongoId itemid, MongoId traderid, int price, MongoId money, LoadModContext context)
         {
-            var trader = databaseService.GetTrader(traderid);
+            var trader = context.DB.GetTrader(traderid);
             if (trader != null)
             {
                 var id = new MongoId();
@@ -228,9 +226,9 @@ namespace EternalCycle
             }
         }
 
-        public static void AddAssortToTrader(MongoId itemid, MongoId traderid, int price, int level, DatabaseService databaseService)
+        public static void AddAssortToTrader(MongoId itemid, MongoId traderid, int price, int level, LoadModContext context)
         {
-            var trader = databaseService.GetTrader(traderid);
+            var trader = context.DB.GetTrader(traderid);
             if (trader != null)
             {
                 var id = new MongoId();
@@ -261,9 +259,9 @@ namespace EternalCycle
             }
         }
 
-        public static void AddAssortToTrader(MongoId itemid, MongoId traderid, int price, int level, MongoId money, DatabaseService databaseService)
+        public static void AddAssortToTrader(MongoId itemid, MongoId traderid, int price, int level, MongoId money, LoadModContext context)
         {
-            var trader = databaseService.GetTrader(traderid);
+            var trader = context.DB.GetTrader(traderid);
             if (trader != null)
             {
                 var id = new MongoId();
@@ -294,10 +292,10 @@ namespace EternalCycle
             }
         }
 
-        public static void AddAssortToTrader(List<CustomItem> item, MongoId traderid, int price, int level, DatabaseService databaseService, ICloner cloner)
+        public static void AddAssortToTrader(List<CustomItem> item, MongoId traderid, int price, int level, LoadModContext context)
         {
-            var trader = databaseService.GetTrader(traderid);
-            var itemlist = ItemUtils.ConvertItemListData(item, cloner);
+            var trader = context.DB.GetTrader(traderid);
+            var itemlist = ItemUtils.ConvertItemListData(item, context);
             if (trader != null)
             {
                 var id = itemlist[0].Id;
@@ -342,10 +340,10 @@ namespace EternalCycle
             }
         }
 
-        public static void AddAssortToTrader(List<CustomItem> item, MongoId traderid, int price, int level, MongoId money, DatabaseService databaseService, ICloner cloner)
+        public static void AddAssortToTrader(List<CustomItem> item, MongoId traderid, int price, int level, MongoId money, LoadModContext context)
         {
-            var trader = databaseService.GetTrader(traderid);
-            var itemlist = ItemUtils.ConvertItemListData(item, cloner);
+            var trader = context.DB.GetTrader(traderid);
+            var itemlist = ItemUtils.ConvertItemListData(item, context);
             if (trader != null)
             {
                 var id = itemlist[0].Id;
@@ -391,12 +389,3 @@ namespace EternalCycle
         }
     }
 }
-
-
-
-
-
-
-
-
-

@@ -58,7 +58,19 @@ namespace EternalCycle
             var modHelper = ServiceLocator.ServiceProvider.GetService<ModHelper>();
             var jsonUtil = ServiceLocator.ServiceProvider.GetService<JsonUtil>();
             var lootGenerator = ServiceLocator.ServiceProvider.GetService<LootGenerator>();
+            var imageRouter = ServiceLocator.ServiceProvider.GetService<ImageRouter>();
             var cloner = ServiceLocator.ServiceProvider.GetService<ICloner>();
+            var context = new ContextManager.LoadModContext
+            {
+                DB = databaseService,
+                JsonUtil = jsonUtil,
+                ConfigServer = configServer,
+                ModHelper = modHelper,
+                Logger = Utils.commonLogger,
+                ImageRouter = imageRouter,
+                ItemHelper = itemHelper,
+                Cloner = cloner
+            };
             Random random = new Random();
 
             // Container player opened in their inventory
@@ -106,7 +118,7 @@ namespace EternalCycle
                         }
                         for (var i = 0; i < boxdata.Count; i++)
                         {
-                            var result = ItemUtils.GetAdvancedBoxData(sessionId, drawpoolname, drawpool, currentRecordCache, jsonUtil, itemHelper, databaseService, modHelper, cloner);
+                            var result = ItemUtils.GetAdvancedBoxData(sessionId, drawpoolname, drawpool, currentRecordCache, context);
                             if (result.Count > 0)
                             {
                                 rewards.Add(result);
@@ -128,7 +140,7 @@ namespace EternalCycle
                     {
                         //VulcanLog.Debug("正在检查数据....", logger);
                         var hashkey = Utils.ConvertHashID(DateTime.Now.ToString());
-                        var reward = ItemUtils.GetGiftItemByType(data, hashkey, databaseService, cloner);
+                        var reward = ItemUtils.GetGiftItemByType(data, hashkey, context);
                         if (reward.Count > 0)
                         {
                             //VulcanLog.Debug("数据返回成功", logger);

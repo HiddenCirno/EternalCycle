@@ -24,18 +24,20 @@ using SPTarkov.Server.Core.Utils.Logger;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
+using static EternalCycle.ContextManager;
 using Path = System.IO.Path;
+
 namespace EternalCycle;
 public class PresetUtils
 {
-    public static void InitPresetData(List<CustomPresetData> presetData, DatabaseService databaseService, ICloner cloner, ISptLogger<EternalCycle> logger)
+    public static void InitPresetData(List<CustomPresetData> presetData, LoadModContext context)
     {
         foreach (var preset in presetData)
         {
-            InitPreset(preset, databaseService, cloner, logger);
+            InitPreset(preset, context);
         }
     }
-    public static void InitPresetData(string folderpath, DatabaseService databaseService, ModHelper modHelper, ICloner cloner, ISptLogger<EternalCycle> logger)
+    public static void InitPresetData(string folderpath, LoadModContext context)
     {
         List<string> files = Directory.GetFiles(folderpath).ToList();
         if (files.Count > 0)
@@ -43,19 +45,19 @@ public class PresetUtils
             foreach (var file in files)
             {
                 string fileName = Path.GetFileName(file);
-                var preset = modHelper.GetJsonDataFromFile<CustomPresetData>(folderpath, fileName);
-                InitPreset(preset, databaseService, cloner, logger);
+                var preset = context.ModHelper.GetJsonDataFromFile<CustomPresetData>(folderpath, fileName);
+                InitPreset(preset, context);
             }
         }
     }
-    public static void InitPreset(CustomPresetData preset, DatabaseService databaseService, ICloner cloner, ISptLogger<EternalCycle> logger)
+    public static void InitPreset(CustomPresetData preset, LoadModContext context)
     {
-        var Preset = databaseService.GetGlobals().ItemPresets;
-        var zhCNLang = databaseService.GetLocales().Global["ch"];
+        var Preset = context.DB.GetGlobals().ItemPresets;
+        var zhCNLang = context.DB.GetLocales().Global["ch"];
         var presetname = preset.Name;
-        var itempresetdata = ItemUtils.ConvertItemListData(preset.PresetData, cloner); //new List<Item>();
+        var itempresetdata = ItemUtils.ConvertItemListData(preset.PresetData, context); //new List<Item>();
         var presetid = (MongoId)Utils.ConvertHashID(presetname);
-        var realpresetdata = ItemUtils.RegenerateItemListData(itempresetdata, presetname, cloner);
+        var realpresetdata = ItemUtils.RegenerateItemListData(itempresetdata, presetname, context);
         if (preset.IsBasePreset)
         {
             Preset.TryAdd(presetid, new Preset
@@ -88,7 +90,7 @@ public class PresetUtils
         });
         if (preset.SpawnInRaid)
         {
-            LootUtils.AddPresetLoot(realpresetdata, preset.SpawnTarget, databaseService, cloner);
+            LootUtils.AddPresetLoot(realpresetdata, preset.SpawnTarget, context);
         }
     }
 }

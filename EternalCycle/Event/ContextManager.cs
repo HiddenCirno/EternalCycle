@@ -13,7 +13,7 @@ namespace EternalCycle
 {
     public class ContextManager
     {
-        public class OnRagfairLoadContext
+        public class LoadModContext
         {
             public required DatabaseService DB { get; init; }
 
@@ -24,7 +24,10 @@ namespace EternalCycle
             public required ModHelper ModHelper { get; init; }
 
             public required ECLogger Logger { get; init; }
+
             public required ImageRouter ImageRouter { get; init; }
+
+            public required ItemHelper ItemHelper { get; init; }
 
             public required ICloner Cloner { get; init; }
         }

@@ -10,6 +10,7 @@ using SPTarkov.Server.Core.Services;
 using SPTarkov.Server.Core.Utils;
 using SPTarkov.Server.Core.Utils.Cloners;
 using System.Reflection;
+using static EternalCycle.ContextManager;
 
 namespace EternalCycle
 {
@@ -54,11 +55,11 @@ namespace EternalCycle
         /// 从数据库返回某个物品的引用
         /// </summary>
         /// <param name="itemid">物品ID</param>
-        /// <param name="databaseService">数据库服务实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns></returns>
-        public static TemplateItem? GetItem(string itemid, DatabaseService databaseService)
+        public static TemplateItem? GetItem(string itemid, LoadModContext context)
         {
-            if (databaseService.GetItems().TryGetValue(itemid, out var item))
+            if (context.DB.GetItems().TryGetValue(itemid, out var item))
             {
                 return item;
             }
@@ -69,12 +70,12 @@ namespace EternalCycle
         /// 从数据库返回指定物品的手册分类
         /// </summary>
         /// <param name="itemid">物品ID</param>
-        /// <param name="databaseService">数据库服务实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns></returns>
-        public static MongoId? GetItemRagfairTag(string itemid, DatabaseService databaseService)
+        public static MongoId? GetItemRagfairTag(string itemid, LoadModContext context)
         {
             var targetId = itemid;
-            var handbook = databaseService.GetHandbook();
+            var handbook = context.DB.GetHandbook();
             var item = handbook.Items.FirstOrDefault(x => x.Id == targetId);
             return item?.ParentId;
         }
@@ -85,14 +86,12 @@ namespace EternalCycle
         /// <param name="items">字典对象</param>
         /// <param name="creator">创建者字段</param>
         /// <param name="modname">Mod名字段</param>
-        /// <param name="databaseService">数据库服务实例</param>
-        /// <param name="configServer">配置服务实例</param>
-        /// <param name="cloner">克隆器接口实例</param>
-        public static void InitItem(Dictionary<string, CustomItemTemplate> items, string creator, string modname, DatabaseService databaseService, ConfigServer configServer, ICloner cloner)
+        /// <param name="context">上下文实例</param>
+        public static void InitItem(Dictionary<string, CustomItemTemplate> items, string creator, string modname, LoadModContext context)
         {
             foreach (var item in items)
             {
-                CreateAndAddItem(item.Value, item.Value.TargetId, creator, modname, databaseService, configServer, cloner);
+                CreateAndAddItem(item.Value, item.Value.TargetId, creator, modname, context);
             }
         }
 
@@ -102,11 +101,8 @@ namespace EternalCycle
         /// <param name="folderPath"></param>
         /// <param name="creator">创建者字段</param>
         /// <param name="modname">Mod名字段</param>
-        /// <param name="databaseService">数据库服务实例</param>
-        /// <param name="jsonUtil">json序列化器实例</param>
-        /// <param name="configServer">配置服务实例</param>
-        /// <param name="cloner">克隆器接口实例</param>
-        public static void InitItem(string folderPath, string creator, string modname, DatabaseService databaseService, JsonUtil jsonUtil, ConfigServer configServer, ICloner cloner)
+        /// <param name="context">上下文实例</param>
+        public static void InitItem(string folderPath, string creator, string modname, LoadModContext context)
         {
             List<string> files = Directory.GetFiles(folderPath).ToList();
             if (files.Count > 0)
@@ -115,8 +111,8 @@ namespace EternalCycle
                 {
                     string fileContent = File.ReadAllText(file);
                     //string processedJson = Utils.RemoveJsonComments(fileContent);
-                    var item = Utils.ConvertItemData<CustomItemTemplate>(fileContent, jsonUtil);
-                    CreateAndAddItem(item, item.TargetId, creator, modname, databaseService, configServer, cloner);
+                    var item = Utils.ConvertItemData<CustomItemTemplate>(fileContent, context.JsonUtil);
+                    CreateAndAddItem(item, item.TargetId, creator, modname, context);
                 }
             }
         }
@@ -128,10 +124,8 @@ namespace EternalCycle
         /// <param name="targetid">复制的物品目标ID</param>
         /// <param name="creator">创建者</param>
         /// <param name="modname">Mod名字</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="configServer">配置实例</param>
-        /// <param name="cloner">克隆器实例</param>
-        public static void CreateAndAddItem(CustomItemTemplate template, string targetid, string creator, string modname, DatabaseService databaseService, ConfigServer configServer, ICloner cloner)
+        /// <param name="context">上下文实例</param>
+        public static void CreateAndAddItem(CustomItemTemplate template, string targetid, string creator, string modname, LoadModContext context)
         {
             //需要添加一个验证器, 实现覆盖和加载双模
             //已经有了
@@ -140,14 +134,14 @@ namespace EternalCycle
             template.Id = itemid;
             //检查字典
             TemplateItem itemClone;
-            var itemOriginal = GetItem(itemid, databaseService);
+            var itemOriginal = GetItem(itemid, context);
             if (itemOriginal != null)
             {
                 itemClone = itemOriginal;
             }
             else
             {
-                itemClone = cloner.Clone(GetItem(targetid, databaseService));
+                itemClone = context.Cloner.Clone(GetItem(targetid, context));
             }
             //参数覆盖
             Utils.CopyNonNullProperties(template.Props, itemClone.Properties);
@@ -161,7 +155,7 @@ namespace EternalCycle
             //主要是这些玩意不是需要实例就是需要实例....
             //唉
             //我讨厌DI
-            var _inventoryConfig = configServer.GetConfig<InventoryConfig>();
+            var _inventoryConfig = context.ConfigServer.GetConfig<InventoryConfig>();
             //自定义货币处理
             if (template.CustomProps.IsMoney && !_inventoryConfig.CustomMoneyTpls.Contains(itemid))
             {
@@ -170,28 +164,28 @@ namespace EternalCycle
             //改吧, 改吧, 来都来了
             //Buff物品处理
             template
-                .AddBuffItemData(configServer, databaseService)
-                .AddBlackList(configServer)
-                .SetInRaidLimitCount(databaseService)
-                .SetCustomPMCDogTag(configServer)
-                .AddPriceData(databaseService)
-                .AddWeaponItemData(databaseService)
-                .AddQuestItemGenerate(databaseService)
-                .SetContainerSize(itemClone, databaseService)
-                .SetGiftBoxData(configServer)
-                .AddStaticLoot(databaseService)
-                .AddLooseLoot(databaseService)
+                .AddBuffItemData(context)
+                .AddBlackList(context)
+                .SetInRaidLimitCount(context)
+                .SetCustomPMCDogTag(context)
+                .AddPriceData(context)
+                .AddWeaponItemData(context)
+                .AddQuestItemGenerate(context)
+                .SetContainerSize(itemClone, context)
+                .SetGiftBoxData(context)
+                .AddStaticLoot(context)
+                .AddLooseLoot(context)
                 .AddItemFixData();
 
             //本地化数据
-            LocaleUtils.AddItemToLocales(LocaleUtils.BuildItemLocales(template.CustomProps, creator, modname), itemid, databaseService);
+            LocaleUtils.AddItemToLocales(LocaleUtils.BuildItemLocales(template.CustomProps, creator, modname), itemid, context.DB);
             //尝试添加物品
             //在非空情况下itemClone直接就是来自物品表的引用, 因此无需覆盖更新
-            if (itemOriginal == null) databaseService.GetItems().TryAdd(itemid, itemClone);
+            if (itemOriginal == null) context.DB.GetItems().TryAdd(itemid, itemClone);
             //Kappa
             if (template.CustomProps.AddToKappa == true)
             {
-                AddItemToKappa(template, databaseService, cloner);
+                AddItemToKappa(template, context);
             }
             Utils.commonLogger.Debug($"物品添加成功: {template.CustomProps.Name}");
         }
@@ -209,7 +203,7 @@ namespace EternalCycle
             {
                 EventManager.DataLoadEvent.LoadItemEvent += (context) =>
                 {
-                    InitItem(path, creator, modname, context.DB, context.JsonUtil, context.ConfigServer, context.Cloner);
+                    InitItem(path, creator, modname, context);
                 };
             }
             //单文件
@@ -222,7 +216,7 @@ namespace EternalCycle
                         //var item = context.JsonUtil.Deserialize<Dictionary<string, CustomItemTemplate>>(File.ReadAllText(path));
                         //var item = context.ModHelper.GetJsonDataFromFile<Dictionary<string, CustomItemTemplate>>("", path);
                         var item = Utils.ConvertItemData("", path, context.JsonUtil);
-                        InitItem(item, creator, modname, context.DB, context.ConfigServer, context.Cloner);
+                        InitItem(item, creator, modname, context);
                     }
                     catch (Exception ex)
                     {
@@ -241,10 +235,10 @@ namespace EternalCycle
         //物品-任务-商人-预设-任务逻辑-任务奖励-报价单-配方
         //大概就是这样, Kappa涉及到任务数据所以放在物品后
         //这玩意调用了QuestUtils....先放着吧
-        public static void AddItemToKappa(CustomItemTemplate item, DatabaseService databaseService, ICloner cloner)
+        public static void AddItemToKappa(CustomItemTemplate item, LoadModContext context)
         {
-            var kappa = QuestUtils.GetQuest(QuestTpl.COLLECTOR, databaseService);
-            var twitchcase = GetItem(ItemTpl.CONTAINER_STREAMER_ITEM_CASE, databaseService);
+            var kappa = QuestUtils.GetQuest(QuestTpl.COLLECTOR, context);
+            var twitchcase = GetItem(ItemTpl.CONTAINER_STREAMER_ITEM_CASE, context);
             var conditions = kappa.Conditions.AvailableForFinish;
             var itemid = Utils.ConvertHashID(item.Id);
             QuestUtils.InitHandoverItemDataConditions(conditions, new HandoverItemData
@@ -255,7 +249,7 @@ namespace EternalCycle
                 Count = 1,
                 AutoLocale = true
             },
-            databaseService, cloner);
+            context);
             var twitchcasecontainer = twitchcase.Properties.Grids.First().Properties.Filters.First().Filter;
             if (!twitchcasecontainer.Contains(itemid))
             {
@@ -267,14 +261,14 @@ namespace EternalCycle
         /// 处理自定义物品的黑名单数据
         /// </summary>
         /// <param name="template">自定义物品对象</param>
-        /// <param name="configServer">配置实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns>自定义物品对象</returns>
-        public static CustomItemTemplate AddBlackList(this CustomItemTemplate template, ConfigServer configServer)
+        public static CustomItemTemplate AddBlackList(this CustomItemTemplate template, LoadModContext context)
         {
             if (template.CustomProps?.BlackListType != null)
             {
                 string itemid = template.Id;
-                AddBlackList(itemid, template.CustomProps.BlackListType, configServer);
+                AddBlackList(itemid, template.CustomProps.BlackListType, context);
             }
             return template;
         }
@@ -284,8 +278,8 @@ namespace EternalCycle
         /// </summary>
         /// <param name="itemid">物品ID</param>
         /// <param name="blacklistType">黑名单位图</param>
-        /// <param name="configServer">配置实例</param>
-        public static void AddBlackList(string itemid, int blacklistType, ConfigServer configServer)
+        /// <param name="context">上下文实例</param>
+        public static void AddBlackList(string itemid, int blacklistType, LoadModContext context)
         {
             List<string> blacklist = BitMapUtils.GetBlackListCode(blacklistType);
             foreach (string black in blacklist)
@@ -294,37 +288,37 @@ namespace EternalCycle
                 {
                     case "AirDrop":
                         {
-                            AddAirDropBlackList(itemid, configServer);
+                            AddAirDropBlackList(itemid, context);
                         }
                         break;
                     case "PMCLoot":
                         {
-                            AddPMCLootBlackList(itemid, configServer);
+                            AddPMCLootBlackList(itemid, context);
                         }
                         break;
                     case "ScavCaseLoot":
                         {
-                            AddScavCaseLootBlackList(itemid, configServer);
+                            AddScavCaseLootBlackList(itemid, context);
                         }
                         break;
                     case "Fence":
                         {
-                            AddFenceBlackList(itemid, configServer);
+                            AddFenceBlackList(itemid, context);
                         }
                         break;
                     case "Circle":
                         {
-                            AddCircleBlackList(itemid, configServer);
+                            AddCircleBlackList(itemid, context);
                         }
                         break;
                     case "DailyReward":
                         {
-                            AddDailyRewardBlackList(itemid, configServer);
+                            AddDailyRewardBlackList(itemid, context);
                         }
                         break;
                     case "Global":
                         {
-                            AddGlobalBlackList(itemid, configServer);
+                            AddGlobalBlackList(itemid, context);
                         }
                         break;
                 }
@@ -335,10 +329,10 @@ namespace EternalCycle
         /// 处理黑名单的工具方法
         /// </summary>
         /// <param name="itemid">物品ID</param>
-        /// <param name="configserver">配置实例</param>
-        public static void AddAirDropBlackList(string itemid, ConfigServer configserver)
+        /// <param name="context">上下文实例</param>
+        public static void AddAirDropBlackList(string itemid, LoadModContext context)
         {
-            AirdropConfig lootConfig = configserver.GetConfig<AirdropConfig>();
+            AirdropConfig lootConfig = context.ConfigServer.GetConfig<AirdropConfig>();
             foreach (AirdropLoot loot in lootConfig.Loot.Values)
             {
                 //你TM为什么是List呢?!
@@ -350,10 +344,10 @@ namespace EternalCycle
         /// 处理黑名单的工具方法
         /// </summary>
         /// <param name="itemid">物品ID</param>
-        /// <param name="configserver">配置实例</param>
-        public static void AddPMCLootBlackList(string itemid, ConfigServer configserver)
+        /// <param name="context">上下文实例</param>
+        public static void AddPMCLootBlackList(string itemid, LoadModContext context)
         {
-            PmcConfig lootConfig = configserver.GetConfig<PmcConfig>();
+            PmcConfig lootConfig = context.ConfigServer.GetConfig<PmcConfig>();
             //HashSet, 因此可以直接Add, 无需查重
             lootConfig.VestLoot.Blacklist.Add(itemid);
             lootConfig.PocketLoot.Blacklist.Add(itemid);
@@ -364,10 +358,10 @@ namespace EternalCycle
         /// 处理黑名单的工具方法
         /// </summary>
         /// <param name="itemid">物品ID</param>
-        /// <param name="configserver">配置实例</param>
-        public static void AddScavCaseLootBlackList(string itemid, ConfigServer configserver)
+        /// <param name="context">上下文实例</param>
+        public static void AddScavCaseLootBlackList(string itemid, LoadModContext context)
         {
-            ScavCaseConfig lootConfig = configserver.GetConfig<ScavCaseConfig>();
+            ScavCaseConfig lootConfig = context.ConfigServer.GetConfig<ScavCaseConfig>();
             lootConfig.RewardItemBlacklist.Add(itemid);
         }
 
@@ -375,10 +369,10 @@ namespace EternalCycle
         /// 处理黑名单的工具方法
         /// </summary>
         /// <param name="itemid">物品ID</param>
-        /// <param name="configserver">配置实例</param>
-        public static void AddFenceBlackList(string itemid, ConfigServer configserver)
+        /// <param name="context">上下文实例</param>
+        public static void AddFenceBlackList(string itemid, LoadModContext context)
         {
-            TraderConfig lootConfig = configserver.GetConfig<TraderConfig>();
+            TraderConfig lootConfig = context.ConfigServer.GetConfig<TraderConfig>();
             lootConfig.Fence.Blacklist.Add(itemid);
         }
 
@@ -386,10 +380,10 @@ namespace EternalCycle
         /// 处理黑名单的工具方法
         /// </summary>
         /// <param name="itemid">物品ID</param>
-        /// <param name="configserver">配置实例</param>
-        public static void AddCircleBlackList(string itemid, ConfigServer configserver)
+        /// <param name="context">上下文实例</param>
+        public static void AddCircleBlackList(string itemid, LoadModContext context)
         {
-            HideoutConfig lootConfig = configserver.GetConfig<HideoutConfig>();
+            HideoutConfig lootConfig = context.ConfigServer.GetConfig<HideoutConfig>();
             lootConfig.CultistCircle.RewardItemBlacklist.Add(itemid);
         }
 
@@ -397,10 +391,10 @@ namespace EternalCycle
         /// 处理黑名单的工具方法
         /// </summary>
         /// <param name="itemid">物品ID</param>
-        /// <param name="configserver">配置实例</param>
-        public static void AddDailyRewardBlackList(string itemid, ConfigServer configserver)
+        /// <param name="context">上下文实例</param>
+        public static void AddDailyRewardBlackList(string itemid, LoadModContext context)
         {
-            QuestConfig questConfig = configserver.GetConfig<QuestConfig>();
+            QuestConfig questConfig = context.ConfigServer.GetConfig<QuestConfig>();
             questConfig.RepeatableQuests.ForEach(type => type.RewardBlacklist.Add(itemid));
         }
 
@@ -408,10 +402,10 @@ namespace EternalCycle
         /// 处理黑名单的工具方法
         /// </summary>
         /// <param name="itemid">物品ID</param>
-        /// <param name="configserver">配置实例</param>
-        public static void AddGlobalBlackList(string itemid, ConfigServer configserver)
+        /// <param name="context">上下文实例</param>
+        public static void AddGlobalBlackList(string itemid, LoadModContext context)
         {
-            ItemConfig itemConfig = configserver.GetConfig<ItemConfig>();
+            ItemConfig itemConfig = context.ConfigServer.GetConfig<ItemConfig>();
             itemConfig.RewardItemBlacklist.Add(itemid);
         }
 
@@ -419,12 +413,11 @@ namespace EternalCycle
         /// 为自定义物品修复Buff数据
         /// </summary>
         /// <param name="template">自定义物品对象</param>
-        /// <param name="configserver">配置实例</param>
-        /// <param name="databaseService">数据库实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns>自定义物品对象</returns>
-        public static CustomItemTemplate AddBuffItemData(this CustomItemTemplate template, ConfigServer configserver, DatabaseService databaseService)
+        public static CustomItemTemplate AddBuffItemData(this CustomItemTemplate template, LoadModContext context)
         {
-            Globals globals = databaseService.GetGlobals();
+            Globals globals = context.DB.GetGlobals();
             if (template.CustomProps is BuffItemProps itemProps && template.Props.StimulatorBuffs != null)
             {
                 globals.Configuration.Health.Effects.Stimulator.Buffs[template.Props.StimulatorBuffs] = itemProps.BuffValue;
@@ -464,16 +457,16 @@ namespace EternalCycle
         /// 为自定义物品增加手册标签和价格
         /// </summary>
         /// <param name="template">自定义物品对象</param>
-        /// <param name="databaseService">数据库实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns>自定义物品对象</returns>
-        public static CustomItemTemplate AddPriceData(this CustomItemTemplate template, DatabaseService databaseService)
+        public static CustomItemTemplate AddPriceData(this CustomItemTemplate template, LoadModContext context)
         {
             if (template.CustomProps == null) return template;
             var props = template.CustomProps;
             string itemid = template.Id.ConvertHashID();
             string targetid = template.TargetId;
             //处理手册
-            var handbookList = databaseService.GetHandbook().Items;
+            var handbookList = context.DB.GetHandbook().Items;
             var targetHandbook = handbookList.FirstOrDefault(x => x.Id == targetid);
             var myHandbook = handbookList.FirstOrDefault(x => x.Id == itemid);
             //查价格
@@ -502,7 +495,7 @@ namespace EternalCycle
                 myHandbook.Price = handbookPrice;
             }
             //处理价格表
-            var pricesDict = databaseService.GetPrices();
+            var pricesDict = context.DB.GetPrices();
             double finalRagfairPrice;
             //再次判断逻辑
             if (props.CopyPrice == true && pricesDict.TryGetValue(targetid, out var targetPrice))
@@ -543,9 +536,9 @@ namespace EternalCycle
         /// </summary>
         /// <param name="template">自定义物品对象</param>
         /// <param name="itemTemplate">物品引用实例</param>
-        /// <param name="databaseService">数据库实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns>自定义物品对象</returns>
-        public static CustomItemTemplate SetContainerSize(this CustomItemTemplate template, TemplateItem itemTemplate, DatabaseService databaseService)
+        public static CustomItemTemplate SetContainerSize(this CustomItemTemplate template, TemplateItem itemTemplate, LoadModContext context)
         {
             if (template.CustomProps is CustomSizeContainerProps itemProps)
             {
@@ -560,14 +553,14 @@ namespace EternalCycle
         /// 为自定义物品设置武器数据(专精)
         /// </summary>
         /// <param name="template">自定义物品对象</param>
-        /// <param name="databaseService">数据库实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns>自定义物品对象</returns>
-        public static CustomItemTemplate AddWeaponItemData(this CustomItemTemplate template, DatabaseService databaseService)
+        public static CustomItemTemplate AddWeaponItemData(this CustomItemTemplate template, LoadModContext context)
         {
             if (template.CustomProps is WeaponItemProps itemProps)
             {
-                if (itemProps?.FixMastering == true) FixWeaponMastering(template, itemProps, databaseService);
-                if (itemProps?.AddMastering == true) AddWeaponMastering(template, itemProps, databaseService);
+                if (itemProps?.FixMastering == true) FixWeaponMastering(template, itemProps, context);
+                if (itemProps?.AddMastering == true) AddWeaponMastering(template, itemProps, context);
             }
             return template;
         }
@@ -577,10 +570,10 @@ namespace EternalCycle
         /// </summary>
         /// <param name="template">自定义物品对象</param>
         /// <param name="itemProps">多态序列化后的武器物品数据</param>
-        /// <param name="databaseService">数据库实例</param>
-        public static void FixWeaponMastering(CustomItemTemplate template, WeaponItemProps itemProps, DatabaseService databaseService)
+        /// <param name="context">上下文实例</param>
+        public static void FixWeaponMastering(CustomItemTemplate template, WeaponItemProps itemProps, LoadModContext context)
         {
-            Globals globals = databaseService.GetGlobals();
+            Globals globals = context.DB.GetGlobals();
             var itemId = template.Id.ConvertHashID();
             //确定修复目标
             string targetToFind = itemProps.CustomMasteringTarget ?? template.TargetId;
@@ -604,12 +597,12 @@ namespace EternalCycle
         /// </summary>
         /// <param name="template">自定义物品对象</param>
         /// <param name="itemProps">多态序列化后的武器物品数据</param>
-        /// <param name="databaseService">数据库实例</param>
-        public static void AddWeaponMastering(CustomItemTemplate template, WeaponItemProps itemProps, DatabaseService databaseService)
+        /// <param name="context">上下文实例</param>
+        public static void AddWeaponMastering(CustomItemTemplate template, WeaponItemProps itemProps, LoadModContext context)
         {
             if (itemProps.Mastering == null) return;
 
-            Globals globals = databaseService.GetGlobals();
+            Globals globals = context.DB.GetGlobals();
             int existingIndex = Array.FindIndex(globals.Configuration.Mastering, m => m.Name == itemProps.Mastering.Name);
             if (existingIndex >= 0)
             {
@@ -627,15 +620,15 @@ namespace EternalCycle
         /// 为自定义物品添加任务物品刷新
         /// </summary>
         /// <param name="template">自定义物品对象</param>
-        /// <param name="databaseService">数据库实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns>自定义物品对象</returns>
-        public static CustomItemTemplate AddQuestItemGenerate(this CustomItemTemplate template, DatabaseService databaseService)
+        public static CustomItemTemplate AddQuestItemGenerate(this CustomItemTemplate template, LoadModContext context)
         {
             if (template.CustomProps is QuestItemProps questItemProps)
             {
                 //提取数据, 定位地图
                 var spawnpoint = questItemProps.SpawnPointData;
-                var looseloot = databaseService.GetLocation(spawnpoint.Location)?.LooseLoot;
+                var looseloot = context.DB.GetLocation(spawnpoint.Location)?.LooseLoot;
                 if (looseloot != null)
                 {
                     //对战利品执行懒加载
@@ -686,9 +679,9 @@ namespace EternalCycle
         /// 将自定义物品树转换为原版物品树
         /// </summary>
         /// <param name="itemlist">自定义物品树实例</param>
-        /// <param name="cloner">克隆器实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns>原版物品树实例</returns>
-        public static List<Item> ConvertItemListData(this List<CustomItem> itemlist, ICloner cloner)
+        public static List<Item> ConvertItemListData(this List<CustomItem> itemlist, LoadModContext context)
         {
             //重写了一下底层, ParentId在底层自动转换了, 这里可以直接原生搞定12
             return itemlist.ConvertAll(item => (Item)item);
@@ -699,14 +692,14 @@ namespace EternalCycle
         /// </summary>
         /// <param name="itemlist">传入的物品树实例</param>
         /// <param name="addinfo">加盐信息</param>
-        /// <param name="cloner">克隆器实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns>全新的物品树实例</returns>
-        public static List<Item> RegenerateItemListData(this List<Item> itemlist, string addinfo, ICloner cloner)
+        public static List<Item> RegenerateItemListData(this List<Item> itemlist, string addinfo, LoadModContext context)
         {
             var list = new List<Item>();
             foreach (Item item in itemlist)
             {
-                var copyitem = cloner.Clone(item);
+                var copyitem = context.Cloner.Clone(item);
                 copyitem.Id = ($"{copyitem.Id}_{addinfo}").ConvertHashID();
                 if (copyitem.ParentId != null && copyitem.ParentId != "hideout")
                 {
@@ -723,12 +716,12 @@ namespace EternalCycle
         /// 为物品修复兼容性
         /// </summary>
         /// <param name="fixDictionary">待修复列表</param>
-        /// <param name="databaseService">数据库实例</param>
-        public static void FixItemCompatible(Dictionary<MongoId, List<CustomFixData>> fixDictionary, DatabaseService databaseService)
+        /// <param name="context">上下文实例</param>
+        public static void FixItemCompatible(Dictionary<MongoId, List<CustomFixData>> fixDictionary, LoadModContext context)
         {
-            var items = databaseService.GetItems().Values;
-            var quests = databaseService.GetQuests().Values;
-            var globals = databaseService.GetGlobals();
+            var items = context.DB.GetItems().Values;
+            var quests = context.DB.GetQuests().Values;
+            var globals = context.DB.GetGlobals();
             //施工中
             //不对, 反了, 这里应该foreach-item在外面
             //吗?
@@ -767,7 +760,7 @@ namespace EternalCycle
                                     break;
                                 case "inraidcountlimit":
                                     {
-                                        FixInRaidLimit(data.Key, customFixData.ItemId, type, globals);
+                                        FixInRaidLimit(data.Key, customFixData.ItemId, type, context);
                                     }
                                     break;
                             }
@@ -1046,9 +1039,10 @@ namespace EternalCycle
         /// <param name="targetId">目标ID</param>
         /// <param name="itemId">物品ID</param>
         /// <param name="fixType">修复类型</param>
-        /// <param name="globals">配置器实例</param>
-        public static void FixInRaidLimit(MongoId targetId, MongoId itemId, string fixType, Globals globals)
+        /// <param name="context">上下文实例</param>
+        public static void FixInRaidLimit(MongoId targetId, MongoId itemId, string fixType, LoadModContext context)
         {
+            var globals = context.DB.GetGlobals();
             var limits = globals.Configuration.RestrictionsInRaid;
             var target = limits.FirstOrDefault(x => x.TemplateId == targetId);
             var self = limits.FirstOrDefault(x => x.TemplateId == itemId);
@@ -1072,7 +1066,7 @@ namespace EternalCycle
                 {
                     //古法Debug
                     //File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportfixdata.json"), context.JsonUtil.Serialize(FixDict, true));
-                    FixItemCompatible(FixDict, context.DB);
+                    FixItemCompatible(FixDict, context);
                 }
                 catch (Exception ex)
                 {
@@ -1087,15 +1081,15 @@ namespace EternalCycle
         /// <typeparam name="T">类型, 支持HashSet/List.MongoId/string</typeparam>
         /// <param name="ragfairtag">输入的标签</param>
         /// <param name="filter">输入的容器</param>
-        /// <param name="databaseService">数据库实例</param>
+        /// <param name="context">上下文实例</param>
         /// <param name="itemsize">物品大小, 不填则默认为100(10x10以内)</param>
-        public static void AddItemToListByRagfairTag<T>(MongoId ragfairtag, ICollection<T> filter, DatabaseService databaseService, int itemsize = 100)
+        public static void AddItemToListByRagfairTag<T>(MongoId ragfairtag, ICollection<T> filter, LoadModContext context, int itemsize = 100)
         {
             // 1. 顶级防空
             if (filter == null) return;
 
-            var handbook = databaseService.GetHandbook().Items;
-            var items = databaseService.GetItems();
+            var handbook = context.DB.GetHandbook().Items;
+            var items = context.DB.GetItems();
             if (handbook == null || items == null) return;
 
             // 2. 筛选出当前跳蚤分类下的所有Handbook物品项
@@ -1104,7 +1098,7 @@ namespace EternalCycle
             foreach (var item in list)
             {
                 var templateid = item.Id;
-                var template = GetItem(templateid, databaseService);
+                var template = GetItem(templateid, context);
                 if (template == null || template.Properties == null) continue;
 
                 // 3. 核心格子大小过滤判定
@@ -1161,11 +1155,11 @@ namespace EternalCycle
         /// 判断物品是否存在预设
         /// </summary>
         /// <param name="itemid">物品ID</param>
-        /// <param name="databaseService">数据库实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns>返回一个布尔值</returns>
-        public static bool HavePreset(MongoId itemid, DatabaseService databaseService)
+        public static bool HavePreset(MongoId itemid, LoadModContext context)
         {
-            var preset = databaseService.GetGlobals().ItemPresets;
+            var preset = context.DB.GetGlobals().ItemPresets;
             var target = preset.Values.FirstOrDefault(x => x.Encyclopedia == itemid);
             return target != null;
         }
@@ -1174,16 +1168,15 @@ namespace EternalCycle
         /// 从指定的物品ID获取预设对象
         /// </summary>
         /// <param name="itemid">物品ID</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="cloner">克隆器实例</param>
+        /// <param name="context">上下文实例</param>
         /// 
         /// <returns></returns>
-        public static List<Item> GetPreset(MongoId itemid, DatabaseService databaseService, ICloner cloner)
+        public static List<Item> GetPreset(MongoId itemid, LoadModContext context)
         {
-            var preset = databaseService.GetGlobals().ItemPresets;
+            var preset = context.DB.GetGlobals().ItemPresets;
             var target = preset.Values.FirstOrDefault(x => x.Encyclopedia == itemid);
             if (target == null) return new List<Item>();
-            var itemlist = target.Items.RegenerateItemListData(($"{DateTime.Now}_{itemid}_{Guid.NewGuid()}").ConvertHashID(), cloner);
+            var itemlist = target.Items.RegenerateItemListData(($"{DateTime.Now}_{itemid}_{Guid.NewGuid()}").ConvertHashID(), context);
             return itemlist;
         }
 
@@ -1191,18 +1184,18 @@ namespace EternalCycle
         /// 获取物品最低价格, 顺位为price-handbook*0.6
         /// </summary>
         /// <param name="itemid">物品ID</param>
-        /// <param name="databaseService">数据库实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns>物品价格</returns>
-        public static int GetItemMinPrice(string itemid, DatabaseService databaseService)
+        public static int GetItemMinPrice(string itemid, LoadModContext context)
         {
-            var tablePrice = GetItemPrice(itemid, databaseService);
+            var tablePrice = GetItemPrice(itemid, context);
             if (tablePrice > 0)
             {
                 return tablePrice;
             }
             else
             {
-                var handbook = databaseService.GetHandbook().Items;
+                var handbook = context.DB.GetHandbook().Items;
                 var handbookdata = handbook.FirstOrDefault(i => i.Id == itemid);
                 if (handbookdata != null && handbookdata.Price > 0)
                 {
@@ -1216,18 +1209,18 @@ namespace EternalCycle
         /// 获取物品价格, 顺位为price-handbook
         /// </summary>
         /// <param name="itemid">物品ID</param>
-        /// <param name="databaseService">数据库实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns>物品价格</returns>
-        public static int GetItemCommonPrice(string itemid, DatabaseService databaseService)
+        public static int GetItemCommonPrice(string itemid, LoadModContext context)
         {
-            var tablePrice = GetItemPrice(itemid, databaseService);
+            var tablePrice = GetItemPrice(itemid, context);
             if (tablePrice > 0)
             {
                 return tablePrice;
             }
             else
             {
-                var handbook = databaseService.GetHandbook().Items;
+                var handbook = context.DB.GetHandbook().Items;
                 var handbookdata = handbook.FirstOrDefault(i => i.Id == itemid);
                 if (handbookdata != null && handbookdata.Price > 0)
                 {
@@ -1241,11 +1234,11 @@ namespace EternalCycle
         /// 获取物品在price表里的价格
         /// </summary>
         /// <param name="itemid">物品ID</param>
-        /// <param name="databaseService">数据库实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns>物品价格</returns>
-        public static int GetItemPrice(string itemid, DatabaseService databaseService)
+        public static int GetItemPrice(string itemid, LoadModContext context)
         {
-            var priceTable = databaseService.GetPrices();
+            var priceTable = context.DB.GetPrices();
             priceTable.TryGetValue(itemid, out double value);
             var tablePrice = (int)value;
             if (tablePrice > 0)
@@ -1259,23 +1252,22 @@ namespace EternalCycle
         /// 从物品ID获取基础预设的价格
         /// </summary>
         /// <param name="itemid">物品ID</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="cloner">克隆器实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns>预设的价格</returns>
-        public static int GetPresetPrice(MongoId itemid, DatabaseService databaseService, ICloner cloner)
+        public static int GetPresetPrice(MongoId itemid, LoadModContext context)
         {
-            var item = GetItem(itemid, databaseService);
+            var item = GetItem(itemid, context);
             var ragfairs = item?.Properties?.CanSellOnRagfair ?? false;
-            var minprice = GetItemPrice(itemid, databaseService);
+            var minprice = GetItemPrice(itemid, context);
             if (ragfairs)
             {
                 return minprice;
             }
             else
             {
-                var preset = GetPreset(itemid, databaseService, cloner);
+                var preset = GetPreset(itemid, context);
                 if (preset == null) return minprice;
-                return GetPresetPrice(preset, databaseService);
+                return GetPresetPrice(preset, context);
             }
         }
 
@@ -1283,16 +1275,16 @@ namespace EternalCycle
         /// 从物品表获取预设价格
         /// </summary>
         /// <param name="item">物品表</param>
-        /// <param name="databaseService">数据库实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns>返回价格</returns>
-        public static int GetPresetPrice(List<Item> item, DatabaseService databaseService)
+        public static int GetPresetPrice(List<Item> item, LoadModContext context)
         {
             int price = 0;
             if (item.Count > 0)
             {
                 foreach (Item items in item)
                 {
-                    price += GetItemCommonPrice(items.Template, databaseService);
+                    price += GetItemCommonPrice(items.Template, context);
                 }
                 return price;
             }
@@ -1324,10 +1316,10 @@ namespace EternalCycle
         /// </summary>
         /// <param name="itemid">物品ID</param>
         /// <param name="list">黑名单</param>
-        /// <param name="databaseService">数据库实例</param>
-        public static void AddExcludeFilter(MongoId itemid, List<string> list, DatabaseService databaseService)
+        /// <param name="context">上下文实例</param>
+        public static void AddExcludeFilter(MongoId itemid, List<string> list, LoadModContext context)
         {
-            var target = GetItem(itemid, databaseService);
+            var target = GetItem(itemid, context);
             if (target != null)
             {
                 //hashset
@@ -1345,10 +1337,10 @@ namespace EternalCycle
         /// </summary>
         /// <param name="itemid">物品ID</param>
         /// <param name="list">黑名单</param>
-        /// <param name="databaseService">数据库实例</param>
-        public static void SetExcludeFilter(MongoId itemid, List<string> list, DatabaseService databaseService)
+        /// <param name="context">上下文实例</param>
+        public static void SetExcludeFilter(MongoId itemid, List<string> list, LoadModContext context)
         {
-            var target = GetItem(itemid, databaseService);
+            var target = GetItem(itemid, context);
             if (target != null)
             {
                 var filter = target?.Properties?.Grids?.First()?.Properties?.Filters?.First()?.ExcludedFilter;
@@ -1363,10 +1355,10 @@ namespace EternalCycle
         /// 还是算了, 数据处理放在这, 数据读取另存
         /// </summary>
         /// <param name="template">自定义物品对象</param>
-        /// <param name="configServer">配置器实例</param>
-        public static CustomItemTemplate SetGiftBoxData(this CustomItemTemplate template, ConfigServer configServer)
+        /// <param name="context">上下文实例</param>
+        public static CustomItemTemplate SetGiftBoxData(this CustomItemTemplate template, LoadModContext context)
         {
-            var inventoryConfig = configServer.GetConfig<InventoryConfig>();
+            var inventoryConfig = context.ConfigServer.GetConfig<InventoryConfig>();
             var itemid = template.Id.ConvertHashID();
             if (template.CustomProps is GiftBoxProps itemProps)
             {
@@ -1417,29 +1409,28 @@ namespace EternalCycle
         /// </summary>
         /// <param name="giftData">自定义数据</param>
         /// <param name="hash">加盐信息</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="cloner">克隆器实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns>返回一个独立的物品表</returns>
-        public static List<Item> GetGiftItemByType(GiftData giftData, string hash, DatabaseService databaseService, ICloner cloner)
+        public static List<Item> GetGiftItemByType(GiftData giftData, string hash, LoadModContext context)
         {
             var result = new List<Item>();
             switch (giftData)
             {
                 case GiftCustomPresetData customPreset:
                     {
-                        return customPreset.Item.ConvertItemListData(cloner).RegenerateItemListData(hash, cloner);
+                        return customPreset.Item.ConvertItemListData(context).RegenerateItemListData(hash, context);
                     }
                 case GiftVanillaPresetData vanillaPreset:
                     {
-                        var preset = GetPreset(vanillaPreset.Item, databaseService, cloner);
-                        return preset.Count > 0 ? preset.RegenerateItemListData(hash, cloner) : result;
+                        var preset = GetPreset(vanillaPreset.Item, context);
+                        return preset.Count > 0 ? preset.RegenerateItemListData(hash, context) : result;
                     }
                 case GiftItemData item:
                     {
                         var itemid = item.ItemId;
                         var mainitemid = ($"{hash}_{itemid}_{DateTime.Now}_{Guid.NewGuid()}").ConvertHashID();
                         var itemlist = new List<Item>();
-                        var isAmmoBox = GetItemRagfairTag(itemid, databaseService) == ERagfairTagsType.弹药包;
+                        var isAmmoBox = GetItemRagfairTag(itemid, context) == ERagfairTagsType.弹药包;
                         itemlist.Add(new Item
                         {
                             Id = mainitemid,
@@ -1451,13 +1442,13 @@ namespace EternalCycle
                         });
                         if (isAmmoBox)
                         {
-                            AddAmmoToAmmoBoxInList(mainitemid, itemid, itemlist, databaseService);
+                            AddAmmoToAmmoBoxInList(mainitemid, itemid, itemlist, context);
                         }
-                        return itemlist.RegenerateItemListData(hash, cloner);
+                        return itemlist.RegenerateItemListData(hash, context);
                     }
                 case GiftContainerData container:
                     {
-                        return container.Item.ConvertItemListData(cloner).RegenerateItemListData(hash, cloner);
+                        return container.Item.ConvertItemListData(context).RegenerateItemListData(hash, context);
                     }
                 default:
                     {
@@ -1472,15 +1463,15 @@ namespace EternalCycle
         /// <param name="mainid">父物品ID</param>
         /// <param name="itemid">物品ID</param>
         /// <param name="itemlist">物品表</param>
-        /// <param name="databaseService">数据库实例</param>
-        public static void AddAmmoToAmmoBoxInList(MongoId mainid, MongoId itemid, List<Item> itemlist, DatabaseService databaseService)
+        /// <param name="context">上下文实例</param>
+        public static void AddAmmoToAmmoBoxInList(MongoId mainid, MongoId itemid, List<Item> itemlist, LoadModContext context)
         {
             //一大坨东西, 总之是为了获取弹药和弹盒数据
-            var ammopack = GetItem(itemid, databaseService);
+            var ammopack = GetItem(itemid, context);
             if (ammopack == null) return;
             double maxstackcount = (ammopack?.Properties?.StackSlots?.First()?.MaxCount ?? 0);
             MongoId ammo = (ammopack?.Properties?.StackSlots?.First()?.Properties?.Filters?.First()?.Filter?.First() ?? ($"{Guid.NewGuid()}_{DateTime.Now}").ConvertHashID());
-            var ammoitem = GetItem(ammo, databaseService);
+            var ammoitem = GetItem(ammo, context);
             if (ammoitem == null) return;
             double ammostackcount = (ammoitem?.Properties?.StackMaxSize ?? 0);
             //计算部分
@@ -1535,10 +1526,11 @@ namespace EternalCycle
         /// 从指定目录读取单文件卡池加载
         /// </summary>
         /// <param name="folderpath">指定路径</param>
-        public static void InitDrawPool(string folderpath)
+        /// <param name="context">上下文实例</param>
+        public static void InitDrawPool(string folderpath, LoadModContext context)
         {
             //这里的静态引用后面还得改成调包
-            var modHelper = ServiceLocator.ServiceProvider.GetService<ModHelper>();
+            var modHelper = context.ModHelper;
             List<string> files = Directory.GetFiles(folderpath).ToList();
             if (files.Count > 0)
             {
@@ -1563,14 +1555,11 @@ namespace EternalCycle
         /// <param name="drawpoolname">卡池名称</param>
         /// <param name="drawpool">卡池数据</param>
         /// <param name="drawrecord">抽卡记录</param>
-        /// <param name="jsonUtil">json工具实例</param>
         /// <param name="itemHelper">物品帮助实例</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="modHelper">mod帮助实例</param>
-        /// <param name="cloner">克隆器实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns>返回一个物品表</returns>
         /// 
-        public static List<Item> GetAdvancedBoxData(MongoId sessionId, string drawpoolname, DrawPoolClass drawpool, Dictionary<MongoId, Dictionary<string, DrawRecord>> drawrecord, JsonUtil jsonUtil, ItemHelper itemHelper, DatabaseService databaseService, ModHelper modHelper, ICloner cloner)
+        public static List<Item> GetAdvancedBoxData(MongoId sessionId, string drawpoolname, DrawPoolClass drawpool, Dictionary<MongoId, Dictionary<string, DrawRecord>> drawrecord, LoadModContext context)
         {
             //输出结果
             var result = new List<Item>();
@@ -1668,10 +1657,10 @@ namespace EternalCycle
                 {
                     //VulcanLog.Access("小保底没歪", logger);
                     srdata.UpAddChance = 0;
-                    result = GetGiftItemByType(Utils.DrawFromList<GiftData>(srpool.ChanceUp), $"{DateTime.Now}_{srdata.Count}_{Guid.NewGuid()}".ConvertHashID(), databaseService, cloner);
+                    result = GetGiftItemByType(Utils.DrawFromList<GiftData>(srpool.ChanceUp), $"{DateTime.Now}_{srdata.Count}_{Guid.NewGuid()}".ConvertHashID(), context);
                     var tpl = result.First().Template;
                     cachererord.ItemId = tpl;
-                    cachererord.ItemName = itemHelper.GetItemName(tpl);
+                    cachererord.ItemName = context.ItemHelper.GetItemName(tpl);
                     cachererord.IsUpReward = true;
                     srdata.Record.Add(cachererord);
                 }
@@ -1680,10 +1669,10 @@ namespace EternalCycle
                 {
                     //VulcanLog.Error("哎呀, 小保底歪了", logger);
                     srdata.UpAddChance += sr.UpAddChance;
-                    result = GetGiftItemByType(Utils.DrawFromList<GiftData>(srpool.Normal), $"{DateTime.Now}_{srdata.Count}_{Guid.NewGuid()}".ConvertHashID(), databaseService, cloner);
+                    result = GetGiftItemByType(Utils.DrawFromList<GiftData>(srpool.Normal), $"{DateTime.Now}_{srdata.Count}_{Guid.NewGuid()}".ConvertHashID(), context);
                     var tpl = result.First().Template;
                     cachererord.ItemId = tpl;
-                    cachererord.ItemName = itemHelper.GetItemName(tpl);
+                    cachererord.ItemName = context.ItemHelper.GetItemName(tpl);
                     srdata.Record.Add(cachererord);
 
                 }
@@ -1699,13 +1688,13 @@ namespace EternalCycle
                 {
                     //VulcanLog.Access("保底没歪", logger);
                     rdata.UpAddChance = 0;
-                    result = GetGiftItemByType(Utils.DrawFromList<GiftData>(rpool.ChanceUp), $"{DateTime.Now.ToString()}_{rdata.Count}_{Guid.NewGuid()}".ConvertHashID(), databaseService, cloner);
+                    result = GetGiftItemByType(Utils.DrawFromList<GiftData>(rpool.ChanceUp), $"{DateTime.Now.ToString()}_{rdata.Count}_{Guid.NewGuid()}".ConvertHashID(), context);
                 }
                 else
                 {
                     //VulcanLog.Error("哎呀, 保底歪了", logger);
                     rdata.UpAddChance += r.UpAddChance;
-                    result = GetGiftItemByType(Utils.DrawFromList<GiftData>(rpool.Normal), ($"{DateTime.Now}_{rdata.Count}_{Guid.NewGuid()}").ConvertHashID(), databaseService, cloner);
+                    result = GetGiftItemByType(Utils.DrawFromList<GiftData>(rpool.Normal), ($"{DateTime.Now}_{rdata.Count}_{Guid.NewGuid()}").ConvertHashID(), context);
                 }
             }
             //三星小垃圾
@@ -1715,11 +1704,11 @@ namespace EternalCycle
                 //VulcanLog.Debug("无需灰心, 霉运乃人生常事, 少侠请重新来过", logger);
                 if (upchance < normal.UpChance)
                 {
-                    result = GetGiftItemByType(Utils.DrawFromList<GiftData>(normalpool.ChanceUp), $"{DateTime.Now}_{srdata.Count}_{Guid.NewGuid()}".ConvertHashID(), databaseService, cloner);
+                    result = GetGiftItemByType(Utils.DrawFromList<GiftData>(normalpool.ChanceUp), $"{DateTime.Now}_{srdata.Count}_{Guid.NewGuid()}".ConvertHashID(), context);
                 }
                 else
                 {
-                    result = GetGiftItemByType(Utils.DrawFromList<GiftData>(normalpool.Normal), $"{DateTime.Now}_{srdata.Count}_{Guid.NewGuid()}".ConvertHashID(), databaseService, cloner);
+                    result = GetGiftItemByType(Utils.DrawFromList<GiftData>(normalpool.Normal), $"{DateTime.Now}_{srdata.Count}_{Guid.NewGuid()}".ConvertHashID(), context);
                 }
             }
             //VulcanLog.Debug(dwarrecordstring, logger);
@@ -1764,15 +1753,15 @@ namespace EternalCycle
         /// 设置战局内携带数量限制
         /// </summary>
         /// <param name="template">自定义物品对象</param>
-        /// <param name="databaseService">数据库实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns>自定义物品对象</returns>
-        public static CustomItemTemplate SetInRaidLimitCount(this CustomItemTemplate template, DatabaseService databaseService)
+        public static CustomItemTemplate SetInRaidLimitCount(this CustomItemTemplate template, LoadModContext context)
         {
             if (template.CustomProps?.InRaidCountLimit == null)
             {
                 return template;
             }
-            var globals = databaseService.GetGlobals();
+            var globals = context.DB.GetGlobals();
             var limits = globals.Configuration.RestrictionsInRaid;
             var targetId = template.Id.ConvertHashID();
             //新建对象
@@ -1799,20 +1788,20 @@ namespace EternalCycle
         /// 设置狗牌刷新数据
         /// </summary>
         /// <param name="template">自定义物品对象</param>
-        /// <param name="configServer">配置实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns>自定义物品对象</returns>
-        public static CustomItemTemplate SetCustomPMCDogTag(this CustomItemTemplate template, ConfigServer configServer)
+        public static CustomItemTemplate SetCustomPMCDogTag(this CustomItemTemplate template, LoadModContext context)
         {
             if (template.CustomProps != null && template.CustomProps.ApplyAsPMCDogTag == true)
             {
                 var customprops = template.CustomProps;
                 if (customprops.ApplyToBEAR == true)
                 {
-                    SetCustomDogTagGenerate(template, PlayerSide.Bear, configServer);
+                    SetCustomDogTagGenerate(template, PlayerSide.Bear, context);
                 }
                 if (customprops.ApplyToUSEC == true)
                 {
-                    SetCustomDogTagGenerate(template, PlayerSide.Usec, configServer);
+                    SetCustomDogTagGenerate(template, PlayerSide.Usec, context);
                 }
             }
             return template;
@@ -1823,10 +1812,10 @@ namespace EternalCycle
         /// </summary>
         /// <param name="template">自定义物品对象</param>
         /// <param name="side">阵营</param>
-        /// <param name="configServer">配置实例</param>
-        public static void SetCustomDogTagGenerate(CustomItemTemplate template, PlayerSide side, ConfigServer configServer)
+        /// <param name="context">上下文实例</param>
+        public static void SetCustomDogTagGenerate(CustomItemTemplate template, PlayerSide side, LoadModContext context)
         {
-            var pmcconfig = configServer.GetConfig<PmcConfig>();
+            var pmcconfig = context.ConfigServer.GetConfig<PmcConfig>();
             var customprops = template.CustomProps;
             var sidestring = side == PlayerSide.Bear ? "bear" : "usec";
             var itemid = template.Id.ConvertHashID();
@@ -1851,11 +1840,11 @@ namespace EternalCycle
         /// 返回基于手册分类的物品列表
         /// </summary>
         /// <param name="ragfairTag">分类标签</param>
-        /// <param name="databaseService">数据库实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns>符合标签的物品ID表</returns>
-        public static List<MongoId> GetItemListByRagfairTag(MongoId ragfairTag, DatabaseService databaseService)
+        public static List<MongoId> GetItemListByRagfairTag(MongoId ragfairTag, LoadModContext context)
         {
-            return databaseService.GetHandbook().Items.Where(x => x.ParentId == ragfairTag).Select(x => x.Id).ToList();
+            return context.DB.GetHandbook().Items.Where(x => x.ParentId == ragfairTag).Select(x => x.Id).ToList();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 using SPTarkov.DI.Annotations;
 using SPTarkov.Reflection.Patching;
 using SPTarkov.Server.Core.Controllers;
@@ -95,7 +96,8 @@ public class EternalCycle(
     DatabaseService databaseService,
     CustomItemService customItemService,
     ModHelper modHelper,
-    JsonUtil jsonutil,
+    ItemHelper itemHelper,
+    JsonUtil jsonUtil,
     ICloner cloner,
     ConfigServer configServer,
     ImageRouter imageRouter,
@@ -156,6 +158,17 @@ public class EternalCycle(
             lang[quest] = "任务物品";
             return lang;
         });
+        var context = new ContextManager.LoadModContext
+        {
+            DB = databaseService,
+            JsonUtil = jsonUtil,
+            ConfigServer = configServer,
+            ModHelper = modHelper,
+            Logger = Utils.commonLogger,
+            ImageRouter = imageRouter,
+            ItemHelper = itemHelper,
+            Cloner = cloner
+        };
         var items = databaseService.GetItems();
         foreach (var item in items)
         {
@@ -176,7 +189,7 @@ public class EternalCycle(
                     if (handbook != null)
                     {
                         handbook.ParentId = quest;
-                        ItemUtils.AddBlackList(item.Value.Id, 31, configServer);
+                        ItemUtils.AddBlackList(item.Value.Id, 31, context);
                     }
                     else
                     {
@@ -186,7 +199,7 @@ public class EternalCycle(
                             ParentId = quest,
                             Price = 20000
                         });
-                        ItemUtils.AddBlackList(item.Value.Id, 31, configServer);
+                        ItemUtils.AddBlackList(item.Value.Id, 31, context);
                     }
                 }
                 else if (handbook == null)
@@ -198,7 +211,7 @@ public class EternalCycle(
                         ParentId = dev,
                         Price = 20000
                     });
-                    ItemUtils.AddBlackList(item.Value.Id, 64, configServer);
+                    ItemUtils.AddBlackList(item.Value.Id, 64, context);
                 }
             }
         }
@@ -215,17 +228,17 @@ public class EternalCycle(
         //new StartupLogPatch().Enable();
         //new RemoveExpiredItemsFromMessagePatch().Enable();
         new RagfairLoadPatch().Enable();
-        void testmethod(OnRagfairLoadContext prlc)
+        void testmethod(LoadModContext prlc)
         {
             var item = prlc.DB.GetItems();
             prlc.Logger.Warn(item.FirstOrDefault().Value.Id.ToString());
             prlc.Logger.Info("Mod加载完成后市场初始化前");
         }
-        void testmethod2(OnRagfairLoadContext prlc)
+        void testmethod2(LoadModContext prlc)
         {
             prlc.Logger.Error("市场初始化后游戏启动前");
         }
-        void testmethod3(OnRagfairLoadContext prlc)
+        void testmethod3(LoadModContext prlc)
         {
             prlc.Logger.Error("Mod加载完成后");
         }

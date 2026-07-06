@@ -18,35 +18,35 @@ namespace EternalCycle
         /// <summary>
         /// 跳蚤市场前置事件
         /// </summary>
-        public static Action<OnRagfairLoadContext> OnBeforeRagfairLoadedEvent;
+        public static Action<LoadModContext> OnBeforeRagfairLoadedEvent;
         /// <summary>
         /// 跳蚤市场后置事件
         /// </summary>
-        public static Action<OnRagfairLoadContext> OnAfterRagfairLoadedEvent;
+        public static Action<LoadModContext> OnAfterRagfairLoadedEvent;
         /// <summary>
         /// Mod加载后置事件, 位于市场前
         /// </summary>
-        public static Action<OnRagfairLoadContext> OnAfterModLoadedEvent;
+        public static Action<LoadModContext> OnAfterModLoadedEvent;
         //由于版本问题这两个暂时用不到
-        public static Action<OnRagfairLoadContext> OnBeforeServerStartedEvent;
-        public static Action<OnRagfairLoadContext> OnAfterServerStartedEvent;
+        public static Action<LoadModContext> OnBeforeServerStartedEvent;
+        public static Action<LoadModContext> OnAfterServerStartedEvent;
         //以下为集合事件
         /// <summary>
         /// Mod数据加载事件
         /// </summary>
         public static class DataLoadEvent
         {
-            public static Action<OnRagfairLoadContext> LoadItemEvent;
-            public static Action<OnRagfairLoadContext> LoadQuestEvent;
-            public static Action<OnRagfairLoadContext> LoadQuestLocaleEvent;
-            public static Action<OnRagfairLoadContext> LoadQuestLogicEvent;
-            public static Action<OnRagfairLoadContext> LoadQuestDataEvent;
-            public static Action<OnRagfairLoadContext> LoadQuestRewardEvent;
-            public static Action<OnRagfairLoadContext> LoadTraderBaseEvent;
-            public static Action<OnRagfairLoadContext> LoadPresetEvent;
-            public static Action<OnRagfairLoadContext> LoadTraderAssortEvent;
-            public static Action<OnRagfairLoadContext> LoadAchievementEvent;
-            public static Action<OnRagfairLoadContext> FixItemCompatibleEvent;
+            public static Action<LoadModContext> LoadItemEvent;
+            public static Action<LoadModContext> LoadQuestEvent;
+            public static Action<LoadModContext> LoadQuestLocaleEvent;
+            public static Action<LoadModContext> LoadQuestLogicEvent;
+            public static Action<LoadModContext> LoadQuestDataEvent;
+            public static Action<LoadModContext> LoadQuestRewardEvent;
+            public static Action<LoadModContext> LoadTraderBaseEvent;
+            public static Action<LoadModContext> LoadPresetEvent;
+            public static Action<LoadModContext> LoadTraderAssortEvent;
+            public static Action<LoadModContext> LoadAchievementEvent;
+            public static Action<LoadModContext> FixItemCompatibleEvent;
             //tbc
         }
 
@@ -55,71 +55,71 @@ namespace EternalCycle
         /// </summary>
         public static ECLogger EventLogger = new ECLogger("全局事件管理器", true);
 
-        public static void InitPreRagfairLoadEvent(OnRagfairLoadContext context)
+        public static void InitPreRagfairLoadEvent(LoadModContext context)
         {
             InitRagfairEvent(OnBeforeRagfairLoadedEvent, context);
         }
 
-        public static void InitPostRagfairLoadEvent(OnRagfairLoadContext context)
+        public static void InitPostRagfairLoadEvent(LoadModContext context)
         {
             InitRagfairEvent(OnAfterRagfairLoadedEvent, context);
         }
 
-        public static void InitAfterModLoadedEvent(OnRagfairLoadContext context)
+        public static void InitAfterModLoadedEvent(LoadModContext context)
         {
             InitRagfairEvent(OnAfterModLoadedEvent, context);
         }
 
-        public static void InitLoadItemEvent(OnRagfairLoadContext context)
+        public static void InitLoadItemEvent(LoadModContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadItemEvent, context);
         }
 
-        public static void InitLoadQuestEvent(OnRagfairLoadContext context)
+        public static void InitLoadQuestEvent(LoadModContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadQuestEvent, context);
         }
-        public static void InitLoadQuestLocaleEvent(OnRagfairLoadContext context)
+        public static void InitLoadQuestLocaleEvent(LoadModContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadQuestLocaleEvent, context);
         }
 
-        public static void InitLoadQuestDataEvent(OnRagfairLoadContext context)
+        public static void InitLoadQuestDataEvent(LoadModContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadQuestDataEvent, context);
         }
 
-        public static void InitLoadQuestRewardEvent(OnRagfairLoadContext context)
+        public static void InitLoadQuestRewardEvent(LoadModContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadQuestRewardEvent, context);
         }
 
-        public static void InitLoadQuestLogicEvent(OnRagfairLoadContext context)
+        public static void InitLoadQuestLogicEvent(LoadModContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadQuestLogicEvent, context);
         }
 
-        public static void InitLoadTraderBaseEvent(OnRagfairLoadContext context)
+        public static void InitLoadTraderBaseEvent(LoadModContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadTraderBaseEvent, context);
         }
 
-        public static void InitLoadTraderAssortEvent(OnRagfairLoadContext context)
+        public static void InitLoadTraderAssortEvent(LoadModContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadTraderAssortEvent, context);
         }
-        public static void InitLoadAchievementEvent(OnRagfairLoadContext context)
+        public static void InitLoadAchievementEvent(LoadModContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadAchievementEvent, context);
         }
 
 
-        public static void InitFixItemCompatibleEventEvent(OnRagfairLoadContext context)
+        public static void InitFixItemCompatibleEventEvent(LoadModContext context)
         {
             InitRagfairEvent(DataLoadEvent.FixItemCompatibleEvent, context);
         }
 
-        public static void InitRagfairEvent (Action<OnRagfairLoadContext> targetEvent, OnRagfairLoadContext context)
+        public static void InitRagfairEvent (Action<LoadModContext> targetEvent, LoadModContext context)
         {
             if (targetEvent == null) return;
             InitEvent(targetEvent, context);

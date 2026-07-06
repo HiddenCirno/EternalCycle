@@ -7,6 +7,7 @@ using SPTarkov.Server.Core.Routers;
 using SPTarkov.Server.Core.Services;
 using SPTarkov.Server.Core.Utils.Cloners;
 using SPTarkov.Server.Core.Utils.Json;
+using static EternalCycle.ContextManager;
 using Path = System.IO.Path;
 
 namespace EternalCycle
@@ -50,300 +51,295 @@ namespace EternalCycle
         /// 从数据库返回一个任务的引用
         /// </summary>
         /// <param name="questid">任务ID</param>
-        /// <param name="databaseService">数据库实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns></returns>
-        public static Quest? GetQuest(string questid, DatabaseService databaseService)
+        public static Quest? GetQuest(string questid, LoadModContext context)
         {
-            if (databaseService.GetQuests().TryGetValue(questid, out var quest))
+            if (context.DB.GetQuests().TryGetValue(questid, out var quest))
             {
                 return quest;
             }
             return null;
         }
 
-            /// <summary>
-            /// 从序列化对象加载任务
-            /// </summary>
-            /// <param name="questData">任务数据</param>
-            /// <param name="databaseService">数据库实例</param>
-            /// <param name="cloner">克隆器实例</param>
-            public static void InitQuestData(Dictionary<string, CustomQuest> questData, string respath, DatabaseService databaseService, ICloner cloner)
+        /// <summary>
+        /// 从序列化对象加载任务
+        /// </summary>
+        /// <param name="questData">任务数据</param>
+        /// <param name="context">上下文实例</param>
+        public static void InitQuestData(Dictionary<string, CustomQuest> questData, string respath, LoadModContext context)
+        {
+            foreach (var customquest in questData)
             {
-                foreach (var customquest in questData)
+                InitQuest(customquest.Value, respath, context);
+            }
+        }
+
+        /// <summary>
+        /// 从指定目录加载任务
+        /// </summary>
+        /// <param name="folderpath">文件夹路径</param>
+        /// <param name="context">上下文实例</param>
+        public static void InitQuestData(string folderpath, string respath, LoadModContext context)
+        {
+            List<string> files = Directory.GetFiles(folderpath).ToList();
+            if (files.Count > 0)
+            {
+                foreach (var file in files)
                 {
-                    InitQuest(customquest.Value, respath, databaseService, cloner);
+                    string fileName = Path.GetFileName(file);
+                    var customquest = context.ModHelper.GetJsonDataFromFile<CustomQuest>(folderpath, fileName);
+                    InitQuest(customquest, respath, context);
                 }
             }
+        }
 
-            /// <summary>
-            /// 从指定目录加载任务
-            /// </summary>
-            /// <param name="folderpath">文件夹路径</param>
-            /// <param name="databaseService">数据库实例</param>
-            /// <param name="modHelper">mod帮助</param>
-            /// <param name="cloner">克隆器实例</param>
-            public static void InitQuestData(string folderpath, string respath, DatabaseService databaseService, ModHelper modHelper, ICloner cloner)
+        /// <summary>
+        /// 从自定义结构序列化完整任务数据
+        /// </summary>
+        /// <param name="customQuest">自定义任务数据</param>
+        /// <param name="context">上下文实例</param>
+        public static void InitQuest(CustomQuest customQuest, string respath, LoadModContext context)
+        {
+            var questid = customQuest.QuestId;
+            //短缺
+            var pattern = GetQuest(QuestTpl.SHORTAGE, context);
+            if (pattern == null) return; //怎么可能呢?
+            Quest? questPattern = context.Cloner.Clone(pattern);
+            if (questPattern == null) return; //神经病....
+                                              //哎我尼玛的不改了, 防空防空十防九空, 我防你妈, 报错拉倒
+                                              //清空任务数据
+            questPattern.Conditions.AvailableForStart.Clear();
+            questPattern.Conditions.AvailableForFinish.Clear();
+            questPattern.Conditions.Fail.Clear();
+            //清空并重建任务奖励
+            questPattern.Rewards = new Dictionary<string, List<Reward>>
             {
-                List<string> files = Directory.GetFiles(folderpath).ToList();
-                if (files.Count > 0)
+                ["Started"] = new List<Reward>(),
+                ["Success"] = new List<Reward>(),
+                ["Fail"] = new List<Reward>(),
+            };
+            //覆盖任务基础数据
+            questPattern.Type = (QuestTypeEnum)customQuest.QuestType;
+            questPattern.AcceptPlayerMessage = $"{questid} acceptPlayerMessage";
+            questPattern.ChangeQuestMessageText = $"{questid} changeQuestMessageText";
+            questPattern.CompletePlayerMessage = $"{questid} completePlayerMessage";
+            questPattern.Description = $"{questid} description";
+            questPattern.FailMessageText = $"{questid} failMessageText";
+            questPattern.Name = $"{questid} name";
+            questPattern.Note = $"{questid} note";
+            questPattern.StartedMessageText = $"{questid} startedMessageText";
+            questPattern.SuccessMessageText = $"{questid} successMessageText";
+            questPattern.Id = questid;
+            questPattern.Image = customQuest.QuestImagePath;
+            questPattern.TraderId = customQuest.QuestTraderId;
+            questPattern.TemplateId = questid;
+            questPattern.Location = customQuest.Location;
+            questPattern.Restartable = customQuest.IsRestartableQuest;
+            //InitQuestConditions(questPattern.Conditions.AvailableForFinish, customQuest.QuestConditions.QuestFinishData, context);
+            //InitQuestConditions(questPattern.Conditions.Fail, customQuest.QuestConditions.QuestFailedData, context);
+            //临时
+            context.DB.GetQuests().TryAdd(questid, questPattern);
+            var imageRouter = ServiceLocator.ServiceProvider.GetService<ImageRouter>();
+            ImageUtils.RegisterQuestRoute(questPattern.Image, Path.Combine(respath, "res/questimage/"), imageRouter);
+            //为了完成原版兼容, 奖励定义有任务ID, 必须在任务初始化后添加
+            //应该可以重载
+            EventManager.DataLoadEvent.LoadQuestDataEvent += (eventContext) =>
+            {
+                try
                 {
-                    foreach (var file in files)
+                    InitQuestConditions(questPattern.Conditions.AvailableForFinish, customQuest.QuestConditions.QuestFinishData, eventContext);
+                    InitQuestConditions(questPattern.Conditions.Fail, customQuest.QuestConditions.QuestFailedData, eventContext);
+                    //InitQuestRewards(customQuest.QuestRewards, eventContext);
+                }
+                catch (Exception ex)
+                {
+                    EventManager.EventLogger.Error($"注入任务数据层时发生异常：{questid}", ex);
+                }
+            };
+            EventManager.DataLoadEvent.LoadQuestRewardEvent += (eventContext) =>
+            {
+                try
+                {
+                    InitQuestRewards(customQuest.QuestRewards, eventContext);
+                }
+                catch (Exception ex)
+                {
+                    EventManager.EventLogger.Error($"注入任务数据层时发生异常：{questid}", ex);
+                }
+            };
+        }
+
+        /// <summary>
+        /// 加载任务数据
+        /// </summary>
+        /// <param name="conditions">目标列表</param>
+        /// <param name="customquestdata">自定义任务对象列表</param>
+        /// <param name="context">上下文实例</param>
+        public static void InitQuestConditions(List<QuestCondition> conditions, List<CustomQuestData> customquestdata, LoadModContext context)
+        {
+            var zhCNLang = context.DB.GetLocales().Global["ch"];
+            foreach (CustomQuestData data in customquestdata)
+            {
+                switch (data)
+                {
+                    case FindItemData finditemdata:
+                        {
+                            InitFindItemDataConditions(conditions, finditemdata, context);
+                        }
+                        break;
+                    case FindItemGroupData finditemgroupdata:
+                        {
+                            InitFindItemGroupDataConditions(conditions, finditemgroupdata, context);
+                        }
+                        break;
+                    case HandoverItemData handitemdata:
+                        {
+                            InitHandoverItemDataConditions(conditions, handitemdata, context);
+                        }
+                        break;
+                    case HandoverItemGroupData handitemgroupdata:
+                        {
+                            InitHandoverItemGroupDataConditions(conditions, handitemgroupdata, context);
+                        }
+                        break;
+                    case KillTargetData killtargetdata:
+                        {
+                            InitKillTargetDataConditions(conditions, killtargetdata, context);
+                        }
+                        break;
+                    case ReachLevelData reachleveldata:
+                        {
+                            InitReachLevelDataConditions(conditions, reachleveldata, context);
+                        }
+                        break;
+                    case ReachPrestigeLevelData reachprestigeleveldata:
+                        {
+                            InitReachPrestigeLevelDataConditions(conditions, reachprestigeleveldata, context);
+                        }
+                        break;
+                    case VisitPlaceData visitplacedata:
+                        {
+                            InitVisitPlaceDataConditions(conditions, visitplacedata, context);
+                        }
+                        break;
+                    case PlaceItemData placeitemdata:
+                        {
+                            InitPlaceItemDataConditions(conditions, placeitemdata, context);
+                        }
+                        break;
+                    case ExitLocationData exitlocationdata:
+                        {
+                            InitExitLocationDataConditions(conditions, exitlocationdata, context);
+                        }
+                        break;
+                    case ReachTraderStandingData reachtraderstandingdata:
+                        {
+                            InitReachTraderStandingDataConditions(conditions, reachtraderstandingdata, context);
+                        }
+                        break;
+                    case ReachTraderTrustLevelData reachtradertrustleveldata:
+                        {
+                            InitReachTraderTrustLevelDataConditions(conditions, reachtradertrustleveldata, context);
+                        }
+                        break;
+                    case ReachSkillLevelData reachskillleveldata:
+                        {
+                            InitReachSkillLevelDataConditions(conditions, reachskillleveldata, context);
+                        }
+                        break;
+                    case CompleteQuestData completequestdata:
+                        {
+                            InitCompleteQuestDataConditions(conditions, completequestdata, context);
+                        }
+                        break;
+                    case CustomizationBlockData customizationblockdata:
+                        {
+                            InitCustomizationBlockDataConditions(conditions, customizationblockdata, context);
+                        }
+                        break;
+                    default:
+                        {
+                            //VulcanLog.Warn($"发现未处理的任务属性({data.Id})! ", logger);
+                        }
+                        break;
+                }
+                //自动本地化
+                if (data.Locale != null)
+                {
+                    zhCNLang.AddTransformer(lang =>
                     {
-                        string fileName = Path.GetFileName(file);
-                        var customquest = modHelper.GetJsonDataFromFile<CustomQuest>(folderpath, fileName);
-                        InitQuest(customquest, respath, databaseService, cloner);
-                    }
+                        lang[$"{data.Id}"] = data.Locale;
+                        return lang;
+                    });
                 }
             }
+        }
 
-            /// <summary>
-            /// 从自定义结构序列化完整任务数据
-            /// </summary>
-            /// <param name="customQuest">自定义任务数据</param>
-            /// <param name="databaseService">数据库实例</param>
-            /// <param name="cloner">克隆器实例</param>
-            public static void InitQuest(CustomQuest customQuest, string respath, DatabaseService databaseService, ICloner cloner)
+        /// <summary>
+        /// 将自定义任务注册到加载事件
+        /// </summary>
+        /// <param name="path">指定的存放任务文件的路径或完整的任务文件路径</param>
+        /// <param name="creator">创建者</param>
+        /// <param name="modname">Mod名</param>
+        public static void RegisterQuest(string path, string respath)
+        {
+            // 文件夹加载模式
+            if (Directory.Exists(path))
             {
-                var questid = customQuest.QuestId;
-                //短缺
-                var pattern = GetQuest(QuestTpl.SHORTAGE, databaseService);
-                if (pattern == null) return; //怎么可能呢?
-                Quest? questPattern = cloner.Clone(pattern);
-                if (questPattern == null) return; //神经病....
-                //哎我尼玛的不改了, 防空防空十防九空, 我防你妈, 报错拉倒
-                //清空任务数据
-                questPattern.Conditions.AvailableForStart.Clear();
-                questPattern.Conditions.AvailableForFinish.Clear();
-                questPattern.Conditions.Fail.Clear();
-                //清空并重建任务奖励
-                questPattern.Rewards = new Dictionary<string, List<Reward>>
-                {
-                    ["Started"] = new List<Reward>(),
-                    ["Success"] = new List<Reward>(),
-                    ["Fail"] = new List<Reward>(),
-                };
-                //覆盖任务基础数据
-                questPattern.Type = (QuestTypeEnum)customQuest.QuestType;
-                questPattern.AcceptPlayerMessage = $"{questid} acceptPlayerMessage";
-                questPattern.ChangeQuestMessageText = $"{questid} changeQuestMessageText";
-                questPattern.CompletePlayerMessage = $"{questid} completePlayerMessage";
-                questPattern.Description = $"{questid} description";
-                questPattern.FailMessageText = $"{questid} failMessageText";
-                questPattern.Name = $"{questid} name";
-                questPattern.Note = $"{questid} note";
-                questPattern.StartedMessageText = $"{questid} startedMessageText";
-                questPattern.SuccessMessageText = $"{questid} successMessageText";
-                questPattern.Id = questid;
-                questPattern.Image = customQuest.QuestImagePath;
-                questPattern.TraderId = customQuest.QuestTraderId;
-                questPattern.TemplateId = questid;
-                questPattern.Location = customQuest.Location;
-                questPattern.Restartable = customQuest.IsRestartableQuest;
-                //InitQuestConditions(questPattern.Conditions.AvailableForFinish, customQuest.QuestConditions.QuestFinishData, databaseService, cloner);
-                //InitQuestConditions(questPattern.Conditions.Fail, customQuest.QuestConditions.QuestFailedData, databaseService, cloner);
-                //临时
-                databaseService.GetQuests().TryAdd(questid, questPattern);
-                var imageRouter = ServiceLocator.ServiceProvider.GetService<ImageRouter>();
-                ImageUtils.RegisterQuestRoute(questPattern.Image, Path.Combine(respath, "res/questimage/"), imageRouter);
-                //为了完成原版兼容, 奖励定义有任务ID, 必须在任务初始化后添加
-                //应该可以重载
-                EventManager.DataLoadEvent.LoadQuestDataEvent += (context) =>
+                EventManager.DataLoadEvent.LoadQuestEvent += (context) =>
                 {
                     try
                     {
-                        InitQuestConditions(questPattern.Conditions.AvailableForFinish, customQuest.QuestConditions.QuestFinishData, context.DB, context.Cloner);
-                        InitQuestConditions(questPattern.Conditions.Fail, customQuest.QuestConditions.QuestFailedData, context.DB, context.Cloner);
-                        //InitQuestRewards(customQuest.QuestRewards, context.DB, context.Cloner);
+                        // 对应调用已有的文件夹重载方法
+                        InitQuestData(path, respath, context);
+                        //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务模块(文件夹)注册成功");
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注入任务数据层时发生异常：{questid}", ex);
+                        EventManager.EventLogger.Error($"注册任务时发生错误：指定的文件夹 {path} 存在问题", ex);
                     }
                 };
-                EventManager.DataLoadEvent.LoadQuestRewardEvent += (context) =>
+            }
+            // 单文件加载模式
+            else if (File.Exists(path))
+            {
+                EventManager.DataLoadEvent.LoadQuestEvent += (context) =>
                 {
                     try
                     {
-                        InitQuestRewards(customQuest.QuestRewards, context.DB, context.Cloner);
+                        // 反序列化为字典字典，对应已有的 Dictionary 重载方法
+                        var questData = context.JsonUtil.Deserialize<Dictionary<string, CustomQuest>>(File.ReadAllText(path));
+                        InitQuestData(questData, respath, context);
+
+                        //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务模块(单文件)注册成功");
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注入任务数据层时发生异常：{questid}", ex);
+                        EventManager.EventLogger.Error($"注册任务时发生错误：指定的文件 {path} 存在问题", ex);
                     }
                 };
             }
-
-            /// <summary>
-            /// 加载任务数据
-            /// </summary>
-            /// <param name="conditions">目标列表</param>
-            /// <param name="customquestdata">自定义任务对象列表</param>
-            /// <param name="databaseService">数据库实例</param>
-            /// <param name="cloner">克隆器实例</param>
-            public static void InitQuestConditions(List<QuestCondition> conditions, List<CustomQuestData> customquestdata, DatabaseService databaseService, ICloner cloner)
+            else
             {
-                var zhCNLang = databaseService.GetLocales().Global["ch"];
-                foreach (CustomQuestData data in customquestdata)
-                {
-                    switch (data)
-                    {
-                        case FindItemData finditemdata:
-                            {
-                                InitFindItemDataConditions(conditions, finditemdata, databaseService, cloner);
-                            }
-                            break;
-                        case FindItemGroupData finditemgroupdata:
-                            {
-                                InitFindItemGroupDataConditions(conditions, finditemgroupdata, databaseService, cloner);
-                            }
-                            break;
-                        case HandoverItemData handitemdata:
-                            {
-                                InitHandoverItemDataConditions(conditions, handitemdata, databaseService, cloner);
-                            }
-                            break;
-                        case HandoverItemGroupData handitemgroupdata:
-                            {
-                                InitHandoverItemGroupDataConditions(conditions, handitemgroupdata, databaseService, cloner);
-                            }
-                            break;
-                        case KillTargetData killtargetdata:
-                            {
-                                InitKillTargetDataConditions(conditions, killtargetdata, databaseService, cloner);
-                            }
-                            break;
-                        case ReachLevelData reachleveldata:
-                            {
-                                InitReachLevelDataConditions(conditions, reachleveldata, databaseService, cloner);
-                            }
-                            break;
-                        case ReachPrestigeLevelData reachprestigeleveldata:
-                            {
-                                InitReachPrestigeLevelDataConditions(conditions, reachprestigeleveldata, databaseService, cloner);
-                            }
-                            break;
-                        case VisitPlaceData visitplacedata:
-                            {
-                                InitVisitPlaceDataConditions(conditions, visitplacedata, databaseService, cloner);
-                            }
-                            break;
-                        case PlaceItemData placeitemdata:
-                            {
-                                InitPlaceItemDataConditions(conditions, placeitemdata, databaseService, cloner);
-                            }
-                            break;
-                        case ExitLocationData exitlocationdata:
-                            {
-                                InitExitLocationDataConditions(conditions, exitlocationdata, databaseService, cloner);
-                            }
-                            break;
-                        case ReachTraderStandingData reachtraderstandingdata:
-                            {
-                                InitReachTraderStandingDataConditions(conditions, reachtraderstandingdata, databaseService, cloner);
-                            }
-                            break;
-                        case ReachTraderTrustLevelData reachtradertrustleveldata:
-                            {
-                                InitReachTraderTrustLevelDataConditions(conditions, reachtradertrustleveldata, databaseService, cloner);
-                            }
-                            break;
-                        case ReachSkillLevelData reachskillleveldata:
-                            {
-                                InitReachSkillLevelDataConditions(conditions, reachskillleveldata, databaseService, cloner);
-                            }
-                            break;
-                        case CompleteQuestData completequestdata:
-                            {
-                                InitCompleteQuestDataConditions(conditions, completequestdata, databaseService, cloner);
-                            }
-                            break;
-                        case CustomizationBlockData customizationblockdata:
-                            {
-                                InitCustomizationBlockDataConditions(conditions, customizationblockdata, databaseService, cloner);
-                            }
-                            break;
-                        default:
-                            {
-                                //VulcanLog.Warn($"发现未处理的任务属性({data.Id})! ", logger);
-                            }
-                            break;
-                    }
-                    //自动本地化
-                    if (data.Locale != null)
-                    {
-                        zhCNLang.AddTransformer(lang =>
-                        {
-                            lang[$"{data.Id}"] = data.Locale;
-                            return lang;
-                        });
-                    }
-                }
+                EventManager.EventLogger.Warn($"注册任务时发生异常：找不到指定的文件或文件夹 {path}");
             }
-
-            /// <summary>
-            /// 将自定义任务注册到加载事件
-            /// </summary>
-            /// <param name="path">指定的存放任务文件的路径或完整的任务文件路径</param>
-            /// <param name="creator">创建者</param>
-            /// <param name="modname">Mod名</param>
-            public static void RegisterQuest(string path, string respath)
-            {
-                // 文件夹加载模式
-                if (Directory.Exists(path))
-                {
-                    EventManager.DataLoadEvent.LoadQuestEvent += (context) =>
-                    {
-                        try
-                        {
-                            // 对应调用已有的文件夹重载方法
-                            InitQuestData(path, respath, context.DB, context.ModHelper, context.Cloner);
-                            //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务模块(文件夹)注册成功");
-                        }
-                        catch (Exception ex)
-                        {
-                            EventManager.EventLogger.Error($"注册任务时发生错误：指定的文件夹 {path} 存在问题", ex);
-                        }
-                    };
-                }
-                // 单文件加载模式
-                else if (File.Exists(path))
-                {
-                    EventManager.DataLoadEvent.LoadQuestEvent += (context) =>
-                    {
-                        try
-                        {
-                            // 反序列化为字典字典，对应已有的 Dictionary 重载方法
-                            var questData = context.JsonUtil.Deserialize<Dictionary<string, CustomQuest>>(File.ReadAllText(path));
-                            InitQuestData(questData, respath, context.DB, context.Cloner);
-
-                            //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务模块(单文件)注册成功");
-                        }
-                        catch (Exception ex)
-                        {
-                            EventManager.EventLogger.Error($"注册任务时发生错误：指定的文件 {path} 存在问题", ex);
-                        }
-                    };
-                }
-                else
-                {
-                    EventManager.EventLogger.Warn($"注册任务时发生异常：找不到指定的文件或文件夹 {path}");
-                }
-            }
+        }
 
         /// <summary>
         /// 获取任务条件的工具方法
         /// </summary>
         /// <param name="cacheType">条件类型枚举</param>
         /// <param name="conditionTypeStr">条件类型</param>
-        /// <param name="databaseService">数据库实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns>返回一个任务条件模板</returns>
-        public static QuestCondition GetConditionTemplate(EQuestConditionsTypeCache cacheType, string conditionTypeStr, DatabaseService databaseService)
+        public static QuestCondition GetConditionTemplate(EQuestConditionsTypeCache cacheType, string conditionTypeStr, LoadModContext context)
         {
             if (cacheConditions.TryGetValue(cacheType, out var condition) && condition != null)
             {
                 return condition;
             }
-            var foundCondition = databaseService.GetQuests()
+            var foundCondition = context.DB.GetQuests()
                 .SelectMany(q => q.Value.Conditions.AvailableForFinish)
                 .FirstOrDefault(c => c.ConditionType == conditionTypeStr);
             cacheConditions[cacheType] = foundCondition;
@@ -355,15 +351,15 @@ namespace EternalCycle
         /// </summary>
         /// <param name="cacheType">子条件类型枚举</param>
         /// <param name="conditionTypeStr">子条件类型</param>
-        /// <param name="databaseService">数据库实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns>返回一个任务子条件模板</returns>
-        public static QuestConditionCounterCondition GetCounterConditionTemplate(EQuestCountersCacheType cacheType, string conditionTypeStr, DatabaseService databaseService)
+        public static QuestConditionCounterCondition GetCounterConditionTemplate(EQuestCountersCacheType cacheType, string conditionTypeStr, LoadModContext context)
         {
             if (cacheCounters.TryGetValue(cacheType, out var condition) && condition != null)
             {
                 return condition;
             }
-            var foundCondition = databaseService.GetQuests()
+            var foundCondition = context.DB.GetQuests()
                 .SelectMany(q => q.Value.Conditions.AvailableForFinish)
                 .Where(c => c.ConditionType == "CounterCreator")
                 .SelectMany(c => c.Counter.Conditions)
@@ -377,16 +373,15 @@ namespace EternalCycle
         /// </summary>
         /// <param name="conditions">目标列表</param>
         /// <param name="findItemData">自定义任务数据</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="cloner">克隆器实例</param>
-        public static void InitFindItemDataConditions(List<QuestCondition> conditions, FindItemData findItemData, DatabaseService databaseService, ICloner cloner)
+        /// <param name="context">上下文实例</param>
+        public static void InitFindItemDataConditions(List<QuestCondition> conditions, FindItemData findItemData, LoadModContext context)
         {
-            var zhCNLang = databaseService.GetLocales().Global["ch"];
+            var zhCNLang = context.DB.GetLocales().Global["ch"];
             //缓存引用, 这里不可能空, 绿就绿吧, 无所谓了
-            var condition = GetConditionTemplate(EQuestConditionsTypeCache.FindItem, "FindItem", databaseService);
+            var condition = GetConditionTemplate(EQuestConditionsTypeCache.FindItem, "FindItem", context);
             if (condition == null) return;
             //复制引用
-            var copycondition = cloner.Clone(condition);
+            var copycondition = context.Cloner.Clone(condition);
             //设置基础数据
             copycondition.Id = findItemData.Id;
             copycondition.OnlyFoundInRaid = findItemData.FindInRaid;
@@ -416,13 +411,12 @@ namespace EternalCycle
         /// </summary>
         /// <param name="conditions">目标列表</param>
         /// <param name="findItemData">自定义任务数据</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="cloner">克隆器实例</param>
-        public static void InitFindItemGroupDataConditions(List<QuestCondition> conditions, FindItemGroupData findItemData, DatabaseService databaseService, ICloner cloner)
+        /// <param name="context">上下文实例</param>
+        public static void InitFindItemGroupDataConditions(List<QuestCondition> conditions, FindItemGroupData findItemData, LoadModContext context)
         {
-            var condition = GetConditionTemplate(EQuestConditionsTypeCache.FindItem, "FindItem", databaseService);
+            var condition = GetConditionTemplate(EQuestConditionsTypeCache.FindItem, "FindItem", context);
             if (condition == null) return;
-            var copycondition = cloner.Clone(condition);
+            var copycondition = context.Cloner.Clone(condition);
             copycondition.Id = findItemData.Id;
             copycondition.OnlyFoundInRaid = findItemData.FindInRaid;
             copycondition.Index = conditions.Count;
@@ -441,14 +435,13 @@ namespace EternalCycle
         /// </summary>
         /// <param name="conditions">目标列表</param>
         /// <param name="handItemData">自定义任务数据</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="cloner">克隆器实例</param>
-        public static void InitHandoverItemDataConditions(List<QuestCondition> conditions, HandoverItemData handItemData, DatabaseService databaseService, ICloner cloner)
+        /// <param name="context">上下文实例</param>
+        public static void InitHandoverItemDataConditions(List<QuestCondition> conditions, HandoverItemData handItemData, LoadModContext context)
         {
-            var condition = GetConditionTemplate(EQuestConditionsTypeCache.HandoverItem, "HandoverItem", databaseService);
+            var condition = GetConditionTemplate(EQuestConditionsTypeCache.HandoverItem, "HandoverItem", context);
             if (condition == null) return;
-            var zhCNLang = databaseService.GetLocales().Global["ch"];
-            var copycondition = cloner.Clone(condition);
+            var zhCNLang = context.DB.GetLocales().Global["ch"];
+            var copycondition = context.Cloner.Clone(condition);
             copycondition.Id = handItemData.Id;
             copycondition.OnlyFoundInRaid = handItemData.FindInRaid;
             copycondition.Index = conditions.Count;
@@ -472,13 +465,12 @@ namespace EternalCycle
         /// </summary>
         /// <param name="conditions">目标列表</param>
         /// <param name="handItemData">自定义任务数据</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="cloner">克隆器实例</param>
-        public static void InitHandoverItemGroupDataConditions(List<QuestCondition> conditions, HandoverItemGroupData handItemData, DatabaseService databaseService, ICloner cloner)
+        /// <param name="context">上下文实例</param>
+        public static void InitHandoverItemGroupDataConditions(List<QuestCondition> conditions, HandoverItemGroupData handItemData, LoadModContext context)
         {
-            var condition = GetConditionTemplate(EQuestConditionsTypeCache.HandoverItem, "HandoverItem", databaseService);
+            var condition = GetConditionTemplate(EQuestConditionsTypeCache.HandoverItem, "HandoverItem", context);
             if (condition == null) return;
-            var copycondition = cloner.Clone(condition);
+            var copycondition = context.Cloner.Clone(condition);
             copycondition.Id = handItemData.Id;
             copycondition.OnlyFoundInRaid = handItemData.FindInRaid;
             copycondition.Index = conditions.Count;
@@ -498,21 +490,20 @@ namespace EternalCycle
         /// </summary>
         /// <param name="conditions">目标列表</param>
         /// <param name="killTargetData">自定义任务数据</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="cloner">克隆器实例</param>
-        public static void InitKillTargetDataConditions(List<QuestCondition> conditions, KillTargetData killTargetData, DatabaseService databaseService, ICloner cloner)
+        /// <param name="context">上下文实例</param>
+        public static void InitKillTargetDataConditions(List<QuestCondition> conditions, KillTargetData killTargetData, LoadModContext context)
         {
             //多了一层所以不适用方法
             cacheConditions.TryGetValue(EQuestConditionsTypeCache.Elimination, out var condition);
             if (condition == null)
             {
-                condition = databaseService.GetQuests()
+                condition = context.DB.GetQuests()
                 .SelectMany(q => q.Value.Conditions.AvailableForFinish)
                 .FirstOrDefault(c => c.ConditionType == "CounterCreator" && c.Type == "Elimination");
                 cacheConditions[EQuestConditionsTypeCache.Elimination] = condition;
             }
             if (condition == null) return;
-            var copycondition = cloner.Clone(condition);
+            var copycondition = context.Cloner.Clone(condition);
             copycondition.Id = killTargetData.Id;
             copycondition.Counter.Id = $"{killTargetData.Id}_Counter".ConvertHashID();
             copycondition.Counter.Conditions.Clear();
@@ -520,17 +511,17 @@ namespace EternalCycle
             copycondition.Value = (double)killTargetData.Count;
             copycondition.Index = conditions.Count;
             copycondition.VisibilityConditions.Clear();
-            var killtargets = GetCounterConditionTemplate(EQuestCountersCacheType.Kills, "Kills", databaseService);
-            var locationtargets = GetCounterConditionTemplate(EQuestCountersCacheType.Location, "Location", databaseService);
-            var equiptargets = GetCounterConditionTemplate(EQuestCountersCacheType.Equipment, "Equipment", databaseService);
-            var zonetargets = GetCounterConditionTemplate(EQuestCountersCacheType.InZone, "InZone", databaseService);
+            var killtargets = GetCounterConditionTemplate(EQuestCountersCacheType.Kills, "Kills", context);
+            var locationtargets = GetCounterConditionTemplate(EQuestCountersCacheType.Location, "Location", context);
+            var equiptargets = GetCounterConditionTemplate(EQuestCountersCacheType.Equipment, "Equipment", context);
+            var zonetargets = GetCounterConditionTemplate(EQuestCountersCacheType.InZone, "InZone", context);
 
             //需要新增装备需求
             //这玩意定义好弱智
             //草了, 还需要weaponmod解析
             if (killtargets != null)
             {
-                var copytargets = cloner.Clone(killtargets);
+                var copytargets = context.Cloner.Clone(killtargets);
                 copytargets.BodyPart = BitMapUtils.GetBodyPartCode(killTargetData.BodyPart);
                 copytargets.Daytime = new DaytimeCounter
                 {
@@ -583,7 +574,7 @@ namespace EternalCycle
             }
             if (locationtargets != null && killTargetData.Location > 0)
             {
-                var copytargets = cloner.Clone(locationtargets);
+                var copytargets = context.Cloner.Clone(locationtargets);
                 copytargets.Id = $"{killTargetData.Id}_LocationCounter".ConvertHashID();
                 var locations = BitMapUtils.GetLocationCode(killTargetData.Location);
                 copytargets.Target = new ListOrT<string>(new List<string>(), null);
@@ -599,7 +590,7 @@ namespace EternalCycle
                 var count = killTargetData.EquipmentList.Count;
                 for (var i = 0; i < count; i++)
                 {
-                    var copytargets = cloner.Clone(equiptargets);
+                    var copytargets = context.Cloner.Clone(equiptargets);
                     copytargets.Id = $"{killTargetData.Id}_EquipmentCounter_{i}".ConvertHashID();
                     copytargets.EquipmentExclusive.Clear();
                     copytargets.EquipmentInclusive = new List<List<string>>();
@@ -617,7 +608,7 @@ namespace EternalCycle
             //区域击杀
             if (zonetargets != null && killTargetData.ZoneList.Count > 0)
             {
-                var copytargets = cloner.Clone(zonetargets);
+                var copytargets = context.Cloner.Clone(zonetargets);
                 copytargets.Id = $"{killTargetData.Id}_ZoneCounter".ConvertHashID();
                 copytargets.Zones.Clear();
                 foreach (var zone in killTargetData.ZoneList)
@@ -634,15 +625,14 @@ namespace EternalCycle
         /// </summary>
         /// <param name="conditions">目标列表</param>
         /// <param name="reachLevelData">自定义任务数据</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="cloner">克隆器实例</param>
-        public static void InitReachLevelDataConditions(List<QuestCondition> conditions, ReachLevelData reachLevelData, DatabaseService databaseService, ICloner cloner)
+        /// <param name="context">上下文实例</param>
+        public static void InitReachLevelDataConditions(List<QuestCondition> conditions, ReachLevelData reachLevelData, LoadModContext context)
         {
-            var condition = databaseService.GetQuests()
+            var condition = context.DB.GetQuests()
                 .SelectMany(q => q.Value.Conditions.AvailableForStart)
                 .FirstOrDefault(c => c.ConditionType == "Level");
             if (condition == null) return;
-            var copycondition = cloner.Clone(condition);
+            var copycondition = context.Cloner.Clone(condition);
             copycondition.Id = reachLevelData.Id;
             copycondition.Index = conditions.Count;
             copycondition.VisibilityConditions.Clear();
@@ -656,15 +646,14 @@ namespace EternalCycle
         /// </summary>
         /// <param name="conditions">目标列表</param>
         /// <param name="reachPrestigeLevelData">自定义任务数据</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="cloner">克隆器实例</param>
-        public static void InitReachPrestigeLevelDataConditions(List<QuestCondition> conditions, ReachPrestigeLevelData reachPrestigeLevelData, DatabaseService databaseService, ICloner cloner)
+        /// <param name="context">上下文实例</param>
+        public static void InitReachPrestigeLevelDataConditions(List<QuestCondition> conditions, ReachPrestigeLevelData reachPrestigeLevelData, LoadModContext context)
         {
-            var condition = databaseService.GetQuests()
+            var condition = context.DB.GetQuests()
                 .SelectMany(q => q.Value.Conditions.AvailableForStart)
                 .FirstOrDefault(c => c.ConditionType == "Level");
             if (condition == null) return;
-            var copycondition = cloner.Clone(condition);
+            var copycondition = context.Cloner.Clone(condition);
             copycondition.Id = reachPrestigeLevelData.Id;
             copycondition.ConditionType = "PrestigeLevel";
             copycondition.Index = conditions.Count;
@@ -679,20 +668,19 @@ namespace EternalCycle
         /// </summary>
         /// <param name="conditions">目标列表</param>
         /// <param name="visitPlaceData">自定义任务数据</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="cloner">克隆器实例</param>
-        public static void InitVisitPlaceDataConditions(List<QuestCondition> conditions, VisitPlaceData visitPlaceData, DatabaseService databaseService, ICloner cloner)
+        /// <param name="context">上下文实例</param>
+        public static void InitVisitPlaceDataConditions(List<QuestCondition> conditions, VisitPlaceData visitPlaceData, LoadModContext context)
         {
             cacheConditions.TryGetValue(EQuestConditionsTypeCache.Completion, out var condition);
             if (condition == null)
             {
-                condition = databaseService.GetQuests()
+                condition = context.DB.GetQuests()
                 .SelectMany(q => q.Value.Conditions.AvailableForFinish)
                 .FirstOrDefault(c => c.ConditionType == "CounterCreator" && c.Type == "Completion");
                 cacheConditions[EQuestConditionsTypeCache.Completion] = condition;
             }
             if (condition == null) return;
-            var copycondition = cloner.Clone(condition);
+            var copycondition = context.Cloner.Clone(condition);
             copycondition.Id = visitPlaceData.Id;
             copycondition.Counter.Id = $"{visitPlaceData.Id}_Counter".ConvertHashID();
             copycondition.Counter.Conditions.Clear();
@@ -700,9 +688,9 @@ namespace EternalCycle
             copycondition.Value = (double)1;
             copycondition.Index = conditions.Count;
             copycondition.VisibilityConditions.Clear();
-            var visittargets = GetCounterConditionTemplate(EQuestCountersCacheType.VisitPlace, "VisitPlace", databaseService);
+            var visittargets = GetCounterConditionTemplate(EQuestCountersCacheType.VisitPlace, "VisitPlace", context);
             if (visittargets == null) return;
-            var copytargets = cloner.Clone(visittargets);
+            var copytargets = context.Cloner.Clone(visittargets);
             copytargets.Id = $"{visitPlaceData.Id}_VisitCounter".ConvertHashID();
             copytargets.Target = new ListOrT<string>(null, visitPlaceData.ZoneId);
             copycondition.Counter.Conditions.Add(copytargets);
@@ -714,13 +702,12 @@ namespace EternalCycle
         /// </summary>
         /// <param name="conditions">目标列表</param>
         /// <param name="placeItemData">自定义任务数据</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="cloner">克隆器实例</param>
-        public static void InitPlaceItemDataConditions(List<QuestCondition> conditions, PlaceItemData placeItemData, DatabaseService databaseService, ICloner cloner)
+        /// <param name="context">上下文实例</param>
+        public static void InitPlaceItemDataConditions(List<QuestCondition> conditions, PlaceItemData placeItemData, LoadModContext context)
         {
-            var condition = GetConditionTemplate(EQuestConditionsTypeCache.LeaveItemAtLocation, "LeaveItemAtLocation", databaseService);
+            var condition = GetConditionTemplate(EQuestConditionsTypeCache.LeaveItemAtLocation, "LeaveItemAtLocation", context);
             if (condition == null) return;
-            var copycondition = cloner.Clone(condition);
+            var copycondition = context.Cloner.Clone(condition);
             copycondition.Id = placeItemData.Id;
             copycondition.Index = conditions.Count;
             copycondition.VisibilityConditions.Clear();
@@ -737,20 +724,19 @@ namespace EternalCycle
         /// </summary>
         /// <param name="conditions">目标列表</param>
         /// <param name="exitLocationData">自定义任务数据</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="cloner">克隆器实例</param>
-        public static void InitExitLocationDataConditions(List<QuestCondition> conditions, ExitLocationData exitLocationData, DatabaseService databaseService, ICloner cloner)
+        /// <param name="context">上下文实例</param>
+        public static void InitExitLocationDataConditions(List<QuestCondition> conditions, ExitLocationData exitLocationData, LoadModContext context)
         {
             cacheConditions.TryGetValue(EQuestConditionsTypeCache.Completion, out var condition);
             if (condition == null)
             {
-                condition = databaseService.GetQuests()
+                condition = context.DB.GetQuests()
                 .SelectMany(q => q.Value.Conditions.AvailableForFinish)
                 .FirstOrDefault(c => c.ConditionType == "CounterCreator" && c.Type == "Completion");
                 cacheConditions[EQuestConditionsTypeCache.Completion] = condition;
             }
             if (condition == null) return;
-            var copycondition = cloner.Clone(condition);
+            var copycondition = context.Cloner.Clone(condition);
             copycondition.Id = exitLocationData.Id;
             copycondition.Counter.Id = $"{exitLocationData.Id}_Counter".ConvertHashID();
             copycondition.Counter.Conditions.Clear();
@@ -758,11 +744,11 @@ namespace EternalCycle
             copycondition.Value = (double)exitLocationData.Count;
             copycondition.Index = conditions.Count;
             copycondition.VisibilityConditions.Clear();
-            var locationtargets = GetCounterConditionTemplate(EQuestCountersCacheType.Location, "Location", databaseService);
-            var exitstatustargets = GetCounterConditionTemplate(EQuestCountersCacheType.ExitStatus, "ExitStatus", databaseService);
+            var locationtargets = GetCounterConditionTemplate(EQuestCountersCacheType.Location, "Location", context);
+            var exitstatustargets = GetCounterConditionTemplate(EQuestCountersCacheType.ExitStatus, "ExitStatus", context);
             if (locationtargets != null)
             {
-                var copytargets = cloner.Clone(locationtargets);
+                var copytargets = context.Cloner.Clone(locationtargets);
                 copytargets.Id = $"{exitLocationData.Id}_LocationCounter".ConvertHashID();
                 var locations = BitMapUtils.GetLocationCode(exitLocationData.Locations);
                 copytargets.Target = new ListOrT<string>(new List<string>(), null);
@@ -774,7 +760,7 @@ namespace EternalCycle
             }
             if (exitstatustargets != null)
             {
-                var copytargets = cloner.Clone(exitstatustargets);
+                var copytargets = context.Cloner.Clone(exitstatustargets);
                 copytargets.Id = $"{exitLocationData.Id}_ExitStatusCounter".ConvertHashID();
                 var statuslist = BitMapUtils.GetExitStatusCode(exitLocationData.ExitStatus);
                 copytargets.Status.Clear();
@@ -787,10 +773,10 @@ namespace EternalCycle
             if (exitLocationData.ChooseExitPoint == true)
             {
 
-                var exitpointtargets = GetCounterConditionTemplate(EQuestCountersCacheType.ExitName, "ExitName", databaseService);
+                var exitpointtargets = GetCounterConditionTemplate(EQuestCountersCacheType.ExitName, "ExitName", context);
                 if (exitpointtargets != null)
                 {
-                    var copytargets = cloner.Clone(exitpointtargets);
+                    var copytargets = context.Cloner.Clone(exitpointtargets);
                     copytargets.Id = $"{exitLocationData.Id}_ExitPointCounter".ConvertHashID();
                     copytargets.ExitName = exitLocationData.ExitPoint;
                     copycondition.Counter.Conditions.Add(copytargets);
@@ -804,15 +790,14 @@ namespace EternalCycle
         /// </summary>
         /// <param name="conditions">目标列表</param>
         /// <param name="reachTraderStandingData">自定义任务数据</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="cloner">克隆器实例</param>
-        public static void InitReachTraderStandingDataConditions(List<QuestCondition> conditions, ReachTraderStandingData reachTraderStandingData, DatabaseService databaseService, ICloner cloner)
+        /// <param name="context">上下文实例</param>
+        public static void InitReachTraderStandingDataConditions(List<QuestCondition> conditions, ReachTraderStandingData reachTraderStandingData, LoadModContext context)
         {
-            var condition = databaseService.GetQuests()
+            var condition = context.DB.GetQuests()
                 .SelectMany(q => q.Value.Conditions.AvailableForStart)
                 .FirstOrDefault(c => c.ConditionType == "Level");
             if (condition == null) return;
-            var copycondition = cloner.Clone(condition);
+            var copycondition = context.Cloner.Clone(condition);
             copycondition.Id = reachTraderStandingData.Id;
             copycondition.Index = conditions.Count;
             copycondition.VisibilityConditions.Clear();
@@ -828,14 +813,13 @@ namespace EternalCycle
         /// </summary>
         /// <param name="conditions">目标列表</param>
         /// <param name="reachTraderTrustLevelData">自定义任务数据</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="cloner">克隆器实例</param>
-        public static void InitReachTraderTrustLevelDataConditions(List<QuestCondition> conditions, ReachTraderTrustLevelData reachTraderTrustLevelData, DatabaseService databaseService, ICloner cloner)
+        /// <param name="context">上下文实例</param>
+        public static void InitReachTraderTrustLevelDataConditions(List<QuestCondition> conditions, ReachTraderTrustLevelData reachTraderTrustLevelData, LoadModContext context)
         {
 
-            var condition = GetConditionTemplate(EQuestConditionsTypeCache.TraderLoyalty, "TraderLoyalty", databaseService);
+            var condition = GetConditionTemplate(EQuestConditionsTypeCache.TraderLoyalty, "TraderLoyalty", context);
             if (condition == null) return;
-            var copycondition = cloner.Clone(condition);
+            var copycondition = context.Cloner.Clone(condition);
             copycondition.Id = reachTraderTrustLevelData.Id;
             copycondition.Index = conditions.Count;
             copycondition.VisibilityConditions.Clear();
@@ -850,13 +834,12 @@ namespace EternalCycle
         /// </summary>
         /// <param name="conditions">目标列表</param>
         /// <param name="reachSkillLevelData">自定义任务数据</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="cloner">克隆器实例</param>
-        public static void InitReachSkillLevelDataConditions(List<QuestCondition> conditions, ReachSkillLevelData reachSkillLevelData, DatabaseService databaseService, ICloner cloner)
+        /// <param name="context">上下文实例</param>
+        public static void InitReachSkillLevelDataConditions(List<QuestCondition> conditions, ReachSkillLevelData reachSkillLevelData, LoadModContext context)
         {
-            var condition = GetConditionTemplate(EQuestConditionsTypeCache.Skill, "Skill", databaseService);
+            var condition = GetConditionTemplate(EQuestConditionsTypeCache.Skill, "Skill", context);
             if (condition == null) return;
-            var copycondition = cloner.Clone(condition);
+            var copycondition = context.Cloner.Clone(condition);
             copycondition.Id = reachSkillLevelData.Id;
             copycondition.Index = conditions.Count;
             copycondition.VisibilityConditions.Clear();
@@ -871,13 +854,12 @@ namespace EternalCycle
         /// </summary>
         /// <param name="conditions">目标列表</param>
         /// <param name="completeQuestData">自定义任务数据</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="cloner">克隆器实例</param>
-        public static void InitCompleteQuestDataConditions(List<QuestCondition> conditions, CompleteQuestData completeQuestData, DatabaseService databaseService, ICloner cloner)
+        /// <param name="context">上下文实例</param>
+        public static void InitCompleteQuestDataConditions(List<QuestCondition> conditions, CompleteQuestData completeQuestData, LoadModContext context)
         {
-            var condition = GetConditionTemplate(EQuestConditionsTypeCache.Quest, "Quest", databaseService);
+            var condition = GetConditionTemplate(EQuestConditionsTypeCache.Quest, "Quest", context);
             if (condition == null) return;
-            var copycondition = cloner.Clone(condition);
+            var copycondition = context.Cloner.Clone(condition);
             copycondition.Id = completeQuestData.Id;
             copycondition.Index = conditions.Count;
             copycondition.VisibilityConditions.Clear();
@@ -891,14 +873,13 @@ namespace EternalCycle
         /// </summary>
         /// <param name="conditions">目标列表</param>
         /// <param name="customizationBlockData">自定义任务数据</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="cloner">克隆器实例</param>
-        public static void InitCustomizationBlockDataConditions(List<QuestCondition> conditions, CustomizationBlockData customizationBlockData, DatabaseService databaseService, ICloner cloner)
+        /// <param name="context">上下文实例</param>
+        public static void InitCustomizationBlockDataConditions(List<QuestCondition> conditions, CustomizationBlockData customizationBlockData, LoadModContext context)
         {
             cacheConditions.TryGetValue(EQuestConditionsTypeCache.Block, out var condition);
             if (condition == null)
             {
-                condition = databaseService.GetHideout()
+                condition = context.DB.GetHideout()
                  .Customisation
                  .Globals
                  .SelectMany(q => q.Conditions)
@@ -906,7 +887,7 @@ namespace EternalCycle
                 cacheConditions[EQuestConditionsTypeCache.Block] = condition;
             }
             if (condition == null) return;
-            var copycondition = cloner.Clone(condition);
+            var copycondition = context.Cloner.Clone(condition);
             copycondition.Id = customizationBlockData.Id;
             copycondition.Index = conditions.Count;
             copycondition.VisibilityConditions.Clear();
@@ -929,7 +910,7 @@ namespace EternalCycle
                     try
                     {
                         //对应调用已有的文件夹重载方法
-                        InitQuestRewards(path, context.DB, context.ModHelper, context.Cloner);
+                        InitQuestRewards(path, context);
                         //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务奖励模块(文件夹)注册成功");
                     }
                     catch (Exception ex)
@@ -947,7 +928,7 @@ namespace EternalCycle
                     {
                         // 反序列化为 List 集合，对应已有的 List 重载方法
                         var rewardsData = context.JsonUtil.Deserialize<List<CustomQuestRewardData>>(File.ReadAllText(path));
-                        InitQuestRewards(rewardsData, context.DB, context.Cloner);
+                        InitQuestRewards(rewardsData, context);
 
                         //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务奖励模块(单文件)注册成功");
                     }
@@ -968,10 +949,8 @@ namespace EternalCycle
         /// 从文件夹加载奖励的重载, 感觉没必要
         /// </summary>
         /// <param name="folderpath">路径</param>
-        /// <param name="databaseService">数据库</param>
-        /// <param name="modHelper">modHelper实例啦啦啦</param>
-        /// <param name="cloner">克隆器实例</param>
-        public static void InitQuestRewards(string folderpath, DatabaseService databaseService, ModHelper modHelper, ICloner cloner)
+        /// <param name="context">上下文实例</param>
+        public static void InitQuestRewards(string folderpath, LoadModContext context)
         {
             if (Directory.Exists(folderpath))
             {
@@ -981,11 +960,11 @@ namespace EternalCycle
                     foreach (var file in files)
                     {
                         string fileName = Path.GetFileName(file);
-                        var rewards = modHelper.GetJsonDataFromFile<List<CustomQuestRewardData>>(folderpath, fileName);
+                        var rewards = context.ModHelper.GetJsonDataFromFile<List<CustomQuestRewardData>>(folderpath, fileName);
 
                         if (rewards != null)
                         {
-                            InitQuestRewards(rewards, databaseService, cloner);
+                            InitQuestRewards(rewards, context);
                         }
                     }
                 }
@@ -996,9 +975,8 @@ namespace EternalCycle
         /// 加载任务奖励
         /// </summary>
         /// <param name="rewards">奖励List结构</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="cloner">克隆器实例</param>
-        public static void InitQuestRewards(List<CustomQuestRewardData> rewards, DatabaseService databaseService, ICloner cloner)
+        /// <param name="context">上下文实例</param>
+        public static void InitQuestRewards(List<CustomQuestRewardData> rewards, LoadModContext context)
         {
             foreach (CustomQuestRewardData reward in rewards)
             {
@@ -1006,52 +984,52 @@ namespace EternalCycle
                 {
                     case CustomItemRewardData itemreward:
                         {
-                            InitItemRewards(itemreward, databaseService, cloner);
+                            InitItemRewards(itemreward, context);
                         }
                         break;
                     case CustomAssortUnlockRewardData assortunlockreward:
                         {
-                            InitAssortUnlockRewards(assortunlockreward, databaseService, cloner);
+                            InitAssortUnlockRewards(assortunlockreward, context);
                         }
                         break;
                     case CustomRecipeUnlockRewardData recipeunlockreward:
                         {
-                            InitRecipeUnlockRewards(recipeunlockreward, databaseService, cloner);
+                            InitRecipeUnlockRewards(recipeunlockreward, context);
                         }
                         break;
                     case CustomExperienceRewardData experiencereward:
                         {
-                            InitExperienceRewards(experiencereward, databaseService, cloner);
+                            InitExperienceRewards(experiencereward, context);
                         }
                         break;
                     case CustomTraderStandingRewardData traderstandingreward:
                         {
-                            InitTraderStandingRewards(traderstandingreward, databaseService, cloner);
+                            InitTraderStandingRewards(traderstandingreward, context);
                         }
                         break;
                     case CustomCustomizationRewardData customizationreward:
                         {
-                            InitCustomizationRewards(customizationreward, databaseService, cloner);
+                            InitCustomizationRewards(customizationreward, context);
                         }
                         break;
                     case CustomAchievementRewardData achievementreward:
                         {
-                            InitAchievementRewards(achievementreward, databaseService, cloner);
+                            InitAchievementRewards(achievementreward, context);
                         }
                         break;
                     case CustomTraderUnlockRewardData traderunlockreward:
                         {
-                            InitTraderUnlockRewards(traderunlockreward, databaseService, cloner);
+                            InitTraderUnlockRewards(traderunlockreward, context);
                         }
                         break;
                     case CustomSkillExperienceRewardData skillexperiencereward:
                         {
-                            InitSkillExperienceRewards(skillexperiencereward, databaseService, cloner);
+                            InitSkillExperienceRewards(skillexperiencereward, context);
                         }
                         break;
                     case CustomPocketRewardData pocketreward:
                         {
-                            InitPocketRewards(pocketreward, databaseService, cloner);
+                            InitPocketRewards(pocketreward, context);
                         }
                         break;
                     default:
@@ -1062,54 +1040,54 @@ namespace EternalCycle
                 }
             }
         }
-        
-        public static void InitItemRewards(CustomItemRewardData itemRewardData, DatabaseService databaseService, ICloner cloner)
+
+        public static void InitItemRewards(CustomItemRewardData itemRewardData, LoadModContext context)
         {
             var queststage = EnumUtils.GetQuestStageType(itemRewardData.QuestStage);
-            var rewardtarget = databaseService.GetQuests()
+            var rewardtarget = context.DB.GetQuests()
                 .SelectMany(q => q.Value.Rewards[queststage])
                 .FirstOrDefault(r => r.Type == RewardType.Item);
             if (!itemRewardData.IsAchievement)
             {
-                var target = GetQuest(itemRewardData.QuestId, databaseService).Rewards;
+                var target = GetQuest(itemRewardData.QuestId, context).Rewards;
                 if (target.Count > 0)
                 {
                     if (rewardtarget != null)
                     {
 
-                        var copyreward = GetItemReward(rewardtarget, target[queststage], itemRewardData, cloner);
+                        var copyreward = GetItemReward(rewardtarget, target[queststage], itemRewardData, context);
                         target[queststage].Add(copyreward);
                     }
                 }
             }
             else
             {
-                var target = AchievementUtils.GetAchievement(itemRewardData.QuestId, databaseService).Rewards.ToList();
+                var target = AchievementUtils.GetAchievement(itemRewardData.QuestId, context.DB).Rewards.ToList();
                 if (rewardtarget != null)
                 {
-                    var copyreward = GetItemReward(rewardtarget, target, itemRewardData, cloner);
+                    var copyreward = GetItemReward(rewardtarget, target, itemRewardData, context);
                     target.Add(copyreward);
                 }
-                AchievementUtils.GetAchievement(itemRewardData.QuestId, databaseService).Rewards = target;
+                AchievementUtils.GetAchievement(itemRewardData.QuestId, context.DB).Rewards = target;
             }
         }
-        
-        public static void InitRecipeUnlockRewards(CustomRecipeUnlockRewardData recipeUnlockRewardData, DatabaseService databaseService, ICloner cloner)
+
+        public static void InitRecipeUnlockRewards(CustomRecipeUnlockRewardData recipeUnlockRewardData, LoadModContext context)
         {
             //wip
             var queststage = EnumUtils.GetQuestStageType(recipeUnlockRewardData.QuestStage);
             var stringstage = queststage.ToString().ToLower();
             var questid = recipeUnlockRewardData.QuestId;
             var rewardid = recipeUnlockRewardData.Id;
-            var rewardtarget = databaseService.GetQuests()
+            var rewardtarget = context.DB.GetQuests()
                 .SelectMany(q => q.Value.Rewards[queststage])
                 .FirstOrDefault(r => r.Type == RewardType.ProductionScheme);
-            var target = GetQuest(questid, databaseService).Rewards;
+            var target = GetQuest(questid, context).Rewards;
             if (target.Count > 0)
             {
                 if (rewardtarget != null)
                 {
-                    var copyreward = InitCopiedReward(rewardtarget, target[queststage], recipeUnlockRewardData, cloner);
+                    var copyreward = InitCopiedReward(rewardtarget, target[queststage], recipeUnlockRewardData, context);
                     var itemid = recipeUnlockRewardData.RecipeData.Output;
                     copyreward.Items.Clear();
                     copyreward.Items.Add(new Item
@@ -1126,28 +1104,28 @@ namespace EternalCycle
                     copyreward.TraderId = (int)recipeUnlockRewardData.RecipeData.AreaType;
                     copyreward.LoyaltyLevel = (int)recipeUnlockRewardData.RecipeData.AreaLevel;
                     target[queststage].Add(copyreward);
-                    RecipeUtils.InitRecipe(recipeUnlockRewardData.RecipeData, databaseService, cloner);
+                    RecipeUtils.InitRecipe(recipeUnlockRewardData.RecipeData, context);
                 }
             }
         }
-        
-        public static void InitAssortUnlockRewards(CustomAssortUnlockRewardData assortUnlockRewardData, DatabaseService databaseService, ICloner cloner)
+
+        public static void InitAssortUnlockRewards(CustomAssortUnlockRewardData assortUnlockRewardData, LoadModContext context)
         {
             var queststage = EnumUtils.GetQuestStageType(assortUnlockRewardData.QuestStage);
             var stringstage = queststage.ToString().ToLower();
             var questid = assortUnlockRewardData.QuestId;
             var rewardid = assortUnlockRewardData.Id;
-            var rewardtarget = databaseService.GetQuests()
+            var rewardtarget = context.DB.GetQuests()
                 .SelectMany(q => q.Value.Rewards[queststage])
                 .FirstOrDefault(r => r.Type == RewardType.AssortmentUnlock);
-            var target = GetQuest(questid, databaseService).Rewards;
+            var target = GetQuest(questid, context).Rewards;
             if (target.Count > 0)
             {
                 if (rewardtarget != null)
                 {
-                    var copyreward = InitCopiedReward(rewardtarget, target[queststage], assortUnlockRewardData, cloner);
-                    var assortitems = ItemUtils.ConvertItemListData(assortUnlockRewardData.AssortData.Item, cloner);
-                    var items = ItemUtils.RegenerateItemListData(assortitems, (string)rewardid, cloner);
+                    var copyreward = InitCopiedReward(rewardtarget, target[queststage], assortUnlockRewardData, context);
+                    var assortitems = ItemUtils.ConvertItemListData(assortUnlockRewardData.AssortData.Item, context);
+                    var items = ItemUtils.RegenerateItemListData(assortitems, (string)rewardid, context);
                     var traderid = assortUnlockRewardData.AssortData.Trader;
                     copyreward.Items.Clear();
                     foreach (Item item in items)
@@ -1158,147 +1136,147 @@ namespace EternalCycle
                     copyreward.TraderId = traderid;
                     copyreward.LoyaltyLevel = assortUnlockRewardData.AssortData.TrustLevel;
                     target[queststage].Add(copyreward);
-                    AssortUtils.InitAssort((CustomAssortData)assortUnlockRewardData.AssortData, databaseService, cloner);
-                    TraderUtils.GetTrader(traderid, databaseService).QuestAssort[stringstage].Add(assortitems[0].Id, questid);
+                    AssortUtils.InitAssort((CustomAssortData)assortUnlockRewardData.AssortData, context);
+                    TraderUtils.GetTrader(traderid, context.DB).QuestAssort[stringstage].Add(assortitems[0].Id, questid);
                 }
             }
         }
-        
-        public static void InitExperienceRewards(CustomExperienceRewardData experienceRewardData, DatabaseService databaseService, ICloner cloner)
+
+        public static void InitExperienceRewards(CustomExperienceRewardData experienceRewardData, LoadModContext context)
         {
             var queststage = EnumUtils.GetQuestStageType(experienceRewardData.QuestStage);
-            var rewardtarget = databaseService.GetQuests()
+            var rewardtarget = context.DB.GetQuests()
                 .SelectMany(q => q.Value.Rewards[queststage])
                 .FirstOrDefault(r => r.Type == RewardType.Experience);
-            var target = GetQuest(experienceRewardData.QuestId, databaseService).Rewards;
+            var target = GetQuest(experienceRewardData.QuestId, context).Rewards;
             if (target.Count > 0)
             {
                 if (rewardtarget != null)
                 {
-                    var copyreward = InitCopiedReward(rewardtarget, target[queststage], experienceRewardData, cloner);
+                    var copyreward = InitCopiedReward(rewardtarget, target[queststage], experienceRewardData, context);
                     copyreward.Value = (double)experienceRewardData.Count; //死了妈的东西你就这么喜欢用double是吗
                     target[queststage].Add(copyreward);
                 }
             }
         }
-        
-        public static void InitTraderStandingRewards(CustomTraderStandingRewardData traderStandingRewardData, DatabaseService databaseService, ICloner cloner)
+
+        public static void InitTraderStandingRewards(CustomTraderStandingRewardData traderStandingRewardData, LoadModContext context)
         {
             var queststage = EnumUtils.GetQuestStageType(traderStandingRewardData.QuestStage);
-            var rewardtarget = databaseService.GetQuests()
+            var rewardtarget = context.DB.GetQuests()
                 .SelectMany(q => q.Value.Rewards[queststage])
                 .FirstOrDefault(r => r.Type == RewardType.TraderStanding);
-            var target = GetQuest(traderStandingRewardData.QuestId, databaseService).Rewards;
+            var target = GetQuest(traderStandingRewardData.QuestId, context).Rewards;
             if (target.Count > 0)
             {
                 if (rewardtarget != null)
                 {
-                    var copyreward = InitCopiedReward(rewardtarget, target[queststage], traderStandingRewardData, cloner);
+                    var copyreward = InitCopiedReward(rewardtarget, target[queststage], traderStandingRewardData, context);
                     copyreward.Value = traderStandingRewardData.Count;
                     copyreward.Target = (string)traderStandingRewardData.TraderId;
                     target[queststage].Add(copyreward);
                 }
             }
         }
-        
-        public static void InitCustomizationRewards(CustomCustomizationRewardData customiazationRewardData, DatabaseService databaseService, ICloner cloner)
+
+        public static void InitCustomizationRewards(CustomCustomizationRewardData customiazationRewardData, LoadModContext context)
         {
             var queststage = EnumUtils.GetQuestStageType(customiazationRewardData.QuestStage);
-            var achievements = databaseService.GetAchievements();
-            var rewardtarget = databaseService.GetQuests()
+            var achievements = context.DB.GetAchievements();
+            var rewardtarget = context.DB.GetQuests()
                 .SelectMany(q => q.Value.Rewards[queststage])
                 .FirstOrDefault(r => r.Type == RewardType.CustomizationDirect);
             if (!customiazationRewardData.IsAchievement)
             {
-                var target = GetQuest(customiazationRewardData.QuestId, databaseService).Rewards;
+                var target = GetQuest(customiazationRewardData.QuestId, context).Rewards;
                 if (target.Count > 0)
                 {
                     if (rewardtarget != null)
                     {
-                        var copyreward = GetCustomizationReward(rewardtarget, target[queststage], customiazationRewardData, cloner);
+                        var copyreward = GetCustomizationReward(rewardtarget, target[queststage], customiazationRewardData, context);
                         target[queststage].Add(copyreward);
                     }
                 }
             }
             else
             {
-                var target = AchievementUtils.GetAchievement(customiazationRewardData.QuestId, databaseService).Rewards.ToList();
+                var target = AchievementUtils.GetAchievement(customiazationRewardData.QuestId, context.DB).Rewards.ToList();
                 if (rewardtarget != null)
                 {
-                    var copyreward = GetCustomizationReward(rewardtarget, target, customiazationRewardData, cloner);
+                    var copyreward = GetCustomizationReward(rewardtarget, target, customiazationRewardData, context);
                     target.Add(copyreward);
                 }
-                AchievementUtils.GetAchievement(customiazationRewardData.QuestId, databaseService).Rewards = target;
+                AchievementUtils.GetAchievement(customiazationRewardData.QuestId, context.DB).Rewards = target;
             }
         }
-        
-        public static void InitAchievementRewards(CustomAchievementRewardData achievementRewardData, DatabaseService databaseService, ICloner cloner)
+
+        public static void InitAchievementRewards(CustomAchievementRewardData achievementRewardData, LoadModContext context)
         {
             var queststage = EnumUtils.GetQuestStageType(achievementRewardData.QuestStage);
-            var rewardtarget = databaseService.GetQuests()
+            var rewardtarget = context.DB.GetQuests()
                 .SelectMany(q => q.Value.Rewards[queststage])
                 .FirstOrDefault(r => r.Type == RewardType.Achievement);
-            var target = GetQuest(achievementRewardData.QuestId, databaseService).Rewards;
+            var target = GetQuest(achievementRewardData.QuestId, context).Rewards;
             if (target.Count > 0)
             {
                 if (rewardtarget != null)
                 {
-                    var copyreward = InitCopiedReward(rewardtarget, target[queststage], achievementRewardData, cloner);
+                    var copyreward = InitCopiedReward(rewardtarget, target[queststage], achievementRewardData, context);
                     copyreward.Target = (string)achievementRewardData.TargetId;
                     target[queststage].Add(copyreward);
                 }
             }
         }
-        
-        public static void InitTraderUnlockRewards(CustomTraderUnlockRewardData traderUnlockRewardData, DatabaseService databaseService, ICloner cloner)
+
+        public static void InitTraderUnlockRewards(CustomTraderUnlockRewardData traderUnlockRewardData, LoadModContext context)
         {
             var queststage = EnumUtils.GetQuestStageType(traderUnlockRewardData.QuestStage);
-            var rewardtarget = databaseService.GetQuests()
+            var rewardtarget = context.DB.GetQuests()
                 .SelectMany(q => q.Value.Rewards[queststage])
                 .FirstOrDefault(r => r.Type == RewardType.TraderUnlock);
-            var target = GetQuest(traderUnlockRewardData.QuestId, databaseService).Rewards;
+            var target = GetQuest(traderUnlockRewardData.QuestId, context).Rewards;
             if (target.Count > 0)
             {
                 if (rewardtarget != null)
                 {
-                    var copyreward = InitCopiedReward(rewardtarget, target[queststage], traderUnlockRewardData, cloner);
+                    var copyreward = InitCopiedReward(rewardtarget, target[queststage], traderUnlockRewardData, context);
                     copyreward.Target = (string)traderUnlockRewardData.TraderId;
                     target[queststage].Add(copyreward);
                 }
             }
         }
-        
-        public static void InitSkillExperienceRewards(CustomSkillExperienceRewardData skillExperienceRewardData, DatabaseService databaseService, ICloner cloner)
+
+        public static void InitSkillExperienceRewards(CustomSkillExperienceRewardData skillExperienceRewardData, LoadModContext context)
         {
             var queststage = EnumUtils.GetQuestStageType(skillExperienceRewardData.QuestStage);
-            var rewardtarget = databaseService.GetQuests()
+            var rewardtarget = context.DB.GetQuests()
                 .SelectMany(q => q.Value.Rewards[queststage])
                 .FirstOrDefault(r => r.Type == RewardType.Skill);
-            var target = GetQuest(skillExperienceRewardData.QuestId, databaseService).Rewards;
+            var target = GetQuest(skillExperienceRewardData.QuestId, context).Rewards;
             if (target.Count > 0)
             {
                 if (rewardtarget != null)
                 {
-                    var copyreward = InitCopiedReward(rewardtarget, target[queststage], skillExperienceRewardData, cloner);
+                    var copyreward = InitCopiedReward(rewardtarget, target[queststage], skillExperienceRewardData, context);
                     copyreward.Target = (string)skillExperienceRewardData.SkillType;
                     copyreward.Value = (double)(skillExperienceRewardData.Count * 100);
                     target[queststage].Add(copyreward);
                 }
             }
         }
-        
-        public static void InitPocketRewards(CustomPocketRewardData customPocketRewardData, DatabaseService databaseService, ICloner cloner)
+
+        public static void InitPocketRewards(CustomPocketRewardData customPocketRewardData, LoadModContext context)
         {
             var queststage = EnumUtils.GetQuestStageType(customPocketRewardData.QuestStage);
-            var rewardtarget = databaseService.GetQuests()
+            var rewardtarget = context.DB.GetQuests()
                 .SelectMany(q => q.Value.Rewards[queststage])
                 .FirstOrDefault(r => r.Type == RewardType.Pockets);
-            var target = GetQuest(customPocketRewardData.QuestId, databaseService).Rewards;
+            var target = GetQuest(customPocketRewardData.QuestId, context).Rewards;
             if (target.Count > 0)
             {
                 if (rewardtarget != null)
                 {
-                    var copyreward = InitCopiedReward(rewardtarget, target[queststage], customPocketRewardData, cloner);
+                    var copyreward = InitCopiedReward(rewardtarget, target[queststage], customPocketRewardData, context);
                     copyreward.Target = customPocketRewardData.TargetId;
                     target[queststage].Add(copyreward);
                 }
@@ -1321,7 +1299,7 @@ namespace EternalCycle
                     try
                     {
                         // 对应调用已有的文件夹重载方法
-                        InitQuestLogicTreeData(path, context.DB, context.ModHelper, context.Cloner);
+                        InitQuestLogicTreeData(path, context);
                         //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务逻辑模块(文件夹)注册成功");
                     }
                     catch (Exception ex)
@@ -1339,7 +1317,7 @@ namespace EternalCycle
                     {
                         // 反序列化为字典字典，对应已有的 Dictionary 重载方法
                         var logicTreeData = context.JsonUtil.Deserialize<Dictionary<string, QuestLogicTree>>(File.ReadAllText(path));
-                        InitQuestLogicTreeData(logicTreeData, context.DB, context.Cloner);
+                        InitQuestLogicTreeData(logicTreeData, context);
 
                         //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务逻辑模块(单文件)注册成功");
                     }
@@ -1358,7 +1336,7 @@ namespace EternalCycle
         /// <summary>
         /// Init重载 1：处理文件夹路径，遍历文件并解析单体数据
         /// </summary>
-        public static void InitQuestLogicTreeData(string folderpath, DatabaseService databaseService, ModHelper modHelper, ICloner cloner)
+        public static void InitQuestLogicTreeData(string folderpath, LoadModContext context)
         {
             if (Directory.Exists(folderpath))
             {
@@ -1368,11 +1346,11 @@ namespace EternalCycle
                     foreach (var file in files)
                     {
                         string fileName = Path.GetFileName(file);
-                        var logictree = modHelper.GetJsonDataFromFile<QuestLogicTree>(folderpath, fileName);
+                        var logictree = context.ModHelper.GetJsonDataFromFile<QuestLogicTree>(folderpath, fileName);
 
                         if (logictree != null)
                         {
-                            InitQuestLogicTree(logictree, databaseService, cloner);
+                            InitQuestLogicTree(logictree, context);
                         }
                     }
                 }
@@ -1382,7 +1360,7 @@ namespace EternalCycle
         /// <summary>
         /// Init重载 2：处理实际的反序列化数据（字典形式处理）
         /// </summary>
-        public static void InitQuestLogicTreeData(Dictionary<string, QuestLogicTree> questLogicTree, DatabaseService databaseService, ICloner cloner)
+        public static void InitQuestLogicTreeData(Dictionary<string, QuestLogicTree> questLogicTree, LoadModContext context)
         {
             if (questLogicTree == null || questLogicTree.Count == 0) return;
 
@@ -1390,14 +1368,14 @@ namespace EternalCycle
             {
                 if (data.Value != null)
                 {
-                    InitQuestLogicTree(data.Value, databaseService, cloner);
+                    InitQuestLogicTree(data.Value, context);
                 }
             }
         }
 
-        public static void InitQuestLogicTree(QuestLogicTree questLogicTree, DatabaseService databaseService, ICloner cloner)
+        public static void InitQuestLogicTree(QuestLogicTree questLogicTree, LoadModContext context)
         {
-            var questTarget = GetQuest((string)questLogicTree.Id, databaseService);
+            var questTarget = GetQuest((string)questLogicTree.Id, context);
             foreach (var quest in questLogicTree.PreQuestData)
             {
                 var questid = Utils.ConvertHashID(quest.Key);
@@ -1407,7 +1385,7 @@ namespace EternalCycle
                     QuestId = questid,
                     QuestStatus = quest.Value
                 },
-                databaseService, cloner);
+                context);
             }
             foreach (var trader in questLogicTree.PreTraderStandingData)
             {
@@ -1418,7 +1396,7 @@ namespace EternalCycle
                     TraderId = traderid,
                     TrustStanding = trader.Value
                 },
-                databaseService, cloner);
+                context);
             }
             foreach (var trader in questLogicTree.PreTraderTrustLevelData)
             {
@@ -1429,7 +1407,7 @@ namespace EternalCycle
                     TraderId = traderid,
                     TrustLevel = trader.Value
                 },
-                databaseService, cloner);
+                context);
             }
             if (questLogicTree.PrePlayerLevel > 0)
             {
@@ -1438,7 +1416,7 @@ namespace EternalCycle
                     Id = Utils.ConvertHashID($"{questLogicTree.Id}_PrePlayerLevel"),
                     Count = questLogicTree.PrePlayerLevel
                 },
-                databaseService, cloner);
+                context);
             }
             if (questLogicTree?.PrePlayerPrestigeLevel > 0)
             {
@@ -1448,13 +1426,13 @@ namespace EternalCycle
                     CompareType = questLogicTree.PrestigeCompareType ?? 3,
                     Level = (int)questLogicTree.PrePlayerPrestigeLevel
                 },
-                databaseService, cloner);
+                context);
             }
         }
-        
-        public static Reward InitCopiedReward(Reward reward, List<Reward> target, CustomQuestRewardData rewardData, ICloner cloner)
+
+        public static Reward InitCopiedReward(Reward reward, List<Reward> target, CustomQuestRewardData rewardData, LoadModContext context)
         {
-            var copyreward = cloner.Clone(reward);
+            var copyreward = context.Cloner.Clone(reward);
             copyreward.Id = rewardData.Id;
             copyreward.Index = target.Count;
             if (copyreward.AvailableInGameEditions != null)
@@ -1476,11 +1454,11 @@ namespace EternalCycle
             }
             return copyreward;
         }
-        
-        public static Reward GetItemReward(Reward rewardtarget, List<Reward> target, CustomItemRewardData itemRewardData, ICloner cloner)
+
+        public static Reward GetItemReward(Reward rewardtarget, List<Reward> target, CustomItemRewardData itemRewardData, LoadModContext context)
         {
-            var copyreward = InitCopiedReward(rewardtarget, target, itemRewardData, cloner);
-            var items = ItemUtils.ConvertItemListData(itemRewardData.Items, cloner);
+            var copyreward = InitCopiedReward(rewardtarget, target, itemRewardData, context);
+            var items = ItemUtils.ConvertItemListData(itemRewardData.Items, context);
             copyreward.FindInRaid = itemRewardData.FindInRaid;
             copyreward.Unknown = itemRewardData.IsUnknownReward;
             copyreward.IsHidden = itemRewardData.IsHiddenReward;
@@ -1493,10 +1471,10 @@ namespace EternalCycle
             copyreward.Value = (double)itemRewardData.Count;
             return copyreward;
         }
-        
-        public static Reward GetCustomizationReward(Reward rewardtarget, List<Reward> target, CustomCustomizationRewardData customizationRewardData, ICloner cloner)
+
+        public static Reward GetCustomizationReward(Reward rewardtarget, List<Reward> target, CustomCustomizationRewardData customizationRewardData, LoadModContext context)
         {
-            var copyreward = InitCopiedReward(rewardtarget, target, customizationRewardData, cloner);
+            var copyreward = InitCopiedReward(rewardtarget, target, customizationRewardData, context);
             copyreward.Target = (string)customizationRewardData.TargetId;
             return copyreward;
         }

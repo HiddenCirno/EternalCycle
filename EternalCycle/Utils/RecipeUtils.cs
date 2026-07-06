@@ -29,7 +29,7 @@ using Path = System.IO.Path;
 namespace EternalCycle;
 public class RecipeUtils
 {
-    public static void InitRecipeData(Dictionary<string, CustomRecipeData> recipeData, DatabaseService databaseService, ICloner cloner)
+    public static void InitRecipeData(Dictionary<string, CustomRecipeData> recipeData, ContextManager.LoadModContext context)
     {
         foreach (CustomRecipeData recipe in recipeData.Values)
         {
@@ -38,8 +38,9 @@ public class RecipeUtils
                 case CustomNormalRecipeData customNormalRecipeData:
                     {
 
-                        InitRecipe(recipe, databaseService, cloner);
-                    };
+                        InitRecipe(recipe, context);
+                    }
+                    ;
                     break;
                 case CustomLockedRecipeData customLockedRecipeData:
                     {
@@ -51,13 +52,13 @@ public class RecipeUtils
                             IsUnknownReward = customLockedRecipeData.IsUnknownReward,
                             RecipeData = customLockedRecipeData,
                         };
-                        QuestUtils.InitRecipeUnlockRewards(recipeUnlockRewardData, databaseService, cloner);
+                        QuestUtils.InitRecipeUnlockRewards(recipeUnlockRewardData, context);
                     }
                     break;
             }
         }
     }
-    public static void InitRecipeData(string folderpath, DatabaseService databaseService, ModHelper modHelper, ICloner cloner)
+    public static void InitRecipeData(string folderpath, ContextManager.LoadModContext context)
     {
         List<string> files = Directory.GetFiles(folderpath).ToList();
         if (files.Count > 0)
@@ -65,14 +66,14 @@ public class RecipeUtils
             foreach (var file in files)
             {
                 string fileName = Path.GetFileName(file);
-                var recipe = modHelper.GetJsonDataFromFile<CustomRecipeData>(folderpath, fileName);
-                InitRecipe(recipe, databaseService, cloner);
+                var recipe = context.ModHelper.GetJsonDataFromFile<CustomRecipeData>(folderpath, fileName);
+                InitRecipe(recipe, context);
             }
         }
     }
-    public static void InitRecipe(CustomRecipeData recipeData, DatabaseService databaseService, ICloner cloner)
+    public static void InitRecipe(CustomRecipeData recipeData, ContextManager.LoadModContext context)
     {
-        var recipes = databaseService.GetHideout().Production.Recipes;
+        var recipes = context.DB.GetHideout().Production.Recipes;
         var recipe = new HideoutProduction
         {
             Id = recipeData.Id,
@@ -129,14 +130,14 @@ public class RecipeUtils
         //got it
         recipes.Add(recipe);
     }
-    public static void InitScavCaseRecipeData(Dictionary<string, CustomScavCaseRecipeData> recipeData, DatabaseService databaseService, ICloner cloner)
+    public static void InitScavCaseRecipeData(Dictionary<string, CustomScavCaseRecipeData> recipeData, ContextManager.LoadModContext context)
     {
         foreach (CustomScavCaseRecipeData customScavCaseRecipeData in recipeData.Values)
         {
-            InitScavCaseRecipe(customScavCaseRecipeData, databaseService, cloner);
+            InitScavCaseRecipe(customScavCaseRecipeData, context);
         }
     }
-    public static void InitScavCaseRecipeData(string folderpath, DatabaseService databaseService, ModHelper modHelper, ICloner cloner)
+    public static void InitScavCaseRecipeData(string folderpath, ContextManager.LoadModContext context)
     {
         List<string> files = Directory.GetFiles(folderpath).ToList();
         if (files.Count > 0)
@@ -144,14 +145,14 @@ public class RecipeUtils
             foreach (var file in files)
             {
                 string fileName = Path.GetFileName(file);
-                var scavcase = modHelper.GetJsonDataFromFile<CustomScavCaseRecipeData>(folderpath, fileName);
-                InitScavCaseRecipe(scavcase, databaseService, cloner);
+                var scavcase = context.ModHelper.GetJsonDataFromFile<CustomScavCaseRecipeData>(folderpath, fileName);
+                InitScavCaseRecipe(scavcase, context);
             }
         }
     }
-    public static void InitScavCaseRecipe(CustomScavCaseRecipeData recipeData, DatabaseService databaseService, ICloner cloner)
+    public static void InitScavCaseRecipe(CustomScavCaseRecipeData recipeData, ContextManager.LoadModContext context)
     {
-        var recipes = databaseService.GetHideout().Production.ScavRecipes;
+        var recipes = context.DB.GetHideout().Production.ScavRecipes;
         var recipe = new ScavRecipe
         {
             Id = Utils.ConvertHashID(recipeData.Id),
@@ -190,13 +191,3 @@ public class RecipeUtils
         recipes.Add(recipe);
     }
 }
-
-
-
-
-
-
-
-
-
-

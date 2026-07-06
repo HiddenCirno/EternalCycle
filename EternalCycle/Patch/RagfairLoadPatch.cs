@@ -48,10 +48,11 @@ namespace EternalCycle
             var databaseService = ServiceLocator.ServiceProvider.GetService<DatabaseService>();
             var configServer = ServiceLocator.ServiceProvider.GetService<ConfigServer>();
             var modHelper = ServiceLocator.ServiceProvider.GetService<ModHelper>();
+            var itemHelper = ServiceLocator.ServiceProvider.GetService<ItemHelper>();
             var cloner = ServiceLocator.ServiceProvider.GetService<ICloner>();
             var localeService = ServiceLocator.ServiceProvider.GetService<LocaleService>();
             var imageRouter = ServiceLocator.ServiceProvider.GetService<ImageRouter>();
-            var context = new ContextManager.OnRagfairLoadContext
+            var context = new ContextManager.LoadModContext
             {
                 DB = databaseService,
                 JsonUtil = jsonUtil,
@@ -59,6 +60,7 @@ namespace EternalCycle
                 ModHelper = modHelper,
                 Logger = Utils.commonLogger,
                 ImageRouter = imageRouter,
+                ItemHelper = itemHelper,
                 Cloner = cloner
             };
 
@@ -101,9 +103,10 @@ namespace EternalCycle
             var configServer = ServiceLocator.ServiceProvider.GetService<ConfigServer>();
             var modHelper = ServiceLocator.ServiceProvider.GetService<ModHelper>();
             var cloner = ServiceLocator.ServiceProvider.GetService<ICloner>();
+            var itemHelper = ServiceLocator.ServiceProvider.GetService<ItemHelper>();
             var imageRouter = ServiceLocator.ServiceProvider.GetService<ImageRouter>();
             var logger = new ECLogger("PostRagfairLoadEvent", true);
-            var context = new ContextManager.OnRagfairLoadContext
+            var context = new ContextManager.LoadModContext
             {
                 DB = databaseService,
                 JsonUtil = jsonUtil,
@@ -111,6 +114,7 @@ namespace EternalCycle
                 ModHelper = modHelper,
                 Logger = Utils.commonLogger,
                 ImageRouter = imageRouter,
+                ItemHelper = itemHelper,
                 Cloner = cloner
             };
             EventManager.InitPostRagfairLoadEvent(context);

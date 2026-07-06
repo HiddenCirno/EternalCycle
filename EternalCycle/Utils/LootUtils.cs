@@ -3,6 +3,8 @@ using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common;
 using SPTarkov.Server.Core.Utils.Cloners;
+using static EternalCycle.ContextManager;
+
 namespace EternalCycle
 {
     /// <summary>
@@ -13,10 +15,10 @@ namespace EternalCycle
         /// <summary>
         /// 统一获取地图引用
         /// </summary>
-        private static IEnumerable<Location> GetValidLocations(DatabaseService databaseService)
+        private static IEnumerable<Location> GetValidLocations(LoadModContext context)
         {
             //直接调用SPT内部的字典方法
-            return databaseService.GetLocations()
+            return context.DB.GetLocations()
                 .GetDictionary()
                 .Values
                 .Where(loc => loc != null);
@@ -26,9 +28,9 @@ namespace EternalCycle
         /// 为自定义物品添加静态战利品生成
         /// </summary>
         /// <param name="template">自定义物品对象</param>
-        /// <param name="databaseService">数据库实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns>自定义物品对象</returns>
-        public static CustomItemTemplate AddStaticLoot(this CustomItemTemplate template, DatabaseService databaseService)
+        public static CustomItemTemplate AddStaticLoot(this CustomItemTemplate template, LoadModContext context)
         {
             if (template.CustomProps is not LootableItemProps lootableItemProps || !lootableItemProps.CanFindInRaid) return template;
             if (lootableItemProps.StaticLoot == false) return template;
@@ -40,7 +42,7 @@ namespace EternalCycle
              ? lootableItemProps.StaticLootDivisor
              : 2f;
             //默认生成或仅在StaticLoot为true时生成
-            foreach (var location in GetValidLocations(databaseService))
+            foreach (var location in GetValidLocations(context))
             {
                 if (location.StaticLoot == null) continue;
                 //VulcanLog.Debug($"初始化战利品生成流程", logger);
@@ -73,9 +75,9 @@ namespace EternalCycle
         /// 为自定义物品添加动态战利品生成
         /// </summary>
         /// <param name="template">自定义物品对象</param>
-        /// <param name="databaseService">数据库实例</param>
+        /// <param name="context">上下文实例</param>
         /// <returns>自定义物品对象</returns>
-        public static CustomItemTemplate AddLooseLoot(this CustomItemTemplate template, DatabaseService databaseService)
+        public static CustomItemTemplate AddLooseLoot(this CustomItemTemplate template, LoadModContext context)
         {
             if (template.CustomProps is not LootableItemProps lootableItemProps || !lootableItemProps.CanFindInRaid) return template;
             if (lootableItemProps.MapLoot == false) return template;
@@ -88,7 +90,7 @@ namespace EternalCycle
             float relative = (lootableItemProps.UseCustomData == true && lootableItemProps.MapLoot == true)
                 ? lootableItemProps.MapLootDivisor
                 : 4f;
-            foreach (var location in GetValidLocations(databaseService))
+            foreach (var location in GetValidLocations(context))
             {
                 //忘了防御....
                 if (location.LooseLoot == null) continue;
@@ -135,12 +137,11 @@ namespace EternalCycle
         /// </summary>
         /// <param name="itemPreset">预设内容</param>
         /// <param name="targetid">目标ID</param>
-        /// <param name="databaseService">数据库实例</param>
-        /// <param name="cloner">克隆器实例</param>
-        public static void AddPresetLoot(List<Item> itemPreset, MongoId targetid, DatabaseService databaseService, ICloner cloner)
+        /// <param name="context">上下文实例</param>
+        public static void AddPresetLoot(List<Item> itemPreset, MongoId targetid, LoadModContext context)
         {
             if (itemPreset == null || itemPreset.Count == 0) return;
-            foreach (var location in GetValidLocations(databaseService))
+            foreach (var location in GetValidLocations(context))
             {
                 if (location.LooseLoot == null) continue;
                 //VulcanLog.Debug($"尝试生成战利品: {lootableItemProps.Name}", logger);
@@ -160,7 +161,7 @@ namespace EternalCycle
                             if (disttarget != null)
                             {
                                 //解析武器树
-                                List<Item> presetlist = itemPreset.RegenerateItemListData(targetkey, cloner);
+                                List<Item> presetlist = itemPreset.RegenerateItemListData(targetkey, context);
                                 if (presetlist == null || presetlist.Count == 0) continue;
 
                                 var itemsArray = spawnpoint.Template.Items.ToArray();

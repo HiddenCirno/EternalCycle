@@ -24,6 +24,7 @@ using SPTarkov.Server.Core.Utils.Logger;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
+using static EternalCycle.ContextManager;
 using Path = System.IO.Path;
 namespace EternalCycle
 {
@@ -49,7 +50,7 @@ namespace EternalCycle
                 {
                     try
                     {
-                        InitAchievementData(path, respath, context.DB, context.ModHelper, context.Cloner);
+                        InitAchievementData(path, respath, context);
                     }
                     catch (Exception ex)
                     {
@@ -69,7 +70,7 @@ namespace EternalCycle
 
                         if (achievementData != null)
                         {
-                            InitAchievementData(achievementData, respath, context.DB, context.Cloner);
+                            InitAchievementData(achievementData, respath, context);
                         }
                     }
                     catch (Exception ex)
@@ -87,7 +88,7 @@ namespace EternalCycle
         /// <summary>
         /// Init重载 1：处理文件夹路径，遍历解析为单个成就对象
         /// </summary>
-        public static void InitAchievementData(string folderpath, string respath, DatabaseService databaseService, ModHelper modHelper, ICloner cloner)
+        public static void InitAchievementData(string folderpath, string respath, LoadModContext context)
         {
             if (!Directory.Exists(folderpath)) return;
 
@@ -98,11 +99,11 @@ namespace EternalCycle
                 {
                     string fileName = Path.GetFileName(file);
                     // 文件夹模式下，按你的原逻辑，每个文件是一个 CustomAchievementData
-                    var achievement = modHelper.GetJsonDataFromFile<CustomAchievementData>(folderpath, fileName);
+                    var achievement = context.ModHelper.GetJsonDataFromFile<CustomAchievementData>(folderpath, fileName);
 
                     if (achievement != null)
                     {
-                        InitAchievement(achievement, respath, databaseService, cloner);
+                        InitAchievement(achievement, respath, context);
                     }
                 }
             }
@@ -111,7 +112,7 @@ namespace EternalCycle
         /// <summary>
         /// Init重载 2：处理单文件反序列化出的成就列表
         /// </summary>
-        public static void InitAchievementData(List<CustomAchievementData> achievementData, string respath, DatabaseService databaseService, ICloner cloner)
+        public static void InitAchievementData(List<CustomAchievementData> achievementData, string respath, LoadModContext context)
         {
             if (achievementData == null || achievementData.Count == 0) return;
 
@@ -119,16 +120,16 @@ namespace EternalCycle
             {
                 if (achievement != null)
                 {
-                    InitAchievement(achievement, respath, databaseService, cloner);
+                    InitAchievement(achievement, respath, context);
                 }
             }
         }
 
-        public static void InitAchievement(CustomAchievementData achievementData, string respath, DatabaseService databaseService, ICloner cloner)
+        public static void InitAchievement(CustomAchievementData achievementData, string respath, LoadModContext context)
         {
-            var zhCNLang = databaseService.GetLocales().Global["ch"];
-            var achievements = databaseService.GetAchievements();
-            var achievementPattern = cloner.Clone(achievements[0]);
+            var zhCNLang = context.DB.GetLocales().Global["ch"];
+            var achievements = context.DB.GetAchievements();
+            var achievementPattern = context.Cloner.Clone(achievements[0]);
             var achievementid = achievementData.Id;
             achievementPattern.Id = achievementid;
             achievementPattern.ImageUrl = achievementData.ImagePath;
@@ -139,7 +140,7 @@ namespace EternalCycle
                 AvailableForFinish = new List<QuestCondition>(),
                 Fail = new List<QuestCondition>()
             };
-            QuestUtils.InitQuestConditions(achievementPattern.Conditions.AvailableForFinish, achievementData.Conditions.AchievementFinishData, databaseService, cloner);
+            QuestUtils.InitQuestConditions(achievementPattern.Conditions.AvailableForFinish, achievementData.Conditions.AchievementFinishData, context);
             achievementPattern.InstantComplete = achievementData.InstantComplete;
             achievementPattern.ShowConditions = achievementData.ShowConditions;
             achievementPattern.ShowNotificationsInGame = achievementData.ShowNotificationsInGame;
@@ -159,7 +160,7 @@ namespace EternalCycle
                 return lang;
             });
             achievements.Add(achievementPattern);
-            QuestUtils.InitQuestRewards(achievementData.AchievementRewards, databaseService, cloner);
+            QuestUtils.InitQuestRewards(achievementData.AchievementRewards, context);
         }
     }
 }
