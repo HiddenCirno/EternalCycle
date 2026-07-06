@@ -41,6 +41,7 @@ namespace EternalCycle
         {
             return typeof(RagfairServer).GetMethod("Load", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
         }
+
         [PatchPrefix]
         public static bool Prefix(RagfairServer __instance)
         {
@@ -68,9 +69,14 @@ namespace EternalCycle
             EventManager.InitLoadTraderBaseEvent(context);
             EventManager.InitLoadQuestEvent(context);
             EventManager.InitLoadAchievementEvent(context);
+            EventManager.InitLoadRecipeEvent(context);
+            EventManager.InitLoadScavCaseRecipeEvent(context);
+            EventManager.InitLoadCultCircleRecipeEvent(context);
             EventManager.InitLoadTraderAssortEvent(context);
             EventManager.InitLoadQuestDataEvent(context);
             EventManager.InitLoadQuestRewardEvent(context);
+            EventManager.InitLoadLockedTraderAssortEvent(context);
+            EventManager.InitLoadLockedRecipeEvent(context);
             EventManager.InitLoadQuestLogicEvent(context);
             EventManager.InitLoadQuestLocaleEvent(context);
 
@@ -95,6 +101,7 @@ namespace EternalCycle
             //看看迷宫的机关怎么回事
             return true;
         }
+
         [PatchPostfix]
         public static void Postfix(RagfairServer __instance)
         {

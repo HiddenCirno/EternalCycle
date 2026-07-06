@@ -46,6 +46,11 @@ namespace EternalCycle
             public static Action<LoadModContext> LoadPresetEvent;
             public static Action<LoadModContext> LoadTraderAssortEvent;
             public static Action<LoadModContext> LoadAchievementEvent;
+            public static Action<LoadModContext> LoadRecipeEvent;
+            public static Action<LoadModContext> LoadLockedRecipeEvent;
+            public static Action<LoadModContext> LoadLockedTraderAssortEvent;
+            public static Action<LoadModContext> LoadScavCaseRecipeEvent;
+            public static Action<LoadModContext> LoadCultCircleRecipeEvent;
             public static Action<LoadModContext> FixItemCompatibleEvent;
             //tbc
         }
@@ -108,9 +113,35 @@ namespace EternalCycle
         {
             InitRagfairEvent(DataLoadEvent.LoadTraderAssortEvent, context);
         }
+
+        public static void InitLoadLockedTraderAssortEvent(LoadModContext context)
+        {
+            InitRagfairEvent(DataLoadEvent.LoadLockedTraderAssortEvent, context);
+        }
+
         public static void InitLoadAchievementEvent(LoadModContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadAchievementEvent, context);
+        }
+
+        public static void InitLoadRecipeEvent(LoadModContext context)
+        {
+            InitRagfairEvent(DataLoadEvent.LoadRecipeEvent, context);
+        }
+
+        public static void InitLoadLockedRecipeEvent(LoadModContext context)
+        {
+            InitRagfairEvent(DataLoadEvent.LoadLockedRecipeEvent, context);
+        }
+
+        public static void InitLoadScavCaseRecipeEvent(LoadModContext context)
+        {
+            InitRagfairEvent(DataLoadEvent.LoadScavCaseRecipeEvent, context);
+        }
+
+        public static void InitLoadCultCircleRecipeEvent(LoadModContext context)
+        {
+            InitRagfairEvent(DataLoadEvent.LoadCultCircleRecipeEvent, context);
         }
 
 

@@ -253,6 +253,8 @@ public class EternalCycle(
         AssortUtils.RegisterAssort(System.IO.Path.Combine(modPath, "assort_mod.json"));
         QuestUtils.RegisterQuestRewards(System.IO.Path.Combine(modPath, "rewards_vanilla.json"));
         QuestUtils.RegisterQuestLogicTree(System.IO.Path.Combine(modPath, "logic.json"));
+        RecipeUtils.RegisterRecipe(System.IO.Path.Combine(modPath, "recipe.json"));
+        RecipeUtils.RegisterScavCaseRecipe(System.IO.Path.Combine(modPath, "scavcase.json"));
         LocaleUtils.RegisterQuestLocale(System.IO.Path.Combine(modPath, "quest/"), "<color=#8FFF00>永恒时序-调试任务加载</color>", "<color=#FFFF80>永恒时序</color>");
         ItemUtils.InitDrawPool(modHelper.GetJsonDataFromFile<Dictionary<string, DrawPoolClass>>(modPath, "newdrawpool.json"));
         //ItemUtils.InitItem(System.IO.Path.Combine(modPath, "items/"), "<color=#8FFF00>永恒时序-物品加载器</color>", "<color=#FFFF80>永恒时序</color>", databaseService, jsonutil, configServer, cloner);

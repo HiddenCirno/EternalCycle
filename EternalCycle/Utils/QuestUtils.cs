@@ -1,11 +1,8 @@
 using HarmonyLib;
 using SPTarkov.Server.Core.DI;
-using SPTarkov.Server.Core.Helpers;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Routers;
-using SPTarkov.Server.Core.Services;
-using SPTarkov.Server.Core.Utils.Cloners;
 using SPTarkov.Server.Core.Utils.Json;
 using static EternalCycle.ContextManager;
 using Path = System.IO.Path;
@@ -1104,7 +1101,10 @@ namespace EternalCycle
                     copyreward.TraderId = (int)recipeUnlockRewardData.RecipeData.AreaType;
                     copyreward.LoyaltyLevel = (int)recipeUnlockRewardData.RecipeData.AreaLevel;
                     target[queststage].Add(copyreward);
-                    RecipeUtils.InitRecipe(recipeUnlockRewardData.RecipeData, context);
+                    EventManager.DataLoadEvent.LoadLockedRecipeEvent += (eventContext) =>
+                    {
+                        RecipeUtils.InitRecipe(recipeUnlockRewardData.RecipeData, eventContext);
+                    };
                 }
             }
         }
@@ -1136,7 +1136,11 @@ namespace EternalCycle
                     copyreward.TraderId = traderid;
                     copyreward.LoyaltyLevel = assortUnlockRewardData.AssortData.TrustLevel;
                     target[queststage].Add(copyreward);
-                    AssortUtils.InitAssort((CustomAssortData)assortUnlockRewardData.AssortData, context);
+                    EventManager.DataLoadEvent.LoadLockedTraderAssortEvent += (eventContext) =>
+                    {
+                        AssortUtils.InitAssort(assortUnlockRewardData.AssortData, eventContext);
+                    };
+                    
                     TraderUtils.GetTrader(traderid, context.DB).QuestAssort[stringstage].Add(assortitems[0].Id, questid);
                 }
             }
