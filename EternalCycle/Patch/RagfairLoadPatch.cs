@@ -79,6 +79,10 @@ namespace EternalCycle
             EventManager.InitLoadLockedRecipeEvent(context);
             EventManager.InitLoadQuestLogicEvent(context);
             EventManager.InitLoadQuestLocaleEvent(context);
+            EventManager.InitLoadPresetEvent(context);
+            EventManager.InitLoadCustomizationEvent(context);
+            EventManager.InitLoadSuitEvent(context);
+            EventManager.InitLoadHideoutCustomizationEvent(context);
 
             //ต๗สิด๚ย๋
             var items = databaseService.GetItems();

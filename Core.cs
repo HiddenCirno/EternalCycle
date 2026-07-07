@@ -4,11 +4,18 @@ using SPTarkov.DI.Annotations;
 using SPTarkov.Reflection.Patching;
 using SPTarkov.Server.Core.Controllers;
 using SPTarkov.Server.Core.DI;
+using SPTarkov.Server.Core.Extensions;
+using SPTarkov.Server.Core.Generators;
 using SPTarkov.Server.Core.Helpers;
 using SPTarkov.Server.Core.Loaders;
 using SPTarkov.Server.Core.Models.Common;
+using SPTarkov.Server.Core.Models.Eft.Common;
+using SPTarkov.Server.Core.Models.Eft.Common.Request;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
+using SPTarkov.Server.Core.Models.Eft.Inventory;
+using SPTarkov.Server.Core.Models.Eft.ItemEvent;
 using SPTarkov.Server.Core.Models.Eft.Ragfair;
+using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Models.Logging;
 using SPTarkov.Server.Core.Models.Spt.Mod;
 using SPTarkov.Server.Core.Models.Utils;
@@ -18,8 +25,11 @@ using SPTarkov.Server.Core.Services;
 using SPTarkov.Server.Core.Services.Mod;
 using SPTarkov.Server.Core.Utils;
 using SPTarkov.Server.Core.Utils.Cloners;
+using SPTarkov.Server.Core.Utils.Json.Converters;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading;
 using static EternalCycle.ContextManager;
@@ -110,6 +120,11 @@ public class EternalCycle(
     public string modPath = modHelper.GetAbsolutePathToModFolder(Assembly.GetExecutingAssembly());
     public Task OnLoad()
     {
+        BaseInteractionRequestDataConverter.RegisterModDataHandler("DebugAdd", (jsonText) =>
+        {
+            return jsonUtil.Deserialize<AddRequestData>(jsonText);
+        });
+
         //var traderBase = modHelper.GetJsonDataFromFile<TraderBase>(pathToMod, "db/base.json");
         //VulcanUtil.DoAsyncWork(logger);
         // VulcanLog.Access("test", logger);
@@ -255,10 +270,190 @@ public class EternalCycle(
         QuestUtils.RegisterQuestLogicTree(System.IO.Path.Combine(modPath, "logic.json"));
         RecipeUtils.RegisterRecipe(System.IO.Path.Combine(modPath, "recipe.json"));
         RecipeUtils.RegisterScavCaseRecipe(System.IO.Path.Combine(modPath, "scavcase.json"));
+        PresetUtils.RegisterPreset(System.IO.Path.Combine(modPath, "preset.json"));
+        CustomizationUtils.RegisterCustomization(System.IO.Path.Combine(modPath, "custom.json"));
+        SuitUtils.RegisterSuit(System.IO.Path.Combine(modPath, "suits.json"));
         LocaleUtils.RegisterQuestLocale(System.IO.Path.Combine(modPath, "quest/"), "<color=#8FFF00>永恒时序-调试任务加载</color>", "<color=#FFFF80>永恒时序</color>");
         ItemUtils.InitDrawPool(modHelper.GetJsonDataFromFile<Dictionary<string, DrawPoolClass>>(modPath, "newdrawpool.json"));
         //ItemUtils.InitItem(System.IO.Path.Combine(modPath, "items/"), "<color=#8FFF00>永恒时序-物品加载器</color>", "<color=#FFFF80>永恒时序</color>", databaseService, jsonutil, configServer, cloner);
         return Task.CompletedTask;
+    }
+    public record AddRequestData : BaseInteractionRequestData
+    {
+        // 🚨 这里的 JsonPropertyName 必须和你在客户端 OracleAddCommand 中定义的 JSON 字段名一模一样！
+        [JsonPropertyName("itemData")]
+        public Item[] ItemData { get; set; }
+    }
+
+    [Injectable]
+    public class DebugItemEventRouter : ItemEventRouterDefinition
+    {
+        protected override List<HandledRoute> GetHandledRoutes()
+        {
+            return new List<HandledRoute>
+            {
+                new HandledRoute("DebugAdd", false)
+            };
+        }
+
+        protected override ValueTask<ItemEventRouterResponse> HandleItemEventInternal(
+            string url,
+            PmcData pmcData,
+            BaseInteractionRequestData body,
+            MongoId sessionID,
+            ItemEventRouterResponse output)
+        {
+            if (url == "DebugAdd" && body is AddRequestData oracleBody)
+            {
+                if (oracleBody.ItemData != null && oracleBody.ItemData.Length > 0)
+                {
+                    var request = new AddItemsDirectRequest
+                    {
+                        ItemsWithModsToAdd = [oracleBody.ItemData.ToList()],
+                        FoundInRaid = false,
+                        Callback = null,
+                        UseSortingTable = true
+                    };
+
+                    AddItemsToStash(
+                        sessionID,
+                        request,
+                        pmcData,
+                        output);
+                }
+                else
+                {
+                    //Console.WriteLine("收到 Add 请求，但载荷为空！");
+                }
+            }
+
+            return new ValueTask<ItemEventRouterResponse>(output);
+        }
+
+        /// <summary>
+        ///     Add multiple items to player stash (assuming they all fit)
+        /// </summary>
+        /// <param name="sessionId">Session id</param>
+        /// <param name="request">AddItemsDirectRequest request</param>
+        /// <param name="pmcData">Player profile</param>
+        /// <param name="output">Client response object</param>
+        public void AddItemsToStash(MongoId sessionId, AddItemsDirectRequest request, PmcData pmcData, ItemEventRouterResponse output)
+        {
+            var inventoryHelper = ServiceLocator.ServiceProvider.GetService<InventoryHelper>();
+            var httpResponseUtil = ServiceLocator.ServiceProvider.GetService<HttpResponseUtil>();
+            var serverLocalisationService = ServiceLocator.ServiceProvider.GetService<ServerLocalisationService>();
+            // Check all items fit into inventory before adding
+            if (!inventoryHelper.CanPlaceItemsInInventory(sessionId, request.ItemsWithModsToAdd))
+            {
+                // No space, exit
+                httpResponseUtil.AppendErrorToOutput(
+                    output,
+                    serverLocalisationService.GetText("inventory-no_stash_space"),
+                    BackendErrorCodes.NotEnoughSpace
+                );
+
+                return;
+            }
+
+            var addItemRequest = new AddItemDirectRequest
+            {
+                FoundInRaid = request.FoundInRaid,
+                UseSortingTable = request.UseSortingTable,
+                Callback = request.Callback,
+            };
+            foreach (var itemAndChildren in request.ItemsWithModsToAdd)
+            {
+                addItemRequest.ItemWithModsToAdd = itemAndChildren;
+
+                // Add to player inventory
+                AddItemToStash(sessionId, addItemRequest, pmcData, output);
+                if (output.Warnings?.Count > 0)
+                {
+                    // Adding item to stash failed, don't add remainder
+                    return;
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Add whatever is passed in request.itemWithModsToAdd into player inventory (if it fits)
+        /// </summary>
+        /// <param name="sessionId">Session id</param>
+        /// <param name="request">AddItemDirect request</param>
+        /// <param name="pmcData">Player profile</param>
+        /// <param name="output">Client response object</param>
+        public void AddItemToStash(MongoId sessionId, AddItemDirectRequest request, PmcData pmcData, ItemEventRouterResponse output)
+        {
+            var inventoryHelper = ServiceLocator.ServiceProvider.GetService<InventoryHelper>();
+            var httpResponseUtil = ServiceLocator.ServiceProvider.GetService<HttpResponseUtil>();
+            var cloner = ServiceLocator.ServiceProvider.GetService<ICloner>();
+            var itemWithModsToAddClone = cloner.Clone(request.ItemWithModsToAdd);
+
+            // Get stash layouts ready for use
+            //老子操死你妈, 又是私有方法, 死全家了
+            //傻逼白皮
+            var stashFS2D = (int[,])AccessTools.Method(typeof(InventoryHelper), "GetStashSlotMap")
+                        .Invoke(inventoryHelper, new object[] { pmcData });
+            if (stashFS2D is null)
+            {
+                //logger.Error($"Unable to get stash map for players: {sessionId} stash");
+
+                return;
+            }
+
+            var sortingTableFS2D = AccessTools.Method(typeof(InventoryHelper), "GetSortingTableSlotMap")
+                        .Invoke(inventoryHelper, new object[] { pmcData });
+            //inventoryHelper.GetSortingTableSlotMap(pmcData);
+
+            // Find empty slot in stash for item being added - adds 'location' + parentId + slotId properties to root item
+            AccessTools.Method(typeof(InventoryHelper), "PlaceItemInInventory")
+                        .Invoke(inventoryHelper, new object[] { stashFS2D,
+                sortingTableFS2D,
+                itemWithModsToAddClone,
+                pmcData.Inventory,
+                request.UseSortingTable.GetValueOrDefault(false),
+                output });
+            if (output.Warnings?.Count > 0)
+            // Failed to place, error out
+            {
+                return;
+            }
+
+            // Apply/remove FiR to item + mods
+            SetFindInRaidStatusForItem(itemWithModsToAddClone);
+
+            // Remove trader properties from root item
+            AccessTools.Method(typeof(InventoryHelper), "RemoveTraderRagfairRelatedUpdProperties")
+                        .Invoke(inventoryHelper, new object[] { itemWithModsToAddClone[0].Upd });
+
+            // Run callback
+            try
+            {
+                request.Callback?.Invoke((int)(itemWithModsToAddClone[0].Upd.StackObjectsCount ?? 0));
+            }
+            catch (Exception ex)
+            {
+                // Callback failed
+                var message = ex.Message;
+                httpResponseUtil.AppendErrorToOutput(output, message);
+
+                return;
+            }
+
+            // Add item + mods to output and profile inventory
+
+            output.ProfileChanges[sessionId].Items.NewItems.AddRange(itemWithModsToAddClone);
+            pmcData.Inventory.Items.AddRange(itemWithModsToAddClone);
+        }
+        protected virtual void SetFindInRaidStatusForItem(IEnumerable<Item> itemWithChildren)
+        {
+            var itemHelper = ServiceLocator.ServiceProvider.GetService<ItemHelper>();
+            foreach (Item itemWithChild in itemWithChildren)
+            {
+                itemWithChild.AddUpd();
+                itemWithChild.Upd.SpawnedInSession = (itemHelper.IsOfBaseclass(itemWithChild.Template, BaseClasses.AMMO) ? null : itemWithChild.Upd.SpawnedInSession ?? false);
+            }
+        }
     }
 
     [Injectable]
@@ -436,4 +631,5 @@ public class EternalCycle(
 
     }
 }
+
 

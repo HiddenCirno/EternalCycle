@@ -44,6 +44,9 @@ namespace EternalCycle
             public static Action<LoadModContext> LoadQuestRewardEvent;
             public static Action<LoadModContext> LoadTraderBaseEvent;
             public static Action<LoadModContext> LoadPresetEvent;
+            public static Action<LoadModContext> LoadSuitEvent;
+            public static Action<LoadModContext> LoadCustomizationEvent;
+            public static Action<LoadModContext> LoadHideoutCustomizationEvent; 
             public static Action<LoadModContext> LoadTraderAssortEvent;
             public static Action<LoadModContext> LoadAchievementEvent;
             public static Action<LoadModContext> LoadRecipeEvent;
@@ -142,6 +145,26 @@ namespace EternalCycle
         public static void InitLoadCultCircleRecipeEvent(LoadModContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadCultCircleRecipeEvent, context);
+        }
+
+        public static void InitLoadPresetEvent(LoadModContext context)
+        {
+            InitRagfairEvent(DataLoadEvent.LoadPresetEvent, context);
+        }
+
+        public static void InitLoadSuitEvent(LoadModContext context)
+        {
+            InitRagfairEvent(DataLoadEvent.LoadSuitEvent, context);
+        }
+
+        public static void InitLoadCustomizationEvent(LoadModContext context)
+        {
+            InitRagfairEvent(DataLoadEvent.LoadCustomizationEvent, context);
+        }
+
+        public static void InitLoadHideoutCustomizationEvent(LoadModContext context)
+        {
+            InitRagfairEvent(DataLoadEvent.LoadHideoutCustomizationEvent, context);
         }
 
 
