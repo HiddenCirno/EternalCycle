@@ -377,9 +377,29 @@ namespace EternalCycle
             var zhCNLang = context.DB.GetLocales().Global["ch"];
             conditon.Id = questData.Id;
             conditon?.VisibilityConditions?.Clear();
-            if (questData.ParentId != null)
+            if (questData.ParentVisible != null && questData.ParentVisible.Count>0)
             {
-                conditon.ParentId = questData.ParentId;
+                //你为什么是个数组??
+                //这玩意儿难道还支持拓展??
+                //我chovy, 真支持
+                //rnm
+                foreach(var visible in questData.ParentVisible)
+                {
+                    var visibleid = visible.ConvertHashID();
+                    conditon.VisibilityConditions = new List<VisibilityCondition>()
+                    {
+                        new VisibilityCondition()
+                        {
+                            ConditionType = "CompleteCondition",
+                            Id = $"{questData.Id}_{visibleid}_VisibleConditions".ConvertHashID(),
+                            Target = visibleid
+                        }
+                    };
+                }
+            }
+            if (questData.ParentConditionsId != null)
+            {
+                conditon.ParentId = questData.ParentConditionsId;
             }
             if (questData.Locale != null)
             {
@@ -647,9 +667,9 @@ namespace EternalCycle
             var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(reachLevelData, context);
             copycondition.Index = conditions.Count;
             copycondition.CompareMethod = ">=";
-            if (reachLevelData.ParentId != null)
+            if (reachLevelData.ParentVisible != null)
             {
-                copycondition.ParentId = reachLevelData.ParentId;
+                copycondition.ParentId = reachLevelData.ParentConditionsId;
             }
             copycondition.Value = (double)reachLevelData.Count;
             conditions.Add(copycondition);
@@ -863,6 +883,8 @@ namespace EternalCycle
             copycondition.Index = conditions.Count;
             copycondition.Target = new ListOrT<string>(null, completeQuestData.QuestId);
             copycondition.Status = BitMapUtils.GetQuestStatusCode(completeQuestData.QuestStatus);
+            copycondition.AvailableAfter = completeQuestData?.AvailableAfterTime ?? 0;
+            copycondition.Dispersion = completeQuestData?.AvailableAfterTimeRandomExtra ?? 0;
             conditions.Add(copycondition);
         }
 
@@ -1386,7 +1408,9 @@ namespace EternalCycle
                 {
                     Id = Utils.ConvertHashID($"{questLogicTree.Id}_PreQuest_{quest.Key}"),
                     QuestId = questid,
-                    QuestStatus = quest.Value
+                    QuestStatus = quest.Value.PreQuestState,
+                    AvailableAfterTime = quest.Value.AvailableAfterTime,
+                    AvailableAfterTimeRandomExtra = quest.Value.AvailableAfterTimeRandomExtra
                 },
                 context);
             }
