@@ -116,7 +116,7 @@ namespace EternalCycle
                 // 如果传入了 traderId，就走带商人的核心逻辑，否则走普通核心逻辑
                 if (!string.IsNullOrEmpty(traderId))
                 {
-                    InitCustomSuit(suit, traderId, context);
+                    InitCustomSuit(suit, traderId.ConvertHashID(), context);
                 }
                 else
                 {
@@ -127,7 +127,6 @@ namespace EternalCycle
         public static void InitCustomSuit(CustomSuit customSuit, LoadModContext context)
         {
             // 换成 context.DB 调用
-            var suits = context.DB.GetTrader(Traders.RAGMAN).Suits;
             var suit = new Suit
             {
                 Id = customSuit.Id,
@@ -155,13 +154,14 @@ namespace EternalCycle
             {
                 suit.Requirements.QuestRequirements.Add(Utils.ConvertHashID(key));
             }
+            var trader = context.DB.GetTrader(suit.Tid) ?? context.DB.GetTrader(Traders.RAGMAN);
+            var suits = trader.Suits;
             suits.Add(suit);
         }
 
         public static void InitCustomSuit(CustomSuit customSuit, MongoId traderId, LoadModContext context)
         {
             // 换成 context.DB 调用
-            var suits = context.DB.GetTrader(traderId).Suits;
             var suit = new Suit
             {
                 Id = customSuit.Id,
@@ -189,6 +189,7 @@ namespace EternalCycle
             {
                 suit.Requirements.QuestRequirements.Add(Utils.ConvertHashID(key));
             }
+            var suits = context.DB.GetTrader(traderId).Suits;
             suits.Add(suit);
         }
     }
