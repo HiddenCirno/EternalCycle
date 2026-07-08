@@ -1,3 +1,4 @@
+using EternalCycle;
 using HarmonyLib;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -12,6 +13,7 @@ using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Bot;
 using SPTarkov.Server.Core.Models.Eft.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
+using SPTarkov.Server.Core.Models.Eft.Inventory;
 using SPTarkov.Server.Core.Models.Logging;
 using SPTarkov.Server.Core.Models.Spt.Bots;
 using SPTarkov.Server.Core.Models.Spt.Config;
@@ -33,7 +35,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.Arm;
 using System.Text;
 using System.Text.Json;
-using EternalCycle;
+using System.Text.Json.Serialization;
 
 namespace EternalCycle
 {
@@ -60,6 +62,5 @@ namespace EternalCycle
 
             return false; // 跳过原始方法执行
         }
-
     }
 }

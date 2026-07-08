@@ -32,6 +32,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading;
+using static EternalCycle.AddBundlePatch;
 using static EternalCycle.ContextManager;
 namespace EternalCycle;
 public record ModMetadata : AbstractModMetadata
@@ -120,9 +121,9 @@ public class EternalCycle(
     public string modPath = modHelper.GetAbsolutePathToModFolder(Assembly.GetExecutingAssembly());
     public Task OnLoad()
     {
-        BaseInteractionRequestDataConverter.RegisterModDataHandler("DebugAdd", (jsonText) =>
+        BaseInteractionRequestDataConverter.RegisterModDataHandler("SyncStashExtend", (jsonText) =>
         {
-            return jsonUtil.Deserialize<AddRequestData>(jsonText);
+            return jsonUtil.Deserialize<ProfileStashSyncExtendRequestData>(jsonText);
         });
 
         //var traderBase = modHelper.GetJsonDataFromFile<TraderBase>(pathToMod, "db/base.json");
@@ -278,21 +279,22 @@ public class EternalCycle(
         //ItemUtils.InitItem(System.IO.Path.Combine(modPath, "items/"), "<color=#8FFF00>永恒时序-物品加载器</color>", "<color=#FFFF80>永恒时序</color>", databaseService, jsonutil, configServer, cloner);
         return Task.CompletedTask;
     }
-    public record AddRequestData : BaseInteractionRequestData
+
+    public record ProfileStashSyncExtendRequestData : BaseInteractionRequestData
     {
-        // 🚨 这里的 JsonPropertyName 必须和你在客户端 OracleAddCommand 中定义的 JSON 字段名一模一样！
-        [JsonPropertyName("itemData")]
-        public Item[] ItemData { get; set; }
+        [JsonPropertyName("stashData")]
+        public Item[] StashData { get; set; }
     }
 
+    //Weird, sometimes item from gift box will missing and sometimes will duplicate, profile broken risk, tried to fix it.
     [Injectable]
-    public class DebugItemEventRouter : ItemEventRouterDefinition
+    public class ProfileStashSyncExtendEventRouter : ItemEventRouterDefinition
     {
         protected override List<HandledRoute> GetHandledRoutes()
         {
             return new List<HandledRoute>
             {
-                new HandledRoute("DebugAdd", false)
+                new HandledRoute("SyncStashExtend", false)
             };
         }
 
@@ -303,19 +305,20 @@ public class EternalCycle(
             MongoId sessionID,
             ItemEventRouterResponse output)
         {
-            if (url == "DebugAdd" && body is AddRequestData oracleBody)
+            if (url == "SyncStashExtend" && body is ProfileStashSyncExtendRequestData requestBody)
             {
-                if (oracleBody.ItemData != null && oracleBody.ItemData.Length > 0)
+                if (requestBody.StashData != null && requestBody.StashData.Length > 0)
                 {
-                    var request = new AddItemsDirectRequest
+                    var request = new ProfileStashDataContext
                     {
-                        ItemsWithModsToAdd = [oracleBody.ItemData.ToList()],
-                        FoundInRaid = false,
+                        StashDataContext = [requestBody.StashData.ToList()],
+                        StrictJsonFormat = false,
                         Callback = null,
-                        UseSortingTable = true
+                        DiscardOverflowItem = false
                     };
 
-                    AddItemsToStash(
+                    //Forced sync missing item after open a gift
+                    SyncProfileStashExtend(
                         sessionID,
                         request,
                         pmcData,
@@ -323,29 +326,21 @@ public class EternalCycle(
                 }
                 else
                 {
-                    //Console.WriteLine("收到 Add 请求，但载荷为空！");
+                    //Console.WriteLine("数据为空！");
                 }
             }
 
             return new ValueTask<ItemEventRouterResponse>(output);
         }
 
-        /// <summary>
-        ///     Add multiple items to player stash (assuming they all fit)
-        /// </summary>
-        /// <param name="sessionId">Session id</param>
-        /// <param name="request">AddItemsDirectRequest request</param>
-        /// <param name="pmcData">Player profile</param>
-        /// <param name="output">Client response object</param>
-        public void AddItemsToStash(MongoId sessionId, AddItemsDirectRequest request, PmcData pmcData, ItemEventRouterResponse output)
+        public void SyncProfileStashExtend(MongoId sessionId, ProfileStashDataContext request, PmcData pmcData, ItemEventRouterResponse output)
         {
             var inventoryHelper = ServiceLocator.ServiceProvider.GetService<InventoryHelper>();
             var httpResponseUtil = ServiceLocator.ServiceProvider.GetService<HttpResponseUtil>();
             var serverLocalisationService = ServiceLocator.ServiceProvider.GetService<ServerLocalisationService>();
-            // Check all items fit into inventory before adding
-            if (!inventoryHelper.CanPlaceItemsInInventory(sessionId, request.ItemsWithModsToAdd))
+
+            if (!inventoryHelper.CanPlaceItemsInInventory(sessionId, request.StashDataContext))
             {
-                // No space, exit
                 httpResponseUtil.AppendErrorToOutput(
                     output,
                     serverLocalisationService.GetText("inventory-no_stash_space"),
@@ -355,105 +350,115 @@ public class EternalCycle(
                 return;
             }
 
-            var addItemRequest = new AddItemDirectRequest
+            var checkItemRequest = new ProfileStashData
             {
-                FoundInRaid = request.FoundInRaid,
-                UseSortingTable = request.UseSortingTable,
+                StrictJsonFormat = request.StrictJsonFormat,
+                DiscardOverflowItem = request.DiscardOverflowItem,
                 Callback = request.Callback,
             };
-            foreach (var itemAndChildren in request.ItemsWithModsToAdd)
+            foreach (var stashData in request.StashDataContext)
             {
-                addItemRequest.ItemWithModsToAdd = itemAndChildren;
+                checkItemRequest.StashData = stashData;
 
-                // Add to player inventory
-                AddItemToStash(sessionId, addItemRequest, pmcData, output);
+                SyncStashExtend(sessionId, checkItemRequest, pmcData, output);
                 if (output.Warnings?.Count > 0)
                 {
-                    // Adding item to stash failed, don't add remainder
                     return;
                 }
             }
         }
 
-        /// <summary>
-        ///     Add whatever is passed in request.itemWithModsToAdd into player inventory (if it fits)
-        /// </summary>
-        /// <param name="sessionId">Session id</param>
-        /// <param name="request">AddItemDirect request</param>
-        /// <param name="pmcData">Player profile</param>
-        /// <param name="output">Client response object</param>
-        public void AddItemToStash(MongoId sessionId, AddItemDirectRequest request, PmcData pmcData, ItemEventRouterResponse output)
+        public void SyncStashExtend(MongoId sessionId, ProfileStashData request, PmcData pmcData, ItemEventRouterResponse output)
         {
             var inventoryHelper = ServiceLocator.ServiceProvider.GetService<InventoryHelper>();
             var httpResponseUtil = ServiceLocator.ServiceProvider.GetService<HttpResponseUtil>();
             var cloner = ServiceLocator.ServiceProvider.GetService<ICloner>();
-            var itemWithModsToAddClone = cloner.Clone(request.ItemWithModsToAdd);
+            var itemSnapshot = cloner.Clone(request.StashData);
 
-            // Get stash layouts ready for use
-            //老子操死你妈, 又是私有方法, 死全家了
-            //傻逼白皮
+            //Reflection search
+            var allMethods = AccessTools.GetDeclaredMethods(typeof(InventoryHelper));
+
+            //Generate 2D Grid Map
             var stashFS2D = (int[,])AccessTools.Method(typeof(InventoryHelper), "GetStashSlotMap")
                         .Invoke(inventoryHelper, new object[] { pmcData });
             if (stashFS2D is null)
             {
-                //logger.Error($"Unable to get stash map for players: {sessionId} stash");
 
                 return;
             }
 
+            //Generate 2D Grid Map
             var sortingTableFS2D = AccessTools.Method(typeof(InventoryHelper), "GetSortingTableSlotMap")
                         .Invoke(inventoryHelper, new object[] { pmcData });
-            //inventoryHelper.GetSortingTableSlotMap(pmcData);
 
-            // Find empty slot in stash for item being added - adds 'location' + parentId + slotId properties to root item
-            AccessTools.Method(typeof(InventoryHelper), "PlaceItemInInventory")
-                        .Invoke(inventoryHelper, new object[] { stashFS2D,
-                sortingTableFS2D,
-                itemWithModsToAddClone,
-                pmcData.Inventory,
-                request.UseSortingTable.GetValueOrDefault(false),
-                output });
+            //Sync missing item
+            allMethods.FirstOrDefault(m =>
+                m.Name.Contains("Inventory") &&
+                m.GetParameters().Length == 6 && 
+                m.GetParameters()[0].ParameterType == typeof(int[,]) &&
+                m.GetParameters()[1].ParameterType == typeof(int[,]))
+                ?.Invoke(inventoryHelper, new object[] { 
+                        stashFS2D,
+                        sortingTableFS2D,
+                        itemSnapshot,
+                        pmcData.Inventory,
+                        !request.DiscardOverflowItem.GetValueOrDefault(true),
+                        output });
+
             if (output.Warnings?.Count > 0)
-            // Failed to place, error out
+
             {
                 return;
             }
+            
+            //Sync item fir from client
+            ResetItemState(itemSnapshot);
 
-            // Apply/remove FiR to item + mods
-            SetFindInRaidStatusForItem(itemWithModsToAddClone);
-
-            // Remove trader properties from root item
             AccessTools.Method(typeof(InventoryHelper), "RemoveTraderRagfairRelatedUpdProperties")
-                        .Invoke(inventoryHelper, new object[] { itemWithModsToAddClone[0].Upd });
+                        .Invoke(inventoryHelper, new object[] { itemSnapshot[0].Upd });
 
-            // Run callback
             try
             {
-                request.Callback?.Invoke((int)(itemWithModsToAddClone[0].Upd.StackObjectsCount ?? 0));
+                request.Callback?.Invoke((int)(itemSnapshot[0].Upd.StackObjectsCount ?? 0));
             }
             catch (Exception ex)
             {
-                // Callback failed
                 var message = ex.Message;
                 httpResponseUtil.AppendErrorToOutput(output, message);
 
                 return;
             }
 
-            // Add item + mods to output and profile inventory
-
-            output.ProfileChanges[sessionId].Items.NewItems.AddRange(itemWithModsToAddClone);
-            pmcData.Inventory.Items.AddRange(itemWithModsToAddClone);
+            //Sync data into profile and callback
+            output.ProfileChanges[sessionId].Items.NewItems.AddRange(itemSnapshot);
+            pmcData.Inventory.Items.AddRange(itemSnapshot);
         }
-        protected virtual void SetFindInRaidStatusForItem(IEnumerable<Item> itemWithChildren)
+        
+        protected virtual void ResetItemState(IEnumerable<Item> ItenList)
         {
             var itemHelper = ServiceLocator.ServiceProvider.GetService<ItemHelper>();
-            foreach (Item itemWithChild in itemWithChildren)
+            foreach (Item item in ItenList)
             {
-                itemWithChild.AddUpd();
-                itemWithChild.Upd.SpawnedInSession = (itemHelper.IsOfBaseclass(itemWithChild.Template, BaseClasses.AMMO) ? null : itemWithChild.Upd.SpawnedInSession ?? false);
+                item.AddUpd();
+                item.Upd.SpawnedInSession = (itemHelper.IsOfBaseclass(item.Template, BaseClasses.AMMO) ? null : item.Upd.SpawnedInSession ?? false);
             }
         }
+    }
+
+    public record ProfileStashData
+    {
+        public virtual List<Item>? StashData { get; set; }
+        public virtual bool? StrictJsonFormat { get; set; }
+        public virtual Action<int>? Callback { get; set; }
+        public virtual bool? DiscardOverflowItem { get; set; }
+    }
+
+    public record ProfileStashDataContext
+    {
+        public virtual IEnumerable<List<Item>>? StashDataContext { get; set; }
+        public virtual bool? StrictJsonFormat { get; set; }
+        public virtual Action<int>? Callback { get; set; }
+        public virtual bool? DiscardOverflowItem { get; set; }
     }
 
     [Injectable]
