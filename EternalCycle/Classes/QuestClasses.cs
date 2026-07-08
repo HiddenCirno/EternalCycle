@@ -21,19 +21,27 @@ public class CustomQuest
     [JsonPropertyName("ID")]
     [JsonConverter(typeof(MongoIdConverter))]
     public MongoId QuestId { get; set; }
+
     [JsonPropertyName("Type")]
     public int QuestType { get; set; }
+
     [JsonPropertyName("ImagePath")]
     public string QuestImagePath { get; set; }
+
     [JsonPropertyName("TraderID")]
     [JsonConverter(typeof(MongoIdConverter))]
     public MongoId QuestTraderId { get; set; }
+
     [JsonPropertyName("Restartable")]
     public bool IsRestartableQuest { get; set; }
+
     [JsonPropertyName("Location")]
     public string Location { get; set; }
+
+
     [JsonPropertyName("QuestData")]
     public CustomQuestConditionsData QuestConditions { get; set; }
+
     [JsonPropertyName("QuestReward")]
     public List<CustomQuestRewardData> QuestRewards { get; set; }
 
@@ -70,8 +78,15 @@ public class CustomQuestData
     [JsonPropertyName("id")]
     [JsonConverter(typeof(MongoIdConverter))]
     public MongoId Id { get; set; }
+
     [JsonPropertyName("locale")]
     public string? Locale { get; set; }
+
+
+    [JsonPropertyName("parent")]
+    [JsonConverter(typeof(MongoIdConverter))]
+    public MongoId? ParentId { get; set; }
+
     [JsonExtensionData]
     public Dictionary<string?, object?>? ExtensionData => _extensionData;
 

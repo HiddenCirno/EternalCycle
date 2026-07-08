@@ -12,7 +12,7 @@ namespace EternalCycle
     /// <summary>
     /// 对任务进行操作处理的工具类
     /// </summary>
-    public class QuestUtils
+    public static class QuestUtils
     {
         //缓存任务条件字典
         public static Dictionary<EQuestConditionsTypeCache, QuestCondition> cacheConditions = new Dictionary<EQuestConditionsTypeCache, QuestCondition>();
@@ -366,6 +366,33 @@ namespace EternalCycle
         }
 
         /// <summary>
+        /// 拓展方法, 定义任务基础数据, ID, 可选, 可见性, 内置本地化
+        /// </summary>
+        /// <param name="conditon"></param>
+        /// <param name="questData"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static QuestCondition InitQuestConditionBase(this QuestCondition conditon, CustomQuestData questData, LoadModContext context)
+        {
+            var zhCNLang = context.DB.GetLocales().Global["ch"];
+            conditon.Id = questData.Id;
+            conditon?.VisibilityConditions?.Clear();
+            if (questData.ParentId != null)
+            {
+                conditon.ParentId = questData.ParentId;
+            }
+            if (questData.Locale != null)
+            {
+                zhCNLang.AddTransformer(lang =>
+                {
+                    lang[questData.Id] = questData.Locale;
+                    return lang;
+                });
+            }
+            return conditon;
+        }
+
+        /// <summary>
         /// 处理寻找物品任务条件的工具方法
         /// </summary>
         /// <param name="conditions">目标列表</param>
@@ -378,13 +405,9 @@ namespace EternalCycle
             var condition = GetConditionTemplate(EQuestConditionsTypeCache.FindItem, "FindItem", context);
             if (condition == null) return;
             //复制引用
-            var copycondition = context.Cloner.Clone(condition);
-            //设置基础数据
-            copycondition.Id = findItemData.Id;
+            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(findItemData, context);
             copycondition.OnlyFoundInRaid = findItemData.FindInRaid;
             copycondition.Index = conditions.Count;
-            //移除可见性定义
-            copycondition.VisibilityConditions.Clear();
             //这里肯定是List, 直接操作
             copycondition.Target.List.Clear();
             copycondition.Target.List.Add(findItemData.ItemId);
@@ -413,11 +436,9 @@ namespace EternalCycle
         {
             var condition = GetConditionTemplate(EQuestConditionsTypeCache.FindItem, "FindItem", context);
             if (condition == null) return;
-            var copycondition = context.Cloner.Clone(condition);
-            copycondition.Id = findItemData.Id;
+            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(findItemData, context);
             copycondition.OnlyFoundInRaid = findItemData.FindInRaid;
             copycondition.Index = conditions.Count;
-            copycondition.VisibilityConditions.Clear();
             copycondition.Target.List.Clear();
             foreach (string target in findItemData.Items)
             {
@@ -438,11 +459,9 @@ namespace EternalCycle
             var condition = GetConditionTemplate(EQuestConditionsTypeCache.HandoverItem, "HandoverItem", context);
             if (condition == null) return;
             var zhCNLang = context.DB.GetLocales().Global["ch"];
-            var copycondition = context.Cloner.Clone(condition);
-            copycondition.Id = handItemData.Id;
+            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(handItemData, context);
             copycondition.OnlyFoundInRaid = handItemData.FindInRaid;
             copycondition.Index = conditions.Count;
-            copycondition.VisibilityConditions.Clear();
             copycondition.Target.List.Clear();
             copycondition.Target.List.Add(handItemData.ItemId);
             copycondition.Value = (double)handItemData.Count;
@@ -467,11 +486,9 @@ namespace EternalCycle
         {
             var condition = GetConditionTemplate(EQuestConditionsTypeCache.HandoverItem, "HandoverItem", context);
             if (condition == null) return;
-            var copycondition = context.Cloner.Clone(condition);
-            copycondition.Id = handItemData.Id;
+            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(handItemData, context);
             copycondition.OnlyFoundInRaid = handItemData.FindInRaid;
             copycondition.Index = conditions.Count;
-            copycondition.VisibilityConditions.Clear();
             copycondition.Target.List.Clear();
             foreach (string target in handItemData.Items)
             {
@@ -500,14 +517,12 @@ namespace EternalCycle
                 cacheConditions[EQuestConditionsTypeCache.Elimination] = condition;
             }
             if (condition == null) return;
-            var copycondition = context.Cloner.Clone(condition);
-            copycondition.Id = killTargetData.Id;
+            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(killTargetData, context);
             copycondition.Counter.Id = $"{killTargetData.Id}_Counter".ConvertHashID();
             copycondition.Counter.Conditions.Clear();
             copycondition.OneSessionOnly = killTargetData.CompleteInOneRaid;
             copycondition.Value = (double)killTargetData.Count;
             copycondition.Index = conditions.Count;
-            copycondition.VisibilityConditions.Clear();
             var killtargets = GetCounterConditionTemplate(EQuestCountersCacheType.Kills, "Kills", context);
             var locationtargets = GetCounterConditionTemplate(EQuestCountersCacheType.Location, "Location", context);
             var equiptargets = GetCounterConditionTemplate(EQuestCountersCacheType.Equipment, "Equipment", context);
@@ -629,11 +644,13 @@ namespace EternalCycle
                 .SelectMany(q => q.Value.Conditions.AvailableForStart)
                 .FirstOrDefault(c => c.ConditionType == "Level");
             if (condition == null) return;
-            var copycondition = context.Cloner.Clone(condition);
-            copycondition.Id = reachLevelData.Id;
+            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(reachLevelData, context);
             copycondition.Index = conditions.Count;
-            copycondition.VisibilityConditions.Clear();
             copycondition.CompareMethod = ">=";
+            if (reachLevelData.ParentId != null)
+            {
+                copycondition.ParentId = reachLevelData.ParentId;
+            }
             copycondition.Value = (double)reachLevelData.Count;
             conditions.Add(copycondition);
         }
@@ -650,11 +667,9 @@ namespace EternalCycle
                 .SelectMany(q => q.Value.Conditions.AvailableForStart)
                 .FirstOrDefault(c => c.ConditionType == "Level");
             if (condition == null) return;
-            var copycondition = context.Cloner.Clone(condition);
-            copycondition.Id = reachPrestigeLevelData.Id;
+            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(reachPrestigeLevelData, context);
             copycondition.ConditionType = "PrestigeLevel";
             copycondition.Index = conditions.Count;
-            copycondition.VisibilityConditions.Clear();
             copycondition.CompareMethod = EnumUtils.GetCompareType(reachPrestigeLevelData.CompareType);
             copycondition.Value = (double)reachPrestigeLevelData.Level;
             conditions.Add(copycondition);
@@ -677,14 +692,12 @@ namespace EternalCycle
                 cacheConditions[EQuestConditionsTypeCache.Completion] = condition;
             }
             if (condition == null) return;
-            var copycondition = context.Cloner.Clone(condition);
-            copycondition.Id = visitPlaceData.Id;
+            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(visitPlaceData, context);
             copycondition.Counter.Id = $"{visitPlaceData.Id}_Counter".ConvertHashID();
             copycondition.Counter.Conditions.Clear();
             copycondition.OneSessionOnly = visitPlaceData.CompleteInOneRaid;
             copycondition.Value = (double)1;
             copycondition.Index = conditions.Count;
-            copycondition.VisibilityConditions.Clear();
             var visittargets = GetCounterConditionTemplate(EQuestCountersCacheType.VisitPlace, "VisitPlace", context);
             if (visittargets == null) return;
             var copytargets = context.Cloner.Clone(visittargets);
@@ -704,10 +717,8 @@ namespace EternalCycle
         {
             var condition = GetConditionTemplate(EQuestConditionsTypeCache.LeaveItemAtLocation, "LeaveItemAtLocation", context);
             if (condition == null) return;
-            var copycondition = context.Cloner.Clone(condition);
-            copycondition.Id = placeItemData.Id;
+            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(placeItemData, context);
             copycondition.Index = conditions.Count;
-            copycondition.VisibilityConditions.Clear();
             copycondition.Target = new ListOrT<string>(new List<string>(), null);
             copycondition.Target.List.Add(placeItemData.ItemId);
             copycondition.Value = (double)placeItemData.Count;
@@ -733,14 +744,12 @@ namespace EternalCycle
                 cacheConditions[EQuestConditionsTypeCache.Completion] = condition;
             }
             if (condition == null) return;
-            var copycondition = context.Cloner.Clone(condition);
-            copycondition.Id = exitLocationData.Id;
+            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(exitLocationData, context);
             copycondition.Counter.Id = $"{exitLocationData.Id}_Counter".ConvertHashID();
             copycondition.Counter.Conditions.Clear();
             copycondition.OneSessionOnly = exitLocationData.CompleteInOneRaid;
             copycondition.Value = (double)exitLocationData.Count;
             copycondition.Index = conditions.Count;
-            copycondition.VisibilityConditions.Clear();
             var locationtargets = GetCounterConditionTemplate(EQuestCountersCacheType.Location, "Location", context);
             var exitstatustargets = GetCounterConditionTemplate(EQuestCountersCacheType.ExitStatus, "ExitStatus", context);
             if (locationtargets != null)
@@ -794,10 +803,8 @@ namespace EternalCycle
                 .SelectMany(q => q.Value.Conditions.AvailableForStart)
                 .FirstOrDefault(c => c.ConditionType == "Level");
             if (condition == null) return;
-            var copycondition = context.Cloner.Clone(condition);
-            copycondition.Id = reachTraderStandingData.Id;
+            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(reachTraderStandingData, context);
             copycondition.Index = conditions.Count;
-            copycondition.VisibilityConditions.Clear();
             copycondition.CompareMethod = ">=";
             copycondition.ConditionType = "TraderStanding";
             copycondition.Target = new ListOrT<string>(null, reachTraderStandingData.TraderId);
@@ -816,10 +823,8 @@ namespace EternalCycle
 
             var condition = GetConditionTemplate(EQuestConditionsTypeCache.TraderLoyalty, "TraderLoyalty", context);
             if (condition == null) return;
-            var copycondition = context.Cloner.Clone(condition);
-            copycondition.Id = reachTraderTrustLevelData.Id;
+            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(reachTraderTrustLevelData, context);
             copycondition.Index = conditions.Count;
-            copycondition.VisibilityConditions.Clear();
             copycondition.CompareMethod = ">=";
             copycondition.Target = new ListOrT<string>(null, reachTraderTrustLevelData.TraderId);
             copycondition.Value = (double)reachTraderTrustLevelData.TrustLevel;
@@ -836,10 +841,8 @@ namespace EternalCycle
         {
             var condition = GetConditionTemplate(EQuestConditionsTypeCache.Skill, "Skill", context);
             if (condition == null) return;
-            var copycondition = context.Cloner.Clone(condition);
-            copycondition.Id = reachSkillLevelData.Id;
+            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(reachSkillLevelData, context);
             copycondition.Index = conditions.Count;
-            copycondition.VisibilityConditions.Clear();
             copycondition.CompareMethod = ">=";
             copycondition.Target = new ListOrT<string>(null, reachSkillLevelData.SkillType);
             copycondition.Value = (double)reachSkillLevelData.Level;
@@ -856,10 +859,8 @@ namespace EternalCycle
         {
             var condition = GetConditionTemplate(EQuestConditionsTypeCache.Quest, "Quest", context);
             if (condition == null) return;
-            var copycondition = context.Cloner.Clone(condition);
-            copycondition.Id = completeQuestData.Id;
+            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(completeQuestData, context);
             copycondition.Index = conditions.Count;
-            copycondition.VisibilityConditions.Clear();
             copycondition.Target = new ListOrT<string>(null, completeQuestData.QuestId);
             copycondition.Status = BitMapUtils.GetQuestStatusCode(completeQuestData.QuestStatus);
             conditions.Add(copycondition);
@@ -884,10 +885,8 @@ namespace EternalCycle
                 cacheConditions[EQuestConditionsTypeCache.Block] = condition;
             }
             if (condition == null) return;
-            var copycondition = context.Cloner.Clone(condition);
-            copycondition.Id = customizationBlockData.Id;
+            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(customizationBlockData, context);
             copycondition.Index = conditions.Count;
-            copycondition.VisibilityConditions.Clear();
             conditions.Add(copycondition);
         }
 
