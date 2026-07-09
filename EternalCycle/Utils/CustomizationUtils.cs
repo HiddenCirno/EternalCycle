@@ -27,11 +27,11 @@ using System.Reflection;
 using System.Text.Json;
 using System.Collections.Generic;
 using System.Linq;
-using static EternalCycle.ContextManager;
+using static EternalCycleServer.ContextManager;
 using Path = System.IO.Path;
 using System;
 
-namespace EternalCycle
+namespace EternalCycleServer
 {
     public class CustomizationUtils
     {

@@ -1,4 +1,4 @@
-namespace EternalCycle;
+namespace EternalCycleServer;
 public static class ERagfairTagsType
 {
     public static string 能源物品 = "5b47574386f77428ca22b2ed";

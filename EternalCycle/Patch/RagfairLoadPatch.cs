@@ -32,7 +32,7 @@ using System.Text.Json;
 using System.Runtime.InteropServices;
 using SPTarkov.Server.Core.Models.Spt.Launcher;
 
-namespace EternalCycle
+namespace EternalCycleServer
 {
     public class RagfairLoadPatch : AbstractPatch
     {
@@ -83,6 +83,7 @@ namespace EternalCycle
             EventManager.InitLoadCustomizationEvent(context);
             EventManager.InitLoadSuitEvent(context);
             EventManager.InitLoadHideoutCustomizationEvent(context);
+            EventManager.InitLoadResourceEventEvent(context);
 
             //ต๗สิด๚ย๋
             var items = databaseService.GetItems();

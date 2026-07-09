@@ -35,9 +35,9 @@ using System.Runtime.Intrinsics.Arm;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using EternalCycle;
+using EternalCycleServer;
 
-namespace EternalCycle
+namespace EternalCycleServer
 {
     public class OpenRandomLootContainerPatch : AbstractPatch
     {

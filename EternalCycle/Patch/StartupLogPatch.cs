@@ -3,7 +3,7 @@ using System.Reflection;
 using HarmonyLib;
 using SPTarkov.Reflection.Patching;
 
-namespace EternalCycle
+namespace EternalCycleServer
 {
     public class StartupLogPatch : AbstractPatch
     {

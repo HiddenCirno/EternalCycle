@@ -11,7 +11,7 @@ using SPTarkov.Server.Core.Models.Eft.Common;
 using Microsoft.AspNetCore.Mvc.ViewFeatures.Buffers;
 using System.Text.Json.Serialization;
 
-namespace EternalCycle;
+namespace EternalCycleServer;
 
 public class CustomPresetData
 {

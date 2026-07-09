@@ -1,4 +1,4 @@
-using EternalCycle;
+using EternalCycleServer;
 using HarmonyLib;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -37,7 +37,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace EternalCycle
+namespace EternalCycleServer
 {
     public class AddBundlePatch : AbstractPatch
     {

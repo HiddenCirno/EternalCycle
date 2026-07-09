@@ -34,9 +34,9 @@ using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.Arm;
 using System.Text;
 using System.Text.Json;
-using EternalCycle;
+using EternalCycleServer;
 
-namespace EternalCycle
+namespace EternalCycleServer
 {
     public class ReplaceFleaBasePricesPatch : AbstractPatch
     {

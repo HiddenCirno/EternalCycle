@@ -1,10 +1,10 @@
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Enums;
-using static EternalCycle.ContextManager;
+using static EternalCycleServer.ContextManager;
 using Path = System.IO.Path;
 
-namespace EternalCycle
+namespace EternalCycleServer
 {
     /// <summary>
     /// 报价单部分

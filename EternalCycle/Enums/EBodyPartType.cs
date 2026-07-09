@@ -1,4 +1,4 @@
-namespace EternalCycle;
+namespace EternalCycleServer;
 
 [Flags]
 public enum EBodyPartType

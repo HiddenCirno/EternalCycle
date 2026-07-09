@@ -1,9 +1,9 @@
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common;
-using static EternalCycle.ContextManager;
+using static EternalCycleServer.ContextManager;
 using Path = System.IO.Path;
 
-namespace EternalCycle
+namespace EternalCycleServer
 {
     public class PresetUtils
     {

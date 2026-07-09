@@ -24,9 +24,9 @@ using SPTarkov.Server.Core.Utils.Logger;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
-using static EternalCycle.ContextManager;
+using static EternalCycleServer.ContextManager;
 using Path = System.IO.Path;
-namespace EternalCycle
+namespace EternalCycleServer
 {
     public class SuitUtils
     {

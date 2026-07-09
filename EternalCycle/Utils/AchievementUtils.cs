@@ -3,10 +3,10 @@ using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Routers;
 using SPTarkov.Server.Core.Services;
-using static EternalCycle.ContextManager;
+using static EternalCycleServer.ContextManager;
 using Path = System.IO.Path;
 
-namespace EternalCycle
+namespace EternalCycleServer
 {
     public class AchievementUtils
     {

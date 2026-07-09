@@ -1,7 +1,7 @@
 using Path = System.IO.Path;
 using SPTarkov.Server.Core.Routers;
 
-namespace EternalCycle
+namespace EternalCycleServer
 {
     public class ImageUtils
     {

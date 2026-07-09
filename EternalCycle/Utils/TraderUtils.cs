@@ -10,7 +10,7 @@ using SPTarkov.Server.Core.Utils;
 using SPTarkov.Server.Core.Utils.Cloners;
 using Path = System.IO.Path;
 
-namespace EternalCycle
+namespace EternalCycleServer
 {
     /// <summary>
     /// 商人部分

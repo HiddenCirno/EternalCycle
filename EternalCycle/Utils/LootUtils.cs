@@ -1,9 +1,9 @@
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common;
-using static EternalCycle.ContextManager;
+using static EternalCycleServer.ContextManager;
 
-namespace EternalCycle
+namespace EternalCycleServer
 {
     /// <summary>
     /// 对战利品生成进行操作处理的工具类

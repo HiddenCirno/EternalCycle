@@ -1,8 +1,8 @@
 using SPTarkov.Server.Core.Models.Common;
 using System.Text.Json.Serialization;
-using static EternalCycle.Utils;
+using static EternalCycleServer.Utils;
 
-namespace EternalCycle
+namespace EternalCycleServer
 {
 
     public class CustomQuest

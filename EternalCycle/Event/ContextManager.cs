@@ -9,7 +9,7 @@ using SPTarkov.Server.Core.Utils;
 using SPTarkov.Server.Core.Utils.Cloners;
 using System;
 
-namespace EternalCycle
+namespace EternalCycleServer
 {
     public class ContextManager
     {

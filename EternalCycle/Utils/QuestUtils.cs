@@ -4,10 +4,10 @@ using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Routers;
 using SPTarkov.Server.Core.Utils.Json;
-using static EternalCycle.ContextManager;
+using static EternalCycleServer.ContextManager;
 using Path = System.IO.Path;
 
-namespace EternalCycle
+namespace EternalCycleServer
 {
     /// <summary>
     /// 对任务进行操作处理的工具类

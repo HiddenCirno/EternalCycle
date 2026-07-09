@@ -1,4 +1,4 @@
-namespace EternalCycle;
+namespace EternalCycleServer;
 
 public enum EQuestStageType
 {

@@ -9,7 +9,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
-namespace EternalCycle
+namespace EternalCycleServer
 {
     /// <summary>
     /// 泛用型工具类

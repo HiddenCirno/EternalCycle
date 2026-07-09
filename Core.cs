@@ -32,9 +32,9 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading;
-using static EternalCycle.AddBundlePatch;
-using static EternalCycle.ContextManager;
-namespace EternalCycle;
+using static EternalCycleServer.AddBundlePatch;
+using static EternalCycleServer.ContextManager;
+namespace EternalCycleServer;
 public record ModMetadata : AbstractModMetadata
 {
     public override string ModGuid { get; init; } = "projectspark.hiddenhiragi.eternalcycle";
@@ -276,6 +276,7 @@ public class EternalCycle(
         SuitUtils.RegisterSuit(System.IO.Path.Combine(modPath, "suits.json"));
         LocaleUtils.RegisterQuestLocale(System.IO.Path.Combine(modPath, "quest/"), "<color=#8FFF00>永恒时序-调试任务加载</color>", "<color=#FFFF80>永恒时序</color>");
         ItemUtils.InitDrawPool(modHelper.GetJsonDataFromFile<Dictionary<string, DrawPoolClass>>(modPath, "newdrawpool.json"));
+        ResourceUtils.RegisterRigLayoutResource(modPath, "clientres/");
         //ItemUtils.InitItem(System.IO.Path.Combine(modPath, "items/"), "<color=#8FFF00>永恒时序-物品加载器</color>", "<color=#FFFF80>永恒时序</color>", databaseService, jsonutil, configServer, cloner);
         return Task.CompletedTask;
     }
@@ -462,179 +463,107 @@ public class EternalCycle(
     }
 
     [Injectable]
-    public class VulcanCoreAwakeRouter : StaticRouter
-    {
-        private static HttpResponseUtil _httpResponseUtil;
-        private static DatabaseService _databaseService;
-        private static RagfairController _ragfairController;
-        private static JsonUtil _jsonUtil;
-        private static RagfairOfferService _ragfairOfferService;
-        private static ItemHelper _itemHelper;
-        private static ISptLogger<EternalCycle> _logger;
-        private static ICloner _cloner;
-        private static EternalCycle _vulcanCore;
+    // 1. 使用主构造函数，将所有需要的服务（包括之前用 ServiceLocator 获取的）全部在此声明
+    public class VulcanCoreAwakeRouter(
+     JsonUtil jsonUtil,
+     HttpResponseUtil httpResponseUtil,
+     DatabaseService databaseService,
+     RagfairController ragfairController,
+     RagfairOfferService ragfairOfferService,
+     ItemHelper itemHelper,
+     ISptLogger<EternalCycle> logger,
+     ICloner cloner,
+     EternalCycle vulcanCore,
+     LocaleService localeService,   // <- 从内部提取到这里的注入
+     ProfileHelper profileHelper    // <- 从内部提取到这里的注入
+    ) : StaticRouter(jsonUtil, [
 
-        public VulcanCoreAwakeRouter(
-            JsonUtil jsonUtil,
-            HttpResponseUtil httpResponseUtil,
-            DatabaseService databaseService,
-            RagfairController ragfairController,
-            RagfairOfferService ragfairOfferService,
-            ItemHelper itemHelper,
-            ISptLogger<EternalCycle> logger,
-            ICloner cloner,
-            EternalCycle vulcanCore)
-            : base(jsonUtil, GetCustomRoutes())
+        /* 这俩删了, 备份后面单独写
+    // 2. 直接在基类构造时传入路由数组，使用 Lambda 表达式内联逻辑
+    new RouteAction(
+        "/VulcanCoreClient/InitFix",
+        (_, _, _, _) => // 如果不需要用到 url, info, sessionId，用下划线丢弃
         {
-            _httpResponseUtil = httpResponseUtil;
-            _databaseService = databaseService;
-            _ragfairController = ragfairController;
-            _ragfairOfferService = ragfairOfferService;
-            _itemHelper = itemHelper;
-            _logger = logger;
-            _cloner = cloner;
-            _jsonUtil = jsonUtil;
-            _vulcanCore = vulcanCore;
-        }
-
-        private static List<RouteAction> GetCustomRoutes()
-        {
-            return new List<RouteAction>
-        {
-            new RouteAction(
-                "/VulcanCoreClient/InitFix",
-                async (url, info, sessionId, output) =>
-                    await HandleRoute(
-                        url,
-                        sessionId,
-                        _jsonUtil,
-                        _databaseService,
-                        _ragfairController,
-                        _ragfairOfferService,
-                        _itemHelper,
-                        _logger,
-                        _cloner,
-                        _vulcanCore
-                    )
-            ),
-            new RouteAction(
-                "/VulcanCoreClient/ClientStartCall",
-                async (url, info, sessionId, output) =>
-                    await HandleClientStart(
-                        url,
-                        sessionId,
-                        _jsonUtil,
-                        _databaseService,
-                        _ragfairController,
-                        _ragfairOfferService,
-                        _itemHelper,
-                        _logger,
-                        _cloner,
-                        _vulcanCore
-                    )
-            ),
-            new RouteAction(
-                "/VulcanCoreClient/CallBackup",
-                async (url, info, sessionId, output) =>
-                    await HandleBackupCall(
-                        url,
-                        sessionId,
-                        _jsonUtil,
-                        _databaseService,
-                        _ragfairController,
-                        _ragfairOfferService,
-                        _itemHelper,
-                        _logger,
-                        _cloner,
-                        _vulcanCore
-                    )
-            )
-        };
-        }
-        private static ValueTask<string> HandleRoute(
-            string url,
-            MongoId sessionId,
-            JsonUtil jsonUtil,
-            DatabaseService databaseService,
-            RagfairController ragfairController,
-            RagfairOfferService ragfairOfferService,
-            ItemHelper itemHelper,
-            ISptLogger<EternalCycle> logger,
-            ICloner cloner,
-            EternalCycle vulcanCore
-            )
-        {
-            var localeService = ServiceLocator.ServiceProvider.GetService<LocaleService>();
             if (!ItemUtils.firstlogin)
             {
-                //VulcanLog.Warn("正在修复物品数据....", logger);
-                // 构建返回的价格字典
-                //ItemUtils.FixItemCompatibleInit(ItemUtils.FixDict, databaseService, cloner);
-                //VulcanLog.Debug($"{LocaleUtils.GetItemName(VulcanUtil.ConvertHashID("为了全人类海报"), localeService)}", logger);
-                //VulcanLog.Access("物品数据修复完成", logger);
+                // VulcanLog.Warn("正在修复物品数据....", logger);
+                // ItemUtils.FixItemCompatibleInit(ItemUtils.FixDict, databaseService, cloner);
+                // VulcanLog.Debug($"{LocaleUtils.GetItemName(VulcanUtil.ConvertHashID("为了全人类海报"), localeService)}", logger);
+                // VulcanLog.Access("物品数据修复完成", logger);
                 ItemUtils.firstlogin = true;
             }
-            // 使用 HttpResponseUtil 返回标准格式 JSON
-            //string jsonResponse = _httpResponseUtil.GetBody(priceMap);
-            //绕过SPT提供的方法直接传递原始数据
-            return new ValueTask<string>("Response successful.");
+
+            return ValueTask.FromResult<object>("Response successful.");
         }
-        private static ValueTask<string> HandleClientStart(
-            string url,
-            MongoId sessionId,
-            JsonUtil jsonUtil,
-            DatabaseService databaseService,
-            RagfairController ragfairController,
-            RagfairOfferService ragfairOfferService,
-            ItemHelper itemHelper,
-            ISptLogger<EternalCycle> logger,
-            ICloner cloner,
-            EternalCycle vulcanCore
-            )
+    ),
+
+    new RouteAction(
+        "/VulcanCoreClient/ClientStartCall",
+        (_, _, _, _) =>
         {
-            var localeService = ServiceLocator.ServiceProvider.GetService<LocaleService>();
-            //VulcanLog.Warn("游戏启动", logger);
-            // 使用 HttpResponseUtil 返回标准格式 JSON
-            //string jsonResponse = _httpResponseUtil.GetBody(priceMap);
-            //绕过SPT提供的方法直接传递原始数据
-            return new ValueTask<string>("Response successful.");
+            //Console.WriteLine("游戏启动");
+            return ValueTask.FromResult<object>("Response successful.");
         }
-        private static ValueTask<string> HandleBackupCall(
-            string url,
-            MongoId sessionId,
-            JsonUtil jsonUtil,
-            DatabaseService databaseService,
-            RagfairController ragfairController,
-            RagfairOfferService ragfairOfferService,
-            ItemHelper itemHelper,
-            ISptLogger<EternalCycle> logger,
-            ICloner cloner,
-            EternalCycle vulcanCore
-            )
+    ),
+        */
+    new RouteAction(
+        "/VulcanCoreClient/CallBackup",
+        (_, _, sessionId, _) => // 这里需要用到 sessionId
         {
-            var localeService = ServiceLocator.ServiceProvider.GetService<LocaleService>();
-            var profileHelper = ServiceLocator.ServiceProvider.GetService<ProfileHelper>();
+            // 直接使用构造函数注入的 vulcanCore 和 profileHelper
             var backupPath = System.IO.Path.Combine(vulcanCore.modPath, "Backup");
             var currectProfile = profileHelper.GetFullProfile(sessionId);
             var profileToSave = jsonUtil.Serialize(currectProfile, true);
+
             var pmcName = currectProfile.CharacterData.PmcData.Info.Nickname;
             var currectPmcName = Utils.GetValidFolderName(pmcName);
+
             var timePath = DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss");
             var time = DateTime.Now.ToString("yyyy年MM月dd日HH时mm分ss秒");
             var currcetBackupPath = System.IO.Path.Combine(backupPath, timePath, currectPmcName);
+
             Directory.CreateDirectory(currcetBackupPath);
             var filePath = System.IO.Path.Combine(currcetBackupPath, $"{sessionId}.json");
             File.WriteAllText(filePath, profileToSave);
+
             var backupLog = $"当前存档已成功备份! 玩家名: {pmcName} 备份时间: {time} 保存路径: {filePath}";
             var backupMessage = $"{pmcName}的存档已成功备份到{filePath}";
-            //VulcanLog.Access(backupLog, logger);
-            // 使用 HttpResponseUtil 返回标准格式 JSON
-            //string jsonResponse = _httpResponseUtil.GetBody(priceMap);
-            //绕过SPT提供的方法直接传递原始数据
-            return new ValueTask<string>(backupMessage);
+            
+            // VulcanLog.Access(backupLog, logger);
+            
+            return ValueTask.FromResult<object>(backupMessage);
         }
+    ),
 
-    }
+        new RouteAction<SyncResourceRequest>(
+            "/eternalcycle/loadriglayout",
+            (_, info, sessionId, _) =>
+            {
+                var clientReq = info ?? new SyncResourceRequest();
+                var response = new SyncResourceResponse();
+
+                // 【只遍历 Bundle 字典】
+                foreach (var kvp in ResourceUtils.BundleHashes)
+                {
+                    var relativePath = kvp.Key;
+                    var serverHash = kvp.Value;
+
+                    response.ValidFiles.Add(relativePath);
+
+                    if (!clientReq.ClientHashes.TryGetValue(relativePath, out var clientHash) || clientHash != serverHash)
+                    {
+                        if (ResourceUtils.BundleBase64Data.TryGetValue(relativePath, out var base64Data))
+                        {
+                            response.FilesToUpdate.Add(relativePath, base64Data);
+                        }
+                    }
+                }
+
+                var jsonResponse = jsonUtil.Serialize(response);
+                return ValueTask.FromResult(jsonResponse);
+            }
+        )
+ ]);
 }
 
 

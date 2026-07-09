@@ -6,9 +6,9 @@ using SPTarkov.Server.Core.Services.Mod;
 using SPTarkov.Server.Core.Utils;
 using SPTarkov.Server.Core.Utils.Cloners;
 using System;
-using static EternalCycle.ContextManager;
+using static EternalCycleServer.ContextManager;
 
-namespace EternalCycle
+namespace EternalCycleServer
 {
     /// <summary>
     /// 事件管理器
@@ -55,6 +55,7 @@ namespace EternalCycle
             public static Action<LoadModContext> LoadScavCaseRecipeEvent;
             public static Action<LoadModContext> LoadCultCircleRecipeEvent;
             public static Action<LoadModContext> FixItemCompatibleEvent;
+            public static Action<LoadModContext> LoadResourceEvent;
             //tbc
         }
 
@@ -167,12 +168,16 @@ namespace EternalCycle
             InitRagfairEvent(DataLoadEvent.LoadHideoutCustomizationEvent, context);
         }
 
-
         public static void InitFixItemCompatibleEventEvent(LoadModContext context)
         {
             InitRagfairEvent(DataLoadEvent.FixItemCompatibleEvent, context);
         }
 
+        public static void InitLoadResourceEventEvent(LoadModContext context)
+        {
+            InitRagfairEvent(DataLoadEvent.LoadResourceEvent, context);
+        }
+        
         public static void InitRagfairEvent (Action<LoadModContext> targetEvent, LoadModContext context)
         {
             if (targetEvent == null) return;

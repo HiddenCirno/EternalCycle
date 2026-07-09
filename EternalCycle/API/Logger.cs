@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 
-namespace EternalCycle
+namespace EternalCycleServer
 {
     /// <summary>
     /// 定义日志级别

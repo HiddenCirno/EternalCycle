@@ -19,7 +19,7 @@ using Microsoft.Extensions.Logging;
 using SPTarkov.Server.Core.Servers;
 using SPTarkov.Server.Core.Models.Spt.Config;
 
-namespace EternalCycle;
+namespace EternalCycleServer;
 
 
 public class EnumUtils

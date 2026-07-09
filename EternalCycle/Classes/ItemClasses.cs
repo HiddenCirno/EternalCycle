@@ -10,10 +10,10 @@ using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common;
 using Microsoft.AspNetCore.Mvc.ViewFeatures.Buffers;
 using System.Text.Json.Serialization;
-using static EternalCycle.Utils;
+using static EternalCycleServer.Utils;
 using SPTarkov.Server.Core.Models.Enums;
 
-namespace EternalCycle;
+namespace EternalCycleServer;
 
 public class CustomItemTemplate
 {

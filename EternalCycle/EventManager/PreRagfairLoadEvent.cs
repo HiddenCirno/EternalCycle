@@ -4,7 +4,7 @@ using SPTarkov.Server.Core.Services;
 using SPTarkov.Server.Core.Services.Mod;
 using System;
 
-namespace EternalCycle
+namespace EternalCycleServer
 {
     public class PreRagfairLoadContext
     {

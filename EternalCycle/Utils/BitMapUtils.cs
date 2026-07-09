@@ -1,6 +1,6 @@
 using SPTarkov.Server.Core.Models.Enums;
 
-namespace EternalCycle
+namespace EternalCycleServer
 {
 
     /// <summary>

@@ -27,7 +27,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using Path = System.IO.Path;
 
-namespace EternalCycle
+namespace EternalCycleServer
 {
     /// <summary>
     /// 对本地化生成进行操作处理的工具类

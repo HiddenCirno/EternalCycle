@@ -4,9 +4,9 @@ using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Models.Spt.Config;
 using System.Reflection;
-using static EternalCycle.ContextManager;
+using static EternalCycleServer.ContextManager;
 
-namespace EternalCycle
+namespace EternalCycleServer
 {
     /// <summary>
     /// 对物品进行操作处理的工具类
