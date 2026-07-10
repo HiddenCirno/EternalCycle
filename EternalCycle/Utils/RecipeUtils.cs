@@ -1,5 +1,6 @@
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Hideout;
+using SPTarkov.Server.Core.Models.Spt.Config;
 using static EternalCycleServer.ContextManager;
 using Path = System.IO.Path;
 
@@ -197,7 +198,7 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册 Scav 配方时发生错误：指定的文件夹 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册 Scav宝箱 配方时发生错误：指定的文件夹 {path} 存在问题", ex);
                     }
                 };
             }
@@ -212,13 +213,13 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册 Scav 配方时发生错误：指定的文件 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册 Scav宝箱 配方时发生错误：指定的文件 {path} 存在问题", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"注册 Scav 配方时发生异常：找不到指定的文件或文件夹 {path}");
+                EventManager.EventLogger.Warn($"注册 Scav宝箱 配方时发生异常：找不到指定的文件或文件夹 {path}");
             }
         }
 
@@ -281,6 +282,90 @@ namespace EternalCycleServer
                     IsEncoded = false,
                     Type = "Item"
                 });
+            }
+            recipes.Add(recipe);
+        }
+
+        /// <summary>
+        /// 将自定义 邪教圈 配方注册到加载事件
+        /// </summary>
+        /// <param name="path">指定的存放 邪教圈 配方文件的路径</param>
+        public static void RegisterCultistCircleRecipe(string path)
+        {
+            if (Directory.Exists(path))
+            {
+                EventManager.DataLoadEvent.LoadCultistCircleRecipeEvent += (context) =>
+                {
+                    try
+                    {
+                        InitCultistCircleRecipeData(path, context);
+                    }
+                    catch (Exception ex)
+                    {
+                        EventManager.EventLogger.Error($"注册 邪教圈 配方时发生错误：指定的文件夹 {path} 存在问题", ex);
+                    }
+                };
+            }
+            else if (File.Exists(path))
+            {
+                EventManager.DataLoadEvent.LoadCultistCircleRecipeEvent += (context) =>
+                {
+                    try
+                    {
+                        var recipeData = context.JsonUtil.Deserialize<List<CustomCultistCircleRecipe>>(File.ReadAllText(path));
+                        InitCultistCircleRecipeData(recipeData, context);
+                    }
+                    catch (Exception ex)
+                    {
+                        EventManager.EventLogger.Error($"注册 邪教圈 配方时发生错误：指定的文件 {path} 存在问题", ex);
+                    }
+                };
+            }
+            else
+            {
+                EventManager.EventLogger.Warn($"注册 邪教圈 配方时发生异常：找不到指定的文件或文件夹 {path}");
+            }
+        }
+
+        public static void InitCultistCircleRecipeData(List<CustomCultistCircleRecipe> recipeData, ContextManager.LoadModContext context)
+        {
+            foreach (CustomCultistCircleRecipe customScavCaseRecipeData in recipeData)
+            {
+                InitCultistCircleRecipe(customScavCaseRecipeData, context);
+            }
+        }
+
+        public static void InitCultistCircleRecipeData(string folderpath, ContextManager.LoadModContext context)
+        {
+            List<string> files = Directory.GetFiles(folderpath).ToList();
+            if (files.Count > 0)
+            {
+                foreach (var file in files)
+                {
+                    string fileName = Path.GetFileName(file);
+                    var scavcase = context.ModHelper.GetJsonDataFromFile<CustomCultistCircleRecipe>(folderpath, fileName);
+                    InitCultistCircleRecipe(scavcase, context);
+                }
+            }
+        }
+
+        public static void InitCultistCircleRecipe(CustomCultistCircleRecipe recipeData, ContextManager.LoadModContext context)
+        {
+            var recipes = context.ConfigServer.GetConfig<HideoutConfig>().CultistCircle.DirectRewards;
+            var recipe = new DirectRewardSettings
+            {
+                RequiredItems = new List<MongoId>(),
+                Reward = new List<MongoId>(),
+                CraftTimeSeconds = recipeData.Time,
+                Repeatable = recipeData.Repeatable
+            };
+            foreach (var item in recipeData.Requirement)
+            {
+                recipe.RequiredItems.Add(item.ConvertHashID());
+            }
+            foreach (var item in recipeData.Rewards)
+            {
+                recipe.Reward.Add(item.ConvertHashID());
             }
             recipes.Add(recipe);
         }

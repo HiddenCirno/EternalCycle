@@ -71,7 +71,7 @@ namespace EternalCycleServer
             EventManager.InitLoadAchievementEvent(context);
             EventManager.InitLoadRecipeEvent(context);
             EventManager.InitLoadScavCaseRecipeEvent(context);
-            EventManager.InitLoadCultCircleRecipeEvent(context);
+            EventManager.InitLoadCultistCircleRecipeEvent(context);
             EventManager.InitLoadTraderAssortEvent(context);
             EventManager.InitLoadQuestDataEvent(context);
             EventManager.InitLoadQuestRewardEvent(context);

@@ -53,7 +53,7 @@ namespace EternalCycleServer
             public static Action<LoadModContext> LoadLockedRecipeEvent;
             public static Action<LoadModContext> LoadLockedTraderAssortEvent;
             public static Action<LoadModContext> LoadScavCaseRecipeEvent;
-            public static Action<LoadModContext> LoadCultCircleRecipeEvent;
+            public static Action<LoadModContext> LoadCultistCircleRecipeEvent;
             public static Action<LoadModContext> FixItemCompatibleEvent;
             public static Action<LoadModContext> LoadResourceEvent;
             //tbc
@@ -143,9 +143,9 @@ namespace EternalCycleServer
             InitRagfairEvent(DataLoadEvent.LoadScavCaseRecipeEvent, context);
         }
 
-        public static void InitLoadCultCircleRecipeEvent(LoadModContext context)
+        public static void InitLoadCultistCircleRecipeEvent(LoadModContext context)
         {
-            InitRagfairEvent(DataLoadEvent.LoadCultCircleRecipeEvent, context);
+            InitRagfairEvent(DataLoadEvent.LoadCultistCircleRecipeEvent, context);
         }
 
         public static void InitLoadPresetEvent(LoadModContext context)
