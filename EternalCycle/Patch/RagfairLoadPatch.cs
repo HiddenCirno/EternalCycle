@@ -72,6 +72,7 @@ namespace EternalCycleServer
             EventManager.InitLoadRecipeEvent(context);
             EventManager.InitLoadScavCaseRecipeEvent(context);
             EventManager.InitLoadCultistCircleRecipeEvent(context);
+            EventManager.InitLoadGiftCodeRecipeEvent(context);
             EventManager.InitLoadTraderAssortEvent(context);
             EventManager.InitLoadQuestDataEvent(context);
             EventManager.InitLoadQuestRewardEvent(context);
