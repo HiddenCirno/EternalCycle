@@ -272,11 +272,13 @@ public class EternalCycle(
         RecipeUtils.RegisterRecipe(System.IO.Path.Combine(modPath, "recipe.json"));
         RecipeUtils.RegisterScavCaseRecipe(System.IO.Path.Combine(modPath, "scavcase.json"));
         PresetUtils.RegisterPreset(System.IO.Path.Combine(modPath, "preset.json"));
-        CustomizationUtils.RegisterCustomization(System.IO.Path.Combine(modPath, "custom.json"));
+        CustomizationUtils.RegisterCustomization(modPath, "custom.json", "deco/");
         SuitUtils.RegisterSuit(System.IO.Path.Combine(modPath, "suits.json"));
         LocaleUtils.RegisterQuestLocale(System.IO.Path.Combine(modPath, "quest/"), "<color=#8FFF00>永恒时序-调试任务加载</color>", "<color=#FFFF80>永恒时序</color>");
         ItemUtils.InitDrawPool(modHelper.GetJsonDataFromFile<Dictionary<string, DrawPoolClass>>(modPath, "newdrawpool.json"));
         ResourceUtils.RegisterRigLayoutResource(modPath, "clientres/");
+        ResourceUtils.RegisterSlotIconResource(modPath, "sloticon/");
+        CustomizationUtils.RegisterHideoutCustomization(System.IO.Path.Combine(modPath, "hideoutcustom.json"));
         //ItemUtils.InitItem(System.IO.Path.Combine(modPath, "items/"), "<color=#8FFF00>永恒时序-物品加载器</color>", "<color=#FFFF80>永恒时序</color>", databaseService, jsonutil, configServer, cloner);
         return Task.CompletedTask;
     }
@@ -542,7 +544,6 @@ public class EternalCycle(
                 var clientReq = info ?? new SyncResourceRequest();
                 var response = new SyncResourceResponse();
 
-                // 【只遍历 Bundle 字典】
                 foreach (var kvp in ResourceUtils.BundleHashes)
                 {
                     var relativePath = kvp.Key;
@@ -561,6 +562,100 @@ public class EternalCycle(
 
                 var jsonResponse = jsonUtil.Serialize(response);
                 return ValueTask.FromResult(jsonResponse);
+            }
+        ),
+
+        new RouteAction<SyncResourceRequest>(
+            "/eternalcycle/loadsloticon",
+            (_, info, sessionId, _) =>
+            {
+                var clientReq = info ?? new SyncResourceRequest();
+                var response = new SyncResourceResponse();
+
+                foreach (var kvp in ResourceUtils.SlotIconHashes)
+                {
+                    var relativePath = kvp.Key;
+                    var serverHash = kvp.Value;
+
+                    response.ValidFiles.Add(relativePath);
+
+                    if (!clientReq.ClientHashes.TryGetValue(relativePath, out var clientHash) || clientHash != serverHash)
+                    {
+                        if (ResourceUtils.SlotIconBase64Data.TryGetValue(relativePath, out var base64Data))
+                        {
+                            response.FilesToUpdate.Add(relativePath, base64Data);
+                        }
+                    }
+                }
+
+                var jsonResponse = jsonUtil.Serialize(response);
+                return ValueTask.FromResult(jsonResponse);
+            }
+        ),
+
+        new RouteAction<SyncResourceRequest>(
+            "/eternalcycle/loaddecoicon",
+            (_, info, sessionId, _) =>
+            {
+                var clientReq = info ?? new SyncResourceRequest();
+                var response = new SyncResourceResponse();
+
+                foreach (var kvp in ResourceUtils.DecoIconHashes)
+                {
+                    var relativePath = kvp.Key;
+                    var serverHash = kvp.Value;
+
+                    response.ValidFiles.Add(relativePath);
+
+                    if (!clientReq.ClientHashes.TryGetValue(relativePath, out var clientHash) || clientHash != serverHash)
+                    {
+                        if (ResourceUtils.DecoIconBase64Data.TryGetValue(relativePath, out var base64Data))
+                        {
+                            response.FilesToUpdate.Add(relativePath, base64Data);
+                        }
+                    }
+                }
+
+                var jsonResponse = jsonUtil.Serialize(response);
+                return ValueTask.FromResult(jsonResponse);
+            }
+        ),
+
+        new RouteAction<SyncResourceRequest>(
+            "/eternalcycle/loadtarget",
+            (_, info, sessionId, _) =>
+            {
+                var clientReq = info ?? new SyncResourceRequest();
+                var response = new SyncResourceResponse();
+
+                foreach (var kvp in ResourceUtils.TargetHashes)
+                {
+                    var relativePath = kvp.Key;
+                    var serverHash = kvp.Value;
+
+                    response.ValidFiles.Add(relativePath);
+
+                    if (!clientReq.ClientHashes.TryGetValue(relativePath, out var clientHash) || clientHash != serverHash)
+                    {
+                        if (ResourceUtils.TargetBase64Data.TryGetValue(relativePath, out var base64Data))
+                        {
+                            response.FilesToUpdate.Add(relativePath, base64Data);
+                        }
+                    }
+                }
+
+                var jsonResponse = jsonUtil.Serialize(response);
+                return ValueTask.FromResult(jsonResponse);
+            }
+        ),
+
+        new RouteAction(
+            "/eternalcycle/loadvoice",
+            (_, _, _, _) =>
+            {
+
+                var jsonResponse = jsonUtil.Serialize(new VoiceResourceRequest{ VoicePath = ResourceUtils.VoicePath});
+                return ValueTask.FromResult<object>(jsonResponse);
             }
         )
  ]);

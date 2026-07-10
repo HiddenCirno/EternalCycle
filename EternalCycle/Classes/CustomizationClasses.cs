@@ -36,22 +36,37 @@ public class CustomCustomizationProperties : CustomizationProperties
     [JsonPropertyName("Body")]
     [JsonConverter(typeof(MongoIdConverter))]
     public override MongoId? Body { get; set; }
+
     [JsonPropertyName("Feet")]
     [JsonConverter(typeof(MongoIdConverter))]
     public override MongoId? Feet { get; set; }
+
     [JsonPropertyName("Hands")]
     [JsonConverter(typeof(MongoIdConverter))]
     public override MongoId? Hands { get; set; }
+
     [JsonPropertyName("BearTemplateId")]
     [JsonConverter(typeof(MongoIdConverter))]
     public override MongoId? BearTemplateId { get; set; }
+
     [JsonPropertyName("UsecTemplateId")]
     [JsonConverter(typeof(MongoIdConverter))]
     public override MongoId? UsecTemplateId { get; set; }
+
     [JsonPropertyName("HideGarbage")]
     public override bool? HideGarbage { get; set; }
+
     [JsonPropertyName("IsVoice")]
-    public bool IsVoice { get; set; }
+    public bool? IsVoice { get; set; }
+
+    [JsonPropertyName("VoicePath")]
+    public string? VoicePath { get; set; }
+
+    [JsonPropertyName("IsDeco")]
+    public bool? IsDeco { get; set; }
+
+    [JsonPropertyName("IsTarget")]
+    public bool? IsTarget { get; set; }
 }
 public class CustomHideoutCustomization
 {

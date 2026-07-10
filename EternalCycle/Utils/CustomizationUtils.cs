@@ -1,76 +1,45 @@
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.Extensions.Logging;
-using SPTarkov.DI.Annotations;
-using SPTarkov.Server.Core.DI;
-using SPTarkov.Server.Core.Helpers;
-using SPTarkov.Server.Core.Models.Common;
-using SPTarkov.Server.Core.Models.Eft.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Eft.Hideout;
-using SPTarkov.Server.Core.Models.Eft.Inventory;
-using SPTarkov.Server.Core.Models.Enums;
-using SPTarkov.Server.Core.Models.Logging;
-using SPTarkov.Server.Core.Models.Spt.Config;
-using SPTarkov.Server.Core.Models.Spt.Mod;
-using SPTarkov.Server.Core.Models.Spt.Templates;
-using SPTarkov.Server.Core.Models.Utils;
-using SPTarkov.Server.Core.Routers;
-using SPTarkov.Server.Core.Servers;
-using SPTarkov.Server.Core.Services;
-using SPTarkov.Server.Core.Services.Mod;
-using SPTarkov.Server.Core.Utils;
-using SPTarkov.Server.Core.Utils.Cloners;
-using SPTarkov.Server.Core.Utils.Json;
-using SPTarkov.Server.Core.Utils.Logger;
-using System.IO;
-using System.Reflection;
-using System.Text.Json;
-using System.Collections.Generic;
-using System.Linq;
 using static EternalCycleServer.ContextManager;
 using Path = System.IO.Path;
-using System;
 
 namespace EternalCycleServer
 {
     public class CustomizationUtils
     {
-        // ==========================================
-        // 1. 人物自定义外观/语音 (Customization) 注册与处理
-        // ==========================================
-
         /// <summary>
         /// 将人物自定义外观(Customization)注册到加载事件
         /// </summary>
-        public static void RegisterCustomization(string path)
+        public static void RegisterCustomization(string modpath, string path, string respath)
         {
-            if (Directory.Exists(path))
+            var correctPath = Path.Combine(modpath, path);
+            if (Directory.Exists(correctPath))
             {
                 // 注意：事件名根据你的实际框架调整 (例如 LoadCustomizationEvent)
                 EventManager.DataLoadEvent.LoadCustomizationEvent += (context) =>
                 {
                     try
                     {
-                        InitCustomizationData(path, context);
+                        InitCustomizationData(modpath, path, respath, context);
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册自定义外观时发生错误：指定的文件夹 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册自定义外观时发生错误：指定的文件夹 {correctPath} 存在问题", ex);
                     }
                 };
             }
-            else if (File.Exists(path))
+            else if (File.Exists(correctPath))
             {
                 EventManager.DataLoadEvent.LoadCustomizationEvent += (context) =>
                 {
                     try
                     {
-                        var customization = context.JsonUtil.Deserialize<Dictionary<string, CustomCustomizationItem>>(File.ReadAllText(path));
-                        InitCustomizationData(customization, context);
+                        var customization = context.JsonUtil.Deserialize<Dictionary<string, CustomCustomizationItem>>(File.ReadAllText(correctPath));
+                        InitCustomizationData(customization, modpath, respath, context);
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册自定义外观时发生错误：指定的文件 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册自定义外观时发生错误：指定的文件 {correctPath} 存在问题", ex);
                     }
                 };
             }
@@ -80,37 +49,38 @@ namespace EternalCycleServer
             }
         }
 
-        public static void InitCustomizationData(string folderpath, LoadModContext context)
+        public static void InitCustomizationData(string modpath, string folderpath, string respath, LoadModContext context)
         {
-            if (!Directory.Exists(folderpath)) return;
+            var correctpath = Path.Combine(modpath, folderpath);
+            if (!Directory.Exists(correctpath)) return;
 
-            List<string> files = Directory.GetFiles(folderpath).ToList();
+            List<string> files = Directory.GetFiles(correctpath).ToList();
             if (files.Count > 0)
             {
                 foreach (var file in files)
                 {
                     string fileName = Path.GetFileName(file);
-                    var customization = context.ModHelper.GetJsonDataFromFile<Dictionary<string, CustomCustomizationItem>>(folderpath, fileName);
+                    var customization = context.ModHelper.GetJsonDataFromFile<Dictionary<string, CustomCustomizationItem>>(correctpath, fileName);
 
                     if (customization != null)
                     {
-                        InitCustomizationData(customization, context);
+                        InitCustomizationData(customization, modpath, respath, context);
                     }
                 }
             }
         }
 
-        public static void InitCustomizationData(Dictionary<string, CustomCustomizationItem> customData, LoadModContext context)
+        public static void InitCustomizationData(Dictionary<string, CustomCustomizationItem> customData, string modpath, string respath, LoadModContext context)
         {
             if (customData == null || customData.Count == 0) return;
 
             foreach (var item in customData)
             {
-                InitCustomization(item.Value, context);
+                InitCustomization(item.Value, modpath, respath, context);
             }
         }
 
-        public static void InitCustomization(CustomCustomizationItem customCustomizationItem, LoadModContext context)
+        public static void InitCustomization(CustomCustomizationItem customCustomizationItem, string modpath, string respath, LoadModContext context)
         {
             var zhCNLang = context.DB.GetLocales().Global["ch"];
             var customs = context.DB.GetCustomization();
@@ -135,6 +105,21 @@ namespace EternalCycleServer
                     Source = CustomisationSource.DEFAULT,
                     Type = CustomisationType.VOICE
                 });
+                if (customCustomizationItem.Properties.VoicePath != null)
+                {
+                    ResourceUtils.VoicePath.TryAdd(customCustomizationItem.Properties.Prefab.ToString(), customCustomizationItem.Properties.VoicePath);
+                }
+            }
+
+            if (customCustomizationItem.Properties.IsDeco==true)
+            {
+                ResourceUtils.RegisterDecoIconResource(modpath, Path.Combine(respath, $"{customCustomizationItem.Name}.png"));
+            }
+
+            if(customCustomizationItem.Properties.IsTarget == true)
+            {
+                ResourceUtils.RegisterTargetResource(modpath, Path.Combine(respath, $"{customCustomizationItem.Properties.AssetPath.Rcid}.png"));
+                ResourceUtils.RegisterDecoIconResource(modpath, Path.Combine(respath, $"{customCustomizationItem.Name}.png"));
             }
 
             zhCNLang.AddTransformer(lang =>
