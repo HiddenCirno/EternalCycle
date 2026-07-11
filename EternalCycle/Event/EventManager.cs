@@ -5,6 +5,8 @@ using SPTarkov.Server.Core.Services;
 using SPTarkov.Server.Core.Services.Mod;
 using SPTarkov.Server.Core.Utils;
 using SPTarkov.Server.Core.Utils.Cloners;
+using SPTarkov.Server.Core.Models.Eft.Common.Tables;
+using SPTarkov.Server.Core.Models.Spt.Bots;
 using System;
 using static EternalCycleServer.ContextManager;
 
@@ -30,6 +32,9 @@ namespace EternalCycleServer
         //由于版本问题这两个暂时用不到
         public static Action<LoadModContext> OnBeforeServerStartedEvent;
         public static Action<LoadModContext> OnAfterServerStartedEvent;
+
+        public static Action<BotBase, BotType, BotGenerationDetails, LoadModContext> OnPreBotGenerateEvent;
+        public static Action<BotBase, BotType, BotGenerationDetails, LoadModContext> OnPostBotGenerateEvent;
         //以下为集合事件
         /// <summary>
         /// Mod数据加载事件
@@ -195,7 +200,7 @@ namespace EternalCycleServer
         {
             InitRagfairEvent(DataLoadEvent.LoadResourceEvent, context);
         }
-        
+
         public static void InitRagfairEvent (Action<LoadModContext> targetEvent, LoadModContext context)
         {
             if (targetEvent == null) return;

@@ -17,6 +17,7 @@ using SPTarkov.Server.Core.Models.Eft.ItemEvent;
 using SPTarkov.Server.Core.Models.Eft.Ragfair;
 using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Models.Logging;
+using SPTarkov.Server.Core.Models.Spt.Bots;
 using SPTarkov.Server.Core.Models.Spt.Mod;
 using SPTarkov.Server.Core.Models.Utils;
 using SPTarkov.Server.Core.Routers;
@@ -259,9 +260,14 @@ public class EternalCycle(
         {
             prlc.Logger.Error("Mod加载完成后");
         }
+        void testmethod4(BotBase bot, BotType botJsonTemplate, BotGenerationDetails botGenerationDetails, LoadModContext prlc)
+        {
+            prlc.Logger.Error("Test");
+        }
         EventManager.OnBeforeRagfairLoadedEvent += testmethod;
         EventManager.OnAfterRagfairLoadedEvent += testmethod2;
         EventManager.OnAfterModLoadedEvent += testmethod3;
+        EventManager.OnPreBotGenerateEvent += testmethod4;
         ItemUtils.RegisterItem(System.IO.Path.Combine(modPath, "items_normal.json"), "<color=#8FFF00>永恒时序-调试物品加载</color>", "<color=#FFFF80>永恒时序</color>");
         ItemUtils.RegisterItem(System.IO.Path.Combine(modPath, "gunfight.json"), "<color=#8FFF00>永恒时序-物品加载器</color>", "<color=#FFFF80>枪械武术</color>");
         QuestUtils.RegisterQuest(System.IO.Path.Combine(modPath, "init.json"), System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
