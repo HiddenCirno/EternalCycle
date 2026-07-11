@@ -39,7 +39,7 @@ using static EternalCycleServer.ContextManager;
 namespace EternalCycleServer;
 public record ModMetadata : AbstractModMetadata
 {
-    public override string ModGuid { get; init; } = "projectspark.hiddenhiragi.eternalcycle";
+    public override string ModGuid { get; init; } = "projectspark.hiddenhiragi.eternalcycleserver";
     public override string Name { get; init; } = "永恒时序";
     public override string Author { get; init; } = "HiddenHiragi";
     public override List<string>? Contributors { get; init; }
@@ -265,10 +265,11 @@ public class EternalCycle(
         {
             prlc.Logger.Error("Test");
         }
-        //EventManager.OnBeforeRagfairLoadedEvent += testmethod;
+        EventManager.OnBeforeRagfairLoadedEvent += testmethod;
         //EventManager.OnAfterRagfairLoadedEvent += testmethod2;
         //EventManager.OnAfterModLoadedEvent += testmethod3;
         //EventManager.OnPreBotGenerateEvent += testmethod4;
+        /*
         ItemUtils.RegisterItem(modPath, "items_normal.json", "<color=#8FFF00>永恒时序-调试物品加载</color>", "<color=#FFFF80>永恒时序</color>");
         ItemUtils.RegisterItem(modPath, "gunfight.json", "<color=#8FFF00>永恒时序-物品加载器</color>", "<color=#FFFF80>枪械武术</color>");
         QuestUtils.RegisterQuest(modPath, "init.json", "res/questimage/");
@@ -292,6 +293,7 @@ public class EternalCycle(
         ItemTagUtils.RegisterItemTag(modPath, "itemtag.json");
         BotGeneratorUtils.RegisterAlterBotData(modPath, "sanitar.json");
         BotGeneratorUtils.RegisterAlterBotData(modPath, "gluhar.json");
+        */
 
         //ItemUtils.InitItem(System.IO.Path.Combine(modPath, "items/"), "<color=#8FFF00>永恒时序-物品加载器</color>", "<color=#FFFF80>永恒时序</color>", databaseService, jsonutil, configServer, cloner);
         return Task.CompletedTask;

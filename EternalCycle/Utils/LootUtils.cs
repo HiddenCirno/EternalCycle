@@ -32,25 +32,42 @@ namespace EternalCycleServer
         {
             if (template.CustomProps is not LootableItemProps lootableItemProps || !lootableItemProps.CanFindInRaid) return template;
             if (lootableItemProps.StaticLoot == false) return template;
-            MongoId targetid = (lootableItemProps.UseCustomData == true && lootableItemProps.StaticLoot == true)
-             ? lootableItemProps.CustomStaticLootTarget
-             : template.TargetId;
             MongoId addedid = template.Id.ConvertHashID();
             float relative = (lootableItemProps.UseCustomData == true && lootableItemProps.StaticLoot == true)
              ? lootableItemProps.StaticLootDivisor
              : 2f;
-            //默认生成或仅在StaticLoot为true时生成
+            if (lootableItemProps.CustomStaticLootTarget == null)
+            {
+                AddStaticLoot(addedid, template.TargetId, context, relative);
+            }
+            else
+            {
+                if (lootableItemProps.CustomStaticLootTarget.IsList)
+                {
+                    foreach(var item in lootableItemProps.CustomStaticLootTarget.List)
+                    {
+                        AddStaticLoot(addedid, item, context, relative);
+                    }
+                }
+                else
+                {
+                    AddStaticLoot(addedid, lootableItemProps.CustomStaticLootTarget.Item, context, relative);
+                }
+            }
+            return template;
+        }
+
+        public static void AddStaticLoot(MongoId itemid, MongoId targetid, LoadModContext context, float relative)
+        {
             foreach (var location in GetValidLocations(context))
             {
                 if (location.StaticLoot == null) continue;
-                //VulcanLog.Debug($"初始化战利品生成流程", logger);
-                //VulcanLog.Debug($"尝试生成战利品: {lootableItemProps.Name}", logger);
                 location.StaticLoot.AddTransformer(staticlootDict =>
                 {
                     foreach (var loot in staticlootDict.Values)
                     {
                         //防止重复战利品
-                        if (loot.ItemDistribution.Any(d => d.Tpl == addedid)) continue;
+                        if (loot.ItemDistribution.Any(d => d.Tpl == itemid)) continue;
                         //判断目标
                         var loottarget = loot.ItemDistribution.FirstOrDefault(l => l.Tpl == targetid);
                         if (loottarget != null)
@@ -58,7 +75,7 @@ namespace EternalCycleServer
                             //用工具类避免GC问题
                             loot.ItemDistribution = Utils.AddToArray(loot.ItemDistribution.ToArray(), new ItemDistribution
                             {
-                                Tpl = addedid,
+                                Tpl = itemid,
                                 RelativeProbability = loottarget.RelativeProbability / relative
                             });
                         }
@@ -66,7 +83,6 @@ namespace EternalCycleServer
                     return staticlootDict;
                 });
             }
-            return template;
         }
 
         /// <summary>
@@ -80,14 +96,33 @@ namespace EternalCycleServer
             if (template.CustomProps is not LootableItemProps lootableItemProps || !lootableItemProps.CanFindInRaid) return template;
             if (lootableItemProps.MapLoot == false) return template;
 
-            MongoId targetid = (lootableItemProps.UseCustomData == true && lootableItemProps.MapLoot == true)
-                ? lootableItemProps.CustomMapLootTarget
-                : template.TargetId;
-
             MongoId addedid = template.Id.ConvertHashID();
             float relative = (lootableItemProps.UseCustomData == true && lootableItemProps.MapLoot == true)
                 ? lootableItemProps.MapLootDivisor
                 : 4f;
+            if(lootableItemProps.CustomMapLootTarget == null)
+            {
+                AddLooseLoot(addedid, template.TargetId, context, relative);
+            }
+            else
+            {
+                if (lootableItemProps.CustomMapLootTarget.IsList)
+                {
+                    foreach (var item in lootableItemProps.CustomMapLootTarget.List)
+                    {
+                        AddLooseLoot(addedid, item, context, relative);
+                    }
+                }
+                else
+                {
+                    AddLooseLoot(addedid, lootableItemProps.CustomMapLootTarget.Item, context, relative);
+                }
+            }
+            return template;
+        }
+
+        public static void AddLooseLoot(MongoId itemid, MongoId targetid, LoadModContext context, float relative)
+        {
             foreach (var location in GetValidLocations(context))
             {
                 //忘了防御....
@@ -98,12 +133,12 @@ namespace EternalCycleServer
                     {
                         if (spawnpoint.Template?.Items == null || spawnpoint.ItemDistribution == null) continue;
                         //重复检查
-                        if (spawnpoint.Template.Items.Any(i => i.Template == addedid)) continue;
+                        if (spawnpoint.Template.Items.Any(i => i.Template == itemid)) continue;
 
                         var loottarget = spawnpoint.Template.Items.FirstOrDefault(i => i.Template == targetid);
                         if (loottarget != null)
                         {
-                            var targetkey = $"{addedid}_{loottarget.Id}";
+                            var targetkey = $"{itemid}_{loottarget.Id}";
                             var lootid = targetkey.ConvertHashID();
 
                             var disttarget = spawnpoint.ItemDistribution.FirstOrDefault(i => i.ComposedKey.Key == loottarget.ComposedKey);
@@ -114,7 +149,7 @@ namespace EternalCycleServer
                                 {
                                     ComposedKey = targetkey,
                                     Id = lootid,
-                                    Template = addedid
+                                    Template = itemid
                                 });
                                 spawnpoint.ItemDistribution = Utils.AddToArray(spawnpoint.ItemDistribution.ToArray(), new LooseLootItemDistribution
                                 {
@@ -127,7 +162,6 @@ namespace EternalCycleServer
                     return looseloot;
                 });
             }
-            return template;
         }
 
         /// <summary>

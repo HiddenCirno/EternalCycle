@@ -1435,7 +1435,7 @@ namespace EternalCycleServer
                     QuestId = questid,
                     QuestStatus = quest.Value.PreQuestState,
                     AvailableAfterTime = quest.Value.AvailableAfterTime,
-                    AvailableAfterTimeRandomExtra = quest.Value.AvailableAfterTimeRandomExtra
+                    AvailableAfterTimeRandomExtra = quest.Value.AvailableAfterTimeRandomExtra - quest.Value.AvailableAfterTime
                 },
                 context);
             }

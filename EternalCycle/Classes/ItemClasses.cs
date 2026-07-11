@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures.Buffers;
 using System.Text.Json.Serialization;
 using static EternalCycleServer.Utils;
 using SPTarkov.Server.Core.Models.Enums;
+using SPTarkov.Server.Core.Utils.Json;
 
 namespace EternalCycleServer
 {
@@ -155,13 +156,13 @@ namespace EternalCycleServer
         [JsonPropertyName("MapLoot")]
         public bool? MapLoot { get; set; }
         [JsonPropertyName("CustomMapLootTarget")]
-        public string CustomMapLootTarget { get; set; }
+        public ListOrT<string> CustomMapLootTarget { get; set; }
         [JsonPropertyName("MapLootDivisor")]
         public int MapLootDivisor { get; set; }
         [JsonPropertyName("StaticLoot")]
         public bool? StaticLoot { get; set; }
         [JsonPropertyName("CustomStaticLootTarget")]
-        public string CustomStaticLootTarget { get; set; }
+        public ListOrT<string> CustomStaticLootTarget { get; set; }
         [JsonPropertyName("StaticLootDivisor")]
         public int StaticLootDivisor { get; set; }
     }

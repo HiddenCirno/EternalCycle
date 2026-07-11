@@ -41,10 +41,14 @@ namespace EternalCycleServer
         /// </summary>
         public static class DataLoadEvent
         {
+            
+            public static Action<LoadModContext> PreDataLoadEvent;
+            public static Action<LoadModContext> PostDataLoadEvent;
             public static Action<LoadModContext> LoadItemEvent;
             public static Action<LoadModContext> LoadQuestEvent;
             public static Action<LoadModContext> LoadQuestLocaleEvent;
-            public static Action<LoadModContext> LoadQuestLogicEvent;
+            public static Action<LoadModContext> LoadLocaleEvent;
+            public static Action<LoadModContext> LoadQuestLogicEvent; 
             public static Action<LoadModContext> LoadQuestDataEvent;
             public static Action<LoadModContext> LoadQuestRewardEvent;
             public static Action<LoadModContext> LoadTraderBaseEvent;
@@ -88,11 +92,21 @@ namespace EternalCycleServer
             InitRagfairEvent(OnAfterModLoadedEvent, context);
         }
 
+        public static void InitPreDataLoadEvent(LoadModContext context)
+        {
+            InitRagfairEvent(DataLoadEvent.PreDataLoadEvent, context);
+        }
+
+        public static void InitPostDataLoadEvent(LoadModContext context)
+        {
+            InitRagfairEvent(DataLoadEvent.PostDataLoadEvent, context);
+        }
+
         public static void InitLoadItemEvent(LoadModContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadItemEvent, context);
         }
-
+        
         public static void InitLoadQuestEvent(LoadModContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadQuestEvent, context);
@@ -101,6 +115,11 @@ namespace EternalCycleServer
         {
             InitRagfairEvent(DataLoadEvent.LoadQuestLocaleEvent, context);
         }
+        public static void InitLoadQuestLogicEvent(LoadModContext context)
+        {
+            InitRagfairEvent(DataLoadEvent.LoadQuestLogicEvent, context);
+        }
+
 
         public static void InitLoadQuestDataEvent(LoadModContext context)
         {
@@ -112,11 +131,11 @@ namespace EternalCycleServer
             InitRagfairEvent(DataLoadEvent.LoadQuestRewardEvent, context);
         }
 
-        public static void InitLoadQuestLogicEvent(LoadModContext context)
+        public static void InitLoadLocaleEvent(LoadModContext context)
         {
-            InitRagfairEvent(DataLoadEvent.LoadQuestLogicEvent, context);
+            InitRagfairEvent(DataLoadEvent.LoadLocaleEvent, context);
         }
-
+        
         public static void InitLoadTraderBaseEvent(LoadModContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadTraderBaseEvent, context);

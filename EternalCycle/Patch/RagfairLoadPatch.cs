@@ -36,7 +36,6 @@ namespace EternalCycleServer
 {
     public class RagfairLoadPatch : AbstractPatch
     {
-        public static bool firststart = false;
         protected override MethodBase GetTargetMethod()
         {
             return typeof(RagfairServer).GetMethod("Load", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
@@ -65,6 +64,8 @@ namespace EternalCycleServer
                 Cloner = cloner
             };
 
+            EventManager.InitPreDataLoadEvent(context);
+
             EventManager.InitLoadItemEvent(context);
             EventManager.InitLoadTraderBaseEvent(context);
             EventManager.InitLoadQuestEvent(context);
@@ -83,11 +84,14 @@ namespace EternalCycleServer
             EventManager.InitLoadLockedRecipeEvent(context);
             EventManager.InitLoadQuestLogicEvent(context);
             EventManager.InitLoadQuestLocaleEvent(context);
+            EventManager.InitLoadLocaleEvent(context);
             EventManager.InitLoadPresetEvent(context);
             EventManager.InitLoadCustomizationEvent(context);
             EventManager.InitLoadSuitEvent(context);
             EventManager.InitLoadHideoutCustomizationEvent(context);
             EventManager.InitLoadResourceEventEvent(context);
+
+            EventManager.InitPostDataLoadEvent(context);
 
             //µ÷ÊÔ´úÂë
             var items = databaseService.GetItems();

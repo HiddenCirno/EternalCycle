@@ -261,10 +261,10 @@ namespace EternalCycleServer
         [JsonPropertyName("status")]
         public int QuestStatus { get; set; }
 
-        [JsonPropertyName("cdtime")]
+        [JsonPropertyName("cdtimemin")]
         public int? AvailableAfterTime { get; set; }
 
-        [JsonPropertyName("extracdtime")]
+        [JsonPropertyName("cdtimemax")]
         public int? AvailableAfterTimeRandomExtra { get; set; }
     }
     public class CustomizationBlockData : CustomQuestData

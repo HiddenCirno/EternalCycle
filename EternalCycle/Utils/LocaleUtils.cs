@@ -258,6 +258,61 @@ namespace EternalCycleServer
                 });
             }
         }
+
+        /// <summary>
+        /// 将自定义全局本地化文本注册到加载事件
+        /// </summary>
+        /// <param name="modpath">Mod根目录路径</param>
+        /// <param name="path">存放本地化文件的文件夹路径，或单个多语言文件的路径</param>
+        public static void RegisterLocaleText(string modpath, string path)
+        {
+            var correctpath = System.IO.Path.Combine(modpath, path);
+
+            // 文件夹加载模式 (例如文件夹里是 ch.json, en.json...)
+            if (Directory.Exists(correctpath))
+            {
+                // 注意：挂载的事件请根据你的实际情况调整（例如 LoadLocaleEvent 或统合在 LoadTextEvent 中）
+                EventManager.DataLoadEvent.LoadLocaleEvent += (context) =>
+                {
+                    try
+                    {
+                        // 直接调用你已经写好的重载 2：处理文件夹路径
+                        InitLocaleText(correctpath, context.DB, context.ModHelper);
+                    }
+                    catch (Exception ex)
+                    {
+                        EventManager.EventLogger.Error($"注册本地化文本时发生错误：指定的文件夹 {correctpath} 存在问题", ex);
+                    }
+                };
+            }
+            // 单文件加载模式 (例如单个 jsonc 文件里包含了所有语言的数据)
+            else if (File.Exists(correctpath))
+            {
+                EventManager.DataLoadEvent.LoadLocaleEvent += (context) =>
+                {
+                    try
+                    {
+                        // 解析为: Dictionary<语言Key, Dictionary<文本Key, 文本Value>>
+                        var customLocaleData = context.JsonUtil.Deserialize<Dictionary<string, Dictionary<string, string>>>(File.ReadAllText(correctpath));
+
+                        if (customLocaleData != null)
+                        {
+                            // 直接调用你已经写好的重载 1：处理反序列化好的多语言字典
+                            InitLocaleText(customLocaleData, context.DB);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        EventManager.EventLogger.Error($"注册本地化文本时发生错误：指定的文件 {correctpath} 存在问题", ex);
+                    }
+                };
+            }
+            else
+            {
+                EventManager.EventLogger.Warn($"注册本地化文本时发生异常：找不到指定的文件或文件夹 {correctpath}");
+            }
+        }
+
         public static void InitLocaleText(Dictionary<string, Dictionary<string, string>> locales, DatabaseService databaseService)
         {
             foreach (var languageEntry in locales)
@@ -281,6 +336,7 @@ namespace EternalCycleServer
                 });
             }
         }
+
         public static void InitLocaleText(string folderpath, DatabaseService databaseService, ModHelper modHelper)
         {
             List<string> files = Directory.GetFiles(folderpath).ToList();
@@ -306,6 +362,7 @@ namespace EternalCycleServer
                 }
             }
         }
+
         public static string GetItemName(MongoId itemid, LocaleService localeService)
         {
             var lang = localeService.GetLocaleDb("ch");
