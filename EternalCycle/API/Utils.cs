@@ -113,11 +113,15 @@ namespace EternalCycleServer
         public static string GenerateHash(this string input)
         {
             if (string.IsNullOrEmpty(input)) return string.Empty;
-            string hashHex = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(input))).ToLower();
-            //使用范围运算符截取24位
-            string result = hashHex[..24];
-            //投入映射表
+
+            using SHA1 sha1 = SHA1.Create();
+
+            byte[] hash = sha1.ComputeHash(Encoding.UTF8.GetBytes(input));
+            string result = Convert.ToHexString(hash).ToLowerInvariant()[..24];
+
+            // 投入映射表
             hashIdList.TryAdd(input, result);
+
             return result;
         }
 

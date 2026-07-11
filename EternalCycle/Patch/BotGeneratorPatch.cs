@@ -14,6 +14,7 @@ using HarmonyLib;
 using SPTarkov.Server.Core.Models.Eft.Bot;
 using SPTarkov.Server.Core.Models.Spt.Config;
 using System.Text;
+using SPTarkov.Server.Core.Utils.Cloners;
 
 namespace EternalCycleServer
 {
@@ -35,18 +36,21 @@ namespace EternalCycleServer
                 Counter = 0,
                 Access = false
             };
+
             public static AlterBossCounter GluharCocunter = new AlterBossCounter
             {
                 Chance = 0,
                 Counter = 0,
                 Access = false
             };
+
             public static AlterBossCounter KolontayCocunter = new AlterBossCounter
             {
                 Chance = 0,
                 Counter = 0,
                 Access = false
             };
+
             public static AlterGoonsCounter GoonsCounter = new AlterGoonsCounter
             {
                 Chance = 0,
@@ -58,6 +62,7 @@ namespace EternalCycleServer
                 EyesAccess = false,
                 Access = false
             };
+
             public static string BotLoation = "";
             protected override MethodBase GetTargetMethod()
             {
@@ -912,6 +917,147 @@ namespace EternalCycleServer
             public int Chance { get; set; }
             public int Counter { get; set; }
             public bool Access { get; set; }
+        }
+
+        //rework
+        public class BotGeneratorPatch_GenerateBot : AbstractPatch
+        {
+            protected override MethodBase GetTargetMethod()
+            {
+                return typeof(BotGenerator).GetMethod("GenerateBot", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+            }
+            [PatchPrefix]
+
+            public static bool Prefix(BotGenerator __instance, MongoId sessionId, BotBase bot, ref BotType botJsonTemplate, BotGenerationDetails botGenerationDetails, BotBase __result)
+            {
+
+                var botLevelGenerator = ServiceLocator.ServiceProvider.GetService<BotLevelGenerator>();
+                var botEquipmentFilterService = ServiceLocator.ServiceProvider.GetService<BotEquipmentFilterService>();
+                var botNameService = ServiceLocator.ServiceProvider.GetService<BotNameService>();
+                var databaseService = ServiceLocator.ServiceProvider.GetService<DatabaseService>();
+                var seasonalEventService = ServiceLocator.ServiceProvider.GetService<SeasonalEventService>();
+                var weightedRandomHelper = ServiceLocator.ServiceProvider.GetService<WeightedRandomHelper>();
+                var botInventoryGenerator = ServiceLocator.ServiceProvider.GetService<BotInventoryGenerator>();
+                var modHelper = ServiceLocator.ServiceProvider.GetService<ModHelper>();
+                var configServer = ServiceLocator.ServiceProvider.GetService<ConfigServer>();
+                var cloner = ServiceLocator.ServiceProvider.GetService<ICloner>();
+                var botConfig = configServer.GetConfig<BotConfig>();
+
+                var logger = new ECLogger("Generator", true);
+
+                var botRoleLowercase = botGenerationDetails.Role.ToLowerInvariant();
+
+                //logger.Success($"Generating Bot....");
+
+                //logger.Success($"Correct Location: {botGenerationDetails.Location}");
+
+                //logger.Info($"Bot ID : {bot.Id}");
+
+                BotGeneratorUtils.AlterBotDictionarys.TryGetValue(botRoleLowercase, out var alterBots);
+
+                //这里应该预留给Goons的分支的, 先跑通再说
+                
+                //rnm, 这里必须想办法完成线程隔离....
+
+                //我想想
+                //那就得串并计数器
+                //也不对, 我不知道哪个是第五次....
+                //这咋改啊?
+
+                //不对, 不对不对不对....
+                //草啊这里为什么是这样调用的呢???
+                try
+                {
+                    if (alterBots == null || alterBots.Count == 0)
+                    {
+                        //logger.Warn($"类型{botRoleLowercase}没有匹配的转化可能性");
+                        return true;
+                    }
+                    ;
+                    AlterBotCounters.TryGetValue(botRoleLowercase, out var botCounter);
+                    if (botCounter == null)
+                    {
+                        botCounter = new AlterBotCounter()
+                        {
+                            Data = null,
+                            CorrectChance = 0,
+                            Chance = 0,
+                            Counter = 0,
+                            Locations = null,
+                            Access = false
+                        };
+
+                        AlterBotCounters[botRoleLowercase] = botCounter;
+                    }
+                    if(botCounter.Counter == 0)
+                    {
+                        var alterBot = Utils.DrawFromList<CustomAlterBot>(alterBots);
+                        if (alterBot.BotType == null)
+                        {
+                            return true;
+                        }
+                        botCounter.Data = alterBot;
+                        botCounter.Chance = alterBot.Chance;
+                        botCounter.Locations = BitMapUtils.GetLocationCode(alterBot.SpawnLocation);
+                    }
+                    if (botCounter.CorrectChance == 0)
+                    {
+                        botCounter.CorrectChance = (int)Math.Floor(new Random().NextDouble() * 100);
+                    }
+                    if (botCounter.CorrectChance <= botCounter.Chance)
+                    {
+                        botCounter.Access = true;
+                    }
+                    if (botCounter.Access && botCounter.Locations.Contains(botGenerationDetails.Location))
+                    {
+                        //logger.Info("尝试替换Boss");
+                        //数据覆盖
+                        botJsonTemplate.BotAppearance = botCounter.Data.BotType.BotAppearance;
+                        botJsonTemplate.BotExperience = botCounter.Data.BotType.BotExperience;
+                        botJsonTemplate.BotHealth = botCounter.Data.BotType.BotHealth;
+                        botJsonTemplate.BotSkills = botCounter.Data.BotType.BotSkills;
+                        botJsonTemplate.BotInventory = botCounter.Data.BotType.BotInventory;
+                        botJsonTemplate.BotChances = botCounter.Data.BotType.BotChances;
+                        botJsonTemplate.FirstNames = botCounter.Data.BotType.FirstNames;
+                        botJsonTemplate.LastNames = botCounter.Data.BotType.LastNames;
+                        botJsonTemplate.BotGeneration = botCounter.Data.BotType.BotGeneration;
+                    }
+                    botCounter.Counter++;
+                    if (botCounter.Counter >= 5)
+                    {
+                        botCounter.CorrectChance = 0;
+                        botCounter.Counter = 0;
+                        botCounter.Access = false;
+                        botCounter.Data = null;
+                        botCounter.Locations = null;
+                    }
+                    //这样不知道为什么会漏
+                    //再想想办法吧
+                    //算了, 就这样吧, 累了
+                }
+                catch (Exception ex)
+                {
+                    //logger.Error("Bot转化失败", ex);
+                }
+                return true;
+            }
+
+            public static Dictionary<string, AlterBotCounter> AlterBotCounters = new();
+
+            public class AlterBotCounter
+            {
+                public int Chance { get; set; }
+
+                public int CorrectChance { get; set; }
+
+                public int Counter { get; set; }
+
+                public bool Access { get; set; }
+
+                public List<string> Locations { get; set; }
+
+                public CustomAlterBot Data { get; set; }
+            }
         }
     }
 }

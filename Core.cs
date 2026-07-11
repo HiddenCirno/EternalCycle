@@ -244,6 +244,7 @@ public class EternalCycle(
         //new StartupLogPatch().Enable();
         //new RemoveExpiredItemsFromMessagePatch().Enable();
         new RagfairLoadPatch().Enable();
+        new BotGeneratorPatch.BotGeneratorPatch_GenerateBot().Enable();
         void testmethod(LoadModContext prlc)
         {
             var item = prlc.DB.GetItems();
@@ -282,6 +283,9 @@ public class EternalCycle(
         CustomizationUtils.RegisterHideoutCustomization(System.IO.Path.Combine(modPath, "hideoutcustom.json"));
         GiftCodeUtils.RegisterGiftCode(modPath, "giftcode.json");
         ItemTagUtils.RegisterItemTag(modPath, "itemtag.json");
+        BotGeneratorUtils.RegisterAlterBotData(modPath, "sanitar.json");
+        BotGeneratorUtils.RegisterAlterBotData(modPath, "gluhar.json");
+
         //ItemUtils.InitItem(System.IO.Path.Combine(modPath, "items/"), "<color=#8FFF00>永恒时序-物品加载器</color>", "<color=#FFFF80>永恒时序</color>", databaseService, jsonutil, configServer, cloner);
         return Task.CompletedTask;
     }
