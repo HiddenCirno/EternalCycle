@@ -501,4 +501,14 @@ namespace EternalCycleServer
         public int MaxUseCount { get; set; }
         
     }
+
+    public class ItemTagDictionary: Dictionary<string, ItemTag>
+    {
+
+    }
+
+    public class ItemTag : HashSet<string>
+    {
+
+    }
 }

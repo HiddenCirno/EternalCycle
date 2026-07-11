@@ -105,6 +105,8 @@ namespace EternalCycleServer
         public List<string> Items { get; set; }
         [JsonPropertyName("count")]
         public int Count { get; set; }
+        [JsonPropertyName("tags")]
+        public ItemTag? UseTag { get; set; }
     }
     public class HandoverItemData : CustomQuestData
     {
@@ -126,6 +128,8 @@ namespace EternalCycleServer
         public List<string> Items { get; set; }
         [JsonPropertyName("count")]
         public int Count { get; set; }
+        [JsonPropertyName("tags")]
+        public ItemTag? UseTag { get; set; }
     }
     public class KillTargetData : CustomQuestData
     {
@@ -159,6 +163,8 @@ namespace EternalCycleServer
         public List<List<string>> EquipmentList { get; set; }
         [JsonPropertyName("enemyequip")]
         public List<List<string>> EnemyEquipmentList { get; set; }
+        [JsonPropertyName("tags")]
+        public ItemTag? UseTag { get; set; }
 
     }
     public class ReachLevelData : CustomQuestData
@@ -203,6 +209,8 @@ namespace EternalCycleServer
         public string ZoneId { get; set; }
         [JsonPropertyName("count")]
         public int Count { get; set; }
+        [JsonPropertyName("tags")]
+        public ItemTag? UseTag { get; set; }
     }
     public class ExitLocationData : CustomQuestData
     {

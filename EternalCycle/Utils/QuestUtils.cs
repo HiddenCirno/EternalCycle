@@ -1,5 +1,6 @@
 using HarmonyLib;
 using SPTarkov.Server.Core.DI;
+using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Routers;
@@ -223,6 +224,11 @@ namespace EternalCycleServer
                     case PlaceItemData placeitemdata:
                         {
                             InitPlaceItemDataConditions(conditions, placeitemdata, context);
+                        }
+                        break;
+                    case PlaceItemGroupData placeitemgroupdata:
+                        {
+                            InitPlaceItemGroupDataConditions(conditions, placeitemgroupdata, context);
                         }
                         break;
                     case ExitLocationData exitlocationdata:
@@ -459,7 +465,7 @@ namespace EternalCycleServer
             var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(findItemData, context);
             copycondition.OnlyFoundInRaid = findItemData.FindInRaid;
             copycondition.Index = conditions.Count;
-            copycondition.Target.List.Clear();
+            copycondition.Target.List.GenerateFromTag(findItemData.Items, findItemData.UseTag, context);
             foreach (string target in findItemData.Items)
             {
                 copycondition.Target.List.Add(target.ConvertHashID());
@@ -509,7 +515,7 @@ namespace EternalCycleServer
             var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(handItemData, context);
             copycondition.OnlyFoundInRaid = handItemData.FindInRaid;
             copycondition.Index = conditions.Count;
-            copycondition.Target.List.Clear();
+            copycondition.Target.List.GenerateFromTag(handItemData.Items, handItemData.UseTag, context);
             foreach (string target in handItemData.Items)
             {
                 copycondition.Target.List.Add(target.ConvertHashID());
@@ -582,14 +588,7 @@ namespace EternalCycleServer
                         copytargets.EnemyEquipmentInclusive.AddItem(addedarray); // 添加新元素
                     }
                 }
-                if (killTargetData.WeaponList.Count > 0)
-                {
-                    copytargets.Weapon.Clear();
-                    foreach (var weapon in killTargetData.WeaponList)
-                    {
-                        copytargets.Weapon.Add(weapon.ConvertHashID());
-                    }
-                }
+                copytargets.Weapon = new List<string>().GenerateFromTag(killTargetData.WeaponList, killTargetData.UseTag, context).ToHashSet();
                 if (killTargetData.ModList.Count > 0)
                 {
                     copytargets.WeaponModsInclusive = new List<List<string>>();
@@ -744,6 +743,26 @@ namespace EternalCycleServer
             copycondition.Value = (double)placeItemData.Count;
             copycondition.PlantTime = (double)placeItemData.Time;
             copycondition.ZoneId = placeItemData.ZoneId;
+            conditions.Add(copycondition);
+        }
+
+        /// <summary>
+        /// 处理在指定地点安放物品组条件的工具方法
+        /// </summary>
+        /// <param name="conditions">目标列表</param>
+        /// <param name="placeItemGroupData">自定义任务数据</param>
+        /// <param name="context">上下文实例</param>
+        public static void InitPlaceItemGroupDataConditions(List<QuestCondition> conditions, PlaceItemGroupData placeItemGroupData, LoadModContext context)
+        {
+            var condition = GetConditionTemplate(EQuestConditionsTypeCache.LeaveItemAtLocation, "LeaveItemAtLocation", context);
+            if (condition == null) return;
+            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(placeItemGroupData, context);
+            copycondition.Index = conditions.Count;
+            copycondition.Target = new ListOrT<string>(new List<string>(), null);
+            copycondition.Target.List.GenerateFromTag(placeItemGroupData.Items, placeItemGroupData.UseTag, context);
+            copycondition.Value = (double)placeItemGroupData.Count;
+            copycondition.PlantTime = (double)placeItemGroupData.Time;
+            copycondition.ZoneId = placeItemGroupData.ZoneId;
             conditions.Add(copycondition);
         }
 
@@ -1504,6 +1523,39 @@ namespace EternalCycleServer
             var copyreward = InitCopiedReward(rewardtarget, target, customizationRewardData, context);
             copyreward.Target = (string)customizationRewardData.TargetId;
             return copyreward;
+        }
+
+        public static List<string> GenerateFromTag(this List<string> list, List<string> itemlist, ItemTag tag, LoadModContext context)
+        {
+            var listset = list?.ToHashSet() ?? new HashSet<string>();
+            var cacheset = new ItemTag();
+            if (tag != null && tag.Count > 0) 
+            { 
+                cacheset.UnionWith(ItemTagUtils.GetTagList(tag));
+            }
+            if (itemlist != null && itemlist.Count > 0)
+            {
+                foreach (var item in itemlist)
+                {
+                    cacheset.Add(item.ConvertHashID());
+                }
+            }
+            foreach (var item in cacheset)
+            {
+                try
+                {
+                    listset.Add((MongoId)item);
+                }
+                catch (Exception ex)
+                {
+                    context.Logger.Warn($"发现到无效的物品 ID: '{item}'。已跳过该物品。请检查你的任务或标签配置文件！");
+                }
+            }
+            if (list != null)
+            { 
+                list.AddRange(listset);
+            }
+            return list;
         }
     }
 }

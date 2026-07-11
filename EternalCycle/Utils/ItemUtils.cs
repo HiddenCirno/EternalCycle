@@ -16,27 +16,27 @@ namespace EternalCycleServer
         /// <summary>
         /// 用于物品兼容性修复的哈希表
         /// </summary>
-        public static Dictionary<MongoId, List<CustomFixData>> FixDict = new Dictionary<MongoId, List<CustomFixData>>();
+        public static Dictionary<MongoId, List<CustomFixData>> FixDictionary = new();
 
         /// <summary>
         /// 固定可打开包裹数据
         /// </summary>
-        public static Dictionary<MongoId, StaticGiftBoxData> StaticBoxData = new Dictionary<MongoId, StaticGiftBoxData>();
+        public static Dictionary<MongoId, StaticGiftBoxData> StaticBoxData = new();
 
         /// <summary>
         /// 特殊可打开包裹数据(技能, 好感度, etc)
         /// </summary>
-        public static Dictionary<MongoId, List<GiftData>> SpecialBoxData = new Dictionary<MongoId, List<GiftData>>();
+        public static Dictionary<MongoId, List<GiftData>> SpecialBoxData = new();
 
         /// <summary>
         /// 高级可打开包裹数据(米池抽卡)
         /// </summary>
-        public static Dictionary<MongoId, AdvancedGiftBoxData> AdvancedBoxData = new Dictionary<MongoId, AdvancedGiftBoxData>();
+        public static Dictionary<MongoId, AdvancedGiftBoxData> AdvancedBoxData = new();
 
         /// <summary>
         /// 卡池数据
         /// </summary>
-        public static Dictionary<string, DrawPoolClass> DrawPoolData = new Dictionary<string, DrawPoolClass>();
+        public static Dictionary<string, DrawPoolClass> DrawPoolData = new();
         public static bool firstlogin = false;
 
         /// <summary>
@@ -436,8 +436,8 @@ namespace EternalCycleServer
                     FixType = itemProps.FixType,
                     ItemId = itemid
                 };
-                FixDict.TryGetValue(targetid, out var list);
-                if (list == null) FixDict.Add(targetid, new List<CustomFixData>() { customFixData });
+                FixDictionary.TryGetValue(targetid, out var list);
+                if (list == null) FixDictionary.Add(targetid, new List<CustomFixData>() { customFixData });
                 else
                 {
                     list.Add(customFixData);
@@ -1060,7 +1060,7 @@ namespace EternalCycleServer
                 {
                     //古法Debug
                     //File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportfixdata.json"), context.JsonUtil.Serialize(FixDict, true));
-                    FixItemCompatible(FixDict, context);
+                    FixItemCompatible(FixDictionary, context);
                 }
                 catch (Exception ex)
                 {
