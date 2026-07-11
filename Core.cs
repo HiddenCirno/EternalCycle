@@ -237,7 +237,7 @@ public class EternalCycle(
         var config = ConfigManager.GetConfig();
         if (config.UseOldRagfairPrice)
         {
-            new ReplaceFleaBasePricesPatch().Enable();
+            //new ReplaceFleaBasePricesPatch().Enable();
         }
         new OpenRandomLootContainerPatch().Enable();
 

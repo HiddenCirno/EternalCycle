@@ -237,20 +237,31 @@ namespace EternalCycleServer
             var twitchcase = GetItem(ItemTpl.CONTAINER_STREAMER_ITEM_CASE, context);
             var conditions = kappa.Conditions.AvailableForFinish;
             var itemid = Utils.ConvertHashID(item.Id);
-            QuestUtils.InitHandoverItemDataConditions(conditions, new HandoverItemData
+            var questid = $"Kappa_{item.Id}".ConvertHashID();
+            EventManager.DataLoadEvent.LoadQuestDataEvent += (eventContext) =>
             {
-                Id = Utils.ConvertHashID($"Kappa_{item.Id}"),
-                FindInRaid = true,
-                ItemId = itemid,
-                Count = 1,
-                AutoLocale = true
-            },
-            context);
-            var twitchcasecontainer = twitchcase.Properties.Grids.First().Properties.Filters.First().Filter;
-            if (!twitchcasecontainer.Contains(itemid))
-            {
-                twitchcasecontainer.Add(itemid);
-            }
+                try
+                {
+                    QuestUtils.InitHandoverItemDataConditions(conditions, new HandoverItemData
+                    {
+                        Id = questid,
+                        FindInRaid = true,
+                        ItemId = itemid,
+                        Count = 1,
+                        AutoLocale = true
+                    },
+                    context);
+                    var twitchcasecontainer = twitchcase.Properties.Grids.First().Properties.Filters.First().Filter;
+                    if (!twitchcasecontainer.Contains(itemid))
+                    {
+                        twitchcasecontainer.Add(itemid);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    EventManager.EventLogger.Error($"注入任务数据层时发生异常：{questid}", ex);
+                }
+            };
         }
 
         /// <summary>
