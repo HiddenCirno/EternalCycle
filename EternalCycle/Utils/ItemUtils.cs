@@ -3,6 +3,7 @@ using SPTarkov.Server.Core.Models.Eft.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Models.Spt.Config;
+using SPTarkov.Server.Core.Services;
 using System.Reflection;
 using static EternalCycleServer.ContextManager;
 
@@ -169,6 +170,7 @@ namespace EternalCycleServer
                 .SetGiftBoxData(context)
                 .AddStaticLoot(context)
                 .AddLooseLoot(context)
+                .FixFuelData(context)
                 .AddItemFixData();
 
             //本地化数据
@@ -443,6 +445,16 @@ namespace EternalCycleServer
                     list.Add(customFixData);
                 }
                 //if(FixDict.FirstOrDefault(x=>x.ItemId == itemid)==null) FixDict.Add(customFixData);
+            }
+            return template;
+        }
+
+        public static CustomItemTemplate FixFuelData(this CustomItemTemplate template, LoadModContext context)
+        {
+            if (template.CustomProps.FuelLevel!=null)
+            {
+                var areas = context.DB.GetHideout().Areas;
+                areas.Find(x => x.Type == SPTarkov.Server.Core.Models.Enums.Hideout.HideoutAreas.Generator).Stages[template.CustomProps.FuelLevel.ToString()].Bonuses.First().Filter.Add(template.Id.ConvertHashID());
             }
             return template;
         }

@@ -115,6 +115,9 @@ namespace EternalCycleServer
         public bool? ApplyToEOD { get; set; }
         [JsonPropertyName("ApplyToUnheard")]
         public bool? ApplyToUnheard { get; set; }
+
+        [JsonPropertyName("FuelLevel")]
+        public int? FuelLevel { get; set; }
         [JsonExtensionData]
         public Dictionary<string?, object?>? ExtensionData => _extensionData;
 
