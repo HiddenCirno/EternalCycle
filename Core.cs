@@ -281,6 +281,7 @@ public class EternalCycle(
         RecipeUtils.RegisterCultistCircleRecipe(System.IO.Path.Combine(modPath, "circle.json"));
         CustomizationUtils.RegisterHideoutCustomization(System.IO.Path.Combine(modPath, "hideoutcustom.json"));
         GiftCodeUtils.RegisterGiftCode(modPath, "giftcode.json");
+        ItemTagUtils.RegisterItemTag(modPath, "itemtag.json");
         //ItemUtils.InitItem(System.IO.Path.Combine(modPath, "items/"), "<color=#8FFF00>永恒时序-物品加载器</color>", "<color=#FFFF80>永恒时序</color>", databaseService, jsonutil, configServer, cloner);
         return Task.CompletedTask;
     }
