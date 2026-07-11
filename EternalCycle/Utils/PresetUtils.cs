@@ -13,33 +13,34 @@ namespace EternalCycleServer
         /// <param name="path">指定的存放预设文件的文件夹路径或单个预设文件(列表)路径</param>
         /// <param name="creator">创建者</param>
         /// <param name="modname">Mod名</param>
-        public static void RegisterPreset(string path)
+        public static void RegisterPreset(string modpath, string path)
         {
+            var correctpath = Path.Combine(modpath, path);
             // 文件夹加载模式
-            if (Directory.Exists(path))
+            if (Directory.Exists(correctpath))
             {
                 // 事件名请根据你实际情况调整，例如 LoadPresetEvent
                 EventManager.DataLoadEvent.LoadPresetEvent += (context) =>
                 {
                     try
                     {
-                        InitPresetData(path, context);
+                        InitPresetData(correctpath, context);
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册预设时发生错误：指定的文件夹 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册预设时发生错误：指定的文件夹 {correctpath} 存在问题", ex);
                     }
                 };
             }
             // 单文件加载模式
-            else if (File.Exists(path))
+            else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadPresetEvent += (context) =>
                 {
                     try
                     {
                         // 反序列化为 List 集合，对接已有的重载方法
-                        var presetData = context.JsonUtil.Deserialize<List<CustomPresetData>>(File.ReadAllText(path));
+                        var presetData = context.JsonUtil.Deserialize<List<CustomPresetData>>(File.ReadAllText(correctpath));
 
                         if (presetData != null)
                         {
@@ -48,13 +49,13 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册预设时发生错误：指定的文件 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册预设时发生错误：指定的文件 {correctpath} 存在问题", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"注册预设时发生异常：找不到指定的文件或文件夹 {path}");
+                EventManager.EventLogger.Warn($"注册预设时发生异常：找不到指定的文件或文件夹 {correctpath}");
             }
         }
 

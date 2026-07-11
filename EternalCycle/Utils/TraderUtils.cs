@@ -8,6 +8,7 @@ using SPTarkov.Server.Core.Servers;
 using SPTarkov.Server.Core.Services;
 using SPTarkov.Server.Core.Utils;
 using SPTarkov.Server.Core.Utils.Cloners;
+using System.IO;
 using Path = System.IO.Path;
 
 namespace EternalCycleServer
@@ -35,71 +36,74 @@ namespace EternalCycleServer
         /// <param name="imagePath">调用者(子Mod)的商人头像图片存放路径</param>
         /// <param name="creator">创建者</param>
         /// <param name="modname">Mod名</param>
-        public static void RegisterTrader(string path, string imagePath, string creator, string modname)
+        public static void RegisterTrader(string modpath, string path, string imagePath, string creator, string modname)
         {
+            var correctpath = System.IO.Path.Combine(modpath, path);
             // 文件夹加载模式
-            if (Directory.Exists(path))
+            if (Directory.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadTraderBaseEvent += (context) =>
                 {
                     try
                     {
                         // 对应调用已有的文件夹重载方法，透传 imagePath
-                        InitTraders(path, imagePath, creator, modname, context.ConfigServer, context.JsonUtil, context.ModHelper, context.DB, context.Cloner, context.ImageRouter);
+                        InitTraders(modpath, path, imagePath, creator, modname, context.ConfigServer, context.JsonUtil, context.ModHelper, context.DB, context.Cloner, context.ImageRouter);
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册商人时发生错误：指定的文件夹 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册商人时发生错误：指定的文件夹 {correctpath} 存在问题", ex);
                     }
                 };
             }
             // 单文件加载模式
-            else if (File.Exists(path))
+            else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadTraderBaseEvent += (context) =>
                 {
                     try
                     {
                         // 商人特有：单文件直接反序列化为单体对象
-                        var traderbase = context.JsonUtil.Deserialize<TraderBaseWithDesc>(File.ReadAllText(path));
+                        var traderbase = context.JsonUtil.Deserialize<TraderBaseWithDesc>(File.ReadAllText(correctpath));
 
                         if (traderbase != null)
                         {
                             // 直接跳过文件夹遍历，调用底层的数据 Init 方法
-                            InitTrader(traderbase, imagePath, creator, modname, context.ConfigServer, context.DB, context.Cloner, context.ImageRouter);
+                            InitTrader(traderbase, modpath, imagePath, creator, modname, context.ConfigServer, context.DB, context.Cloner, context.ImageRouter);
                         }
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册商人时发生错误：指定的文件 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册商人时发生错误：指定的文件 {correctpath} 存在问题", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"注册商人时发生异常：找不到指定的文件或文件夹 {path}");
+                EventManager.EventLogger.Warn($"注册商人时发生异常：找不到指定的文件或文件夹 {correctpath}");
             }
         }
 
         /// <summary>
         /// Init重载 1：处理文件夹路径，遍历文件并解析为单体数据
         /// </summary>
-        public static void InitTraders(string folderpath, string imagePath, string creator, string modname, ConfigServer configServer, JsonUtil jsonUtil, ModHelper modHelper, DatabaseService databaseService, ICloner cloner, ImageRouter imageRouter)
+        public static void InitTraders(string modpath, string folderpath, string imagePath, string creator, string modname, ConfigServer configServer, JsonUtil jsonUtil, ModHelper modHelper, DatabaseService databaseService, ICloner cloner, ImageRouter imageRouter)
         {
-            if (Directory.Exists(folderpath))
+
+            var correctpath = System.IO.Path.Combine(modpath, folderpath);
+            if (Directory.Exists(correctpath))
             {
-                List<string> files = Directory.GetFiles(folderpath).ToList();
+                List<string> files = Directory.GetFiles(correctpath).ToList();
                 if (files.Count > 0)
                 {
                     foreach (var file in files)
                     {
                         string fileName = Path.GetFileName(file);
-                        var traderbase = modHelper.GetJsonDataFromFile<TraderBaseWithDesc>(folderpath, fileName);
+                        var traderbase = modHelper.GetJsonDataFromFile<TraderBaseWithDesc>(correctpath, fileName);
 
                         if (traderbase != null)
                         {
                             // 解析出单体后，调用底层 Init
-                            InitTrader(traderbase, imagePath, creator, modname, configServer, databaseService, cloner, imageRouter);
+                            InitTrader(traderbase, modpath, imagePath, creator, modname, configServer, databaseService, cloner, imageRouter);
                         }
                     }
                 }
@@ -116,14 +120,15 @@ namespace EternalCycleServer
         /// <param name="databaseService">SPT工具类传入</param>
         /// <param name="cloner">SPT工具类传入</param>
         /// <param name="imageRouter">SPT工具类传入</param>
-        public static void InitTrader(TraderBaseWithDesc traderBase, string respath, string creator, string modname, ConfigServer configServer, DatabaseService databaseService, ICloner cloner, ImageRouter imageRouter)
+        public static void InitTrader(TraderBaseWithDesc traderBase, string modpath, string respath, string creator, string modname, ConfigServer configServer, DatabaseService databaseService, ICloner cloner, ImageRouter imageRouter)
         {
             InsuranceConfig insuranceConfig = configServer.GetConfig<InsuranceConfig>();
             TraderConfig traderConfig = configServer.GetConfig<TraderConfig>();
             RagfairConfig ragfairConfig = configServer.GetConfig<RagfairConfig>();
             Trader traderPattern = cloner.Clone(GetTrader((string)Traders.PRAPOR, databaseService));
             string traderId = (MongoId)traderBase.Id;
-            ImageUtils.RegisterAvatarRoute(traderBase.Avatar, Path.Combine(respath, "res/avatar/"), imageRouter);
+            var correctpath = System.IO.Path.Combine(modpath, respath);
+            ImageUtils.RegisterAvatarRoute(traderBase.Avatar, correctpath, imageRouter);
             //ImageUtils.RegisterImageRoute(traderBase.Avatar.Replace(".jpg", "").Replace(".png", ""), Path.Combine(imagePath, Path.GetFileName(traderBase.Avatar)), imageRouter);
             traderBase.Id = traderId;
             traderPattern.Assort.Items?.Clear();

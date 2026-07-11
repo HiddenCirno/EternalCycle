@@ -41,44 +41,45 @@ namespace EternalCycleServer
         /// <param name="path">存放本地化文件的文件夹路径，或单个多语言文件的路径</param>
         /// <param name="creator">创建者</param>
         /// <param name="modname">Mod名</param>
-        public static void RegisterQuestLocale(string path, string creator, string modname)
+        public static void RegisterQuestLocale(string modpath, string path, string creator, string modname)
         {
+            var correctpath = Path.Combine(modpath, path);
             // 文件夹加载模式 (文件夹里是 ch.json, en.json...)
-            if (Directory.Exists(path))
+            if (Directory.Exists(correctpath))
             {
                 // 注意：挂载的事件请根据你的实际情况调整（可能是 LoadLocaleEvent 或与任务同级）
                 EventManager.DataLoadEvent.LoadQuestLocaleEvent += (context) =>
                 {
                     try
                     {
-                        InitQuestLocale(path, creator, modname, context.DB, context.ModHelper);
+                        InitQuestLocale(correctpath, creator, modname, context.DB, context.ModHelper);
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册任务本地化时发生错误：指定的文件夹 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册任务本地化时发生错误：指定的文件夹 {correctpath} 存在问题", ex);
                     }
                 };
             }
             // 单文件加载模式 (单个文件里包含了所有语言的数据)
-            else if (File.Exists(path))
+            else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadQuestLocaleEvent += (context) =>
                 {
                     try
                     {
                         // 解析为: Dictionary<语言Key, Dictionary<任务ID, 本地化数据>>
-                        var customLocaleData = context.JsonUtil.Deserialize<Dictionary<string, Dictionary<string, CustomQuestLocaleData>>>(File.ReadAllText(path));
+                        var customLocaleData = context.JsonUtil.Deserialize<Dictionary<string, Dictionary<string, CustomQuestLocaleData>>>(File.ReadAllText(correctpath));
                         InitQuestLocale(customLocaleData, creator, modname, context.DB);
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册任务本地化时发生错误：指定的文件 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册任务本地化时发生错误：指定的文件 {correctpath} 存在问题", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"注册任务本地化时发生异常：找不到指定的文件或文件夹 {path}");
+                EventManager.EventLogger.Warn($"注册任务本地化时发生异常：找不到指定的文件或文件夹 {correctpath}");
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using Microsoft.AspNetCore.Razor.TagHelpers;
+using MonoMod.Core.Platforms;
 using SPTarkov.DI.Annotations;
 using SPTarkov.Reflection.Patching;
 using SPTarkov.Server.Core.Controllers;
@@ -175,7 +176,7 @@ public class EternalCycle(
             lang[quest] = "任务物品";
             return lang;
         });
-        var context = new ContextManager.LoadModContext
+        var context = new LoadModContext
         {
             DB = databaseService,
             JsonUtil = jsonUtil,
@@ -264,29 +265,29 @@ public class EternalCycle(
         {
             prlc.Logger.Error("Test");
         }
-        EventManager.OnBeforeRagfairLoadedEvent += testmethod;
-        EventManager.OnAfterRagfairLoadedEvent += testmethod2;
-        EventManager.OnAfterModLoadedEvent += testmethod3;
-        EventManager.OnPreBotGenerateEvent += testmethod4;
-        ItemUtils.RegisterItem(System.IO.Path.Combine(modPath, "items_normal.json"), "<color=#8FFF00>永恒时序-调试物品加载</color>", "<color=#FFFF80>永恒时序</color>");
-        ItemUtils.RegisterItem(System.IO.Path.Combine(modPath, "gunfight.json"), "<color=#8FFF00>永恒时序-物品加载器</color>", "<color=#FFFF80>枪械武术</color>");
-        QuestUtils.RegisterQuest(System.IO.Path.Combine(modPath, "init.json"), System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
-        TraderUtils.RegisterTrader(System.IO.Path.Combine(modPath, "base.json"), System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "<color=#8FFF00>永恒时序-调试商人加载</color>", "<color=#FFFF80>永恒时序</color>");
-        AchievementUtils.RegisterAchievement(System.IO.Path.Combine(modPath, "achievement.json"), System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
-        AssortUtils.RegisterAssort(System.IO.Path.Combine(modPath, "assort_mod.json"));
-        QuestUtils.RegisterQuestRewards(System.IO.Path.Combine(modPath, "rewards_vanilla.json"));
-        QuestUtils.RegisterQuestLogicTree(System.IO.Path.Combine(modPath, "logic.json"));
-        RecipeUtils.RegisterRecipe(System.IO.Path.Combine(modPath, "recipe.json"));
-        RecipeUtils.RegisterScavCaseRecipe(System.IO.Path.Combine(modPath, "scavcase.json"));
-        PresetUtils.RegisterPreset(System.IO.Path.Combine(modPath, "preset.json"));
-        CustomizationUtils.RegisterCustomization(modPath, "custom.json", "deco/");
-        SuitUtils.RegisterSuit(System.IO.Path.Combine(modPath, "suits.json"));
-        LocaleUtils.RegisterQuestLocale(System.IO.Path.Combine(modPath, "quest/"), "<color=#8FFF00>永恒时序-调试任务加载</color>", "<color=#FFFF80>永恒时序</color>");
-        ItemUtils.InitDrawPool(modHelper.GetJsonDataFromFile<Dictionary<string, DrawPoolClass>>(modPath, "newdrawpool.json"));
+        //EventManager.OnBeforeRagfairLoadedEvent += testmethod;
+        //EventManager.OnAfterRagfairLoadedEvent += testmethod2;
+        //EventManager.OnAfterModLoadedEvent += testmethod3;
+        //EventManager.OnPreBotGenerateEvent += testmethod4;
+        ItemUtils.RegisterItem(modPath, "items_normal.json", "<color=#8FFF00>永恒时序-调试物品加载</color>", "<color=#FFFF80>永恒时序</color>");
+        ItemUtils.RegisterItem(modPath, "gunfight.json", "<color=#8FFF00>永恒时序-物品加载器</color>", "<color=#FFFF80>枪械武术</color>");
+        QuestUtils.RegisterQuest(modPath, "init.json", "res/questimage/");
+        TraderUtils.RegisterTrader(modPath, "base.json", "res/avatar/", "<color=#8FFF00>永恒时序-调试商人加载</color>", "<color=#FFFF80>永恒时序</color>");
+        AchievementUtils.RegisterAchievement(modPath, "achievement.json", "res/icon/");
+        AssortUtils.RegisterAssort(modPath, "assort_mod.json");
+        QuestUtils.RegisterQuestRewards(modPath, "rewards_vanilla.json");
+        QuestUtils.RegisterQuestLogicTree(modPath, "logic.json");
+        RecipeUtils.RegisterRecipe(modPath, "recipe.json");
+        RecipeUtils.RegisterScavCaseRecipe(modPath, "scavcase.json");
+        RecipeUtils.RegisterCultistCircleRecipe(modPath, "circle.json");
+        PresetUtils.RegisterPreset(modPath, "preset.json");
+        SuitUtils.RegisterSuit(modPath, "suits.json");
+        CustomizationUtils.RegisterHideoutCustomization(modPath, "hideoutcustom.json");
+        LocaleUtils.RegisterQuestLocale(modPath, "quest/", "<color=#8FFF00>永恒时序-调试任务加载</color>", "<color=#FFFF80>永恒时序</color>");
+        ItemUtils.RegisterDrawPool(modPath, "newdrawpool.json");
         ResourceUtils.RegisterRigLayoutResource(modPath, "clientres/");
         ResourceUtils.RegisterSlotIconResource(modPath, "sloticon/");
-        RecipeUtils.RegisterCultistCircleRecipe(System.IO.Path.Combine(modPath, "circle.json"));
-        CustomizationUtils.RegisterHideoutCustomization(System.IO.Path.Combine(modPath, "hideoutcustom.json"));
+        CustomizationUtils.RegisterCustomization(modPath, "custom.json", "deco/");
         GiftCodeUtils.RegisterGiftCode(modPath, "giftcode.json");
         ItemTagUtils.RegisterItemTag(modPath, "itemtag.json");
         BotGeneratorUtils.RegisterAlterBotData(modPath, "sanitar.json");
@@ -522,7 +523,7 @@ public class EternalCycle(
     ),
         */
     new RouteAction(
-        "/VulcanCoreClient/CallBackup",
+        "/eternalcycle/callprofilebackup",
         (_, _, sessionId, _) => // 这里需要用到 sessionId
         {
             // 直接使用构造函数注入的 vulcanCore 和 profileHelper

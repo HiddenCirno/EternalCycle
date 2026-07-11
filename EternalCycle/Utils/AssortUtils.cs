@@ -1,6 +1,7 @@
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Enums;
+using System.IO;
 using static EternalCycleServer.ContextManager;
 using Path = System.IO.Path;
 
@@ -15,10 +16,11 @@ namespace EternalCycleServer
         /// 将自定义报价单(Assort)注册到加载事件
         /// </summary>
         /// <param name="path">指定的存放报价单文件的路径或完整的报价单文件路径</param>
-        public static void RegisterAssort(string path)
+        public static void RegisterAssort(string modpath, string path)
         {
+            var correctpath = System.IO.Path.Combine(modpath, path);
             // 文件夹加载模式
-            if (Directory.Exists(path))
+            if (Directory.Exists(correctpath))
             {
                 // 注意：这里的事件名请根据你实际的 DataLoadEvent 进行调整（可能是 LoadAssortEvent 或挂载在 LoadTraderEvent 下）
                 EventManager.DataLoadEvent.LoadTraderAssortEvent += (context) =>
@@ -27,23 +29,23 @@ namespace EternalCycleServer
                     {
                         // 对应调用已有的文件夹重载方法
                         // 假设 context 提供了 Logger，如果没有，请使用 ServiceLocator.ServiceProvider.GetService<ISptLogger<EternalCycle>>()
-                        InitAssortData(path, context);
+                        InitAssortData(modpath, path, context);
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册报价单时发生错误：指定的文件夹 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册报价单时发生错误：指定的文件夹 {correctpath} 存在问题", ex);
                     }
                 };
             }
             // 单文件加载模式
-            else if (File.Exists(path))
+            else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadTraderAssortEvent += (context) =>
                 {
                     try
                     {
                         // 反序列化为 List 集合，对应已有的 List 重载方法
-                        var assortData = context.JsonUtil.Deserialize<List<CustomAssortData>>(File.ReadAllText(path));
+                        var assortData = context.JsonUtil.Deserialize<List<CustomAssortData>>(File.ReadAllText(correctpath));
 
                         if (assortData != null)
                         {
@@ -52,13 +54,13 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册报价单时发生错误：指定的文件 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册报价单时发生错误：指定的文件 {correctpath} 存在问题", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"注册报价单时发生异常：找不到指定的文件或文件夹 {path}");
+                EventManager.EventLogger.Warn($"注册报价单时发生异常：找不到指定的文件或文件夹 {correctpath}");
             }
         }
 
@@ -100,15 +102,17 @@ namespace EternalCycleServer
         /// </summary>
         /// <param name="folderpath"></param>
         /// <param name="context">上下文实例</param>
-        public static void InitAssortData(string folderpath, LoadModContext context)
+        public static void InitAssortData(string modpath, string folderpath, LoadModContext context)
         {
-            List<string> files = Directory.GetFiles(folderpath).ToList();
+            var correctpath = System.IO.Path.Combine(modpath, folderpath);
+
+            List<string> files = Directory.GetFiles(correctpath).ToList();
             if (files.Count > 0)
             {
                 foreach (var file in files)
                 {
                     string fileName = Path.GetFileName(file);
-                    var assort = context.ModHelper.GetJsonDataFromFile<List<CustomAssortData>>(folderpath, fileName);
+                    var assort = context.ModHelper.GetJsonDataFromFile<List<CustomAssortData>>(correctpath, fileName);
                     InitAssortData(assort, context);
                 }
             }

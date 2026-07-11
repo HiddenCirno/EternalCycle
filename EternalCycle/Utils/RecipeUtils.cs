@@ -14,43 +14,44 @@ namespace EternalCycleServer
         /// <param name="path">指定的存放配方文件的路径或完整的配方文件路径</param>
         /// <param name="creator">创建者</param>
         /// <param name="modname">Mod名</param>
-        public static void RegisterRecipe(string path)
+        public static void RegisterRecipe(string modpath, string path)
         {
+            var correctpath = Path.Combine(modpath, path);
             // 文件夹加载模式
-            if (Directory.Exists(path))
+            if (Directory.Exists(correctpath))
             {
                 // 假设事件回调中的 context 已经是 ContextManager.LoadModContext 类型
                 EventManager.DataLoadEvent.LoadRecipeEvent += (context) =>
                 {
                     try
                     {
-                        InitRecipeData(path, context);
+                        InitRecipeData(correctpath, context);
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册配方时发生错误：指定的文件夹 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册配方时发生错误：指定的文件夹 {correctpath} 存在问题", ex);
                     }
                 };
             }
             // 单文件加载模式
-            else if (File.Exists(path))
+            else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadRecipeEvent += (context) =>
                 {
                     try
                     {
-                        var recipeData = context.JsonUtil.Deserialize<Dictionary<string, CustomRecipeData>>(File.ReadAllText(path));
+                        var recipeData = context.JsonUtil.Deserialize<Dictionary<string, CustomRecipeData>>(File.ReadAllText(correctpath));
                         InitRecipeData(recipeData, context);
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册配方时发生错误：指定的文件 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册配方时发生错误：指定的文件 {correctpath} 存在问题", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"注册配方时发生异常：找不到指定的文件或文件夹 {path}");
+                EventManager.EventLogger.Warn($"注册配方时发生异常：找不到指定的文件或文件夹 {correctpath}");
             }
         }
 
@@ -186,40 +187,41 @@ namespace EternalCycleServer
         /// 将自定义 Scav 宝箱配方注册到加载事件
         /// </summary>
         /// <param name="path">指定的存放 Scav 配方文件的路径</param>
-        public static void RegisterScavCaseRecipe(string path)
+        public static void RegisterScavCaseRecipe(string modpath, string path)
         {
-            if (Directory.Exists(path))
+            var correctpath = Path.Combine(modpath, path);
+            if (Directory.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadScavCaseRecipeEvent += (context) =>
                 {
                     try
                     {
-                        InitScavCaseRecipeData(path, context);
+                        InitScavCaseRecipeData(correctpath, context);
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册 Scav宝箱 配方时发生错误：指定的文件夹 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册 Scav宝箱 配方时发生错误：指定的文件夹 {correctpath} 存在问题", ex);
                     }
                 };
             }
-            else if (File.Exists(path))
+            else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadScavCaseRecipeEvent += (context) =>
                 {
                     try
                     {
-                        var recipeData = context.JsonUtil.Deserialize<Dictionary<string, CustomScavCaseRecipeData>>(File.ReadAllText(path));
+                        var recipeData = context.JsonUtil.Deserialize<Dictionary<string, CustomScavCaseRecipeData>>(File.ReadAllText(correctpath));
                         InitScavCaseRecipeData(recipeData, context);
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册 Scav宝箱 配方时发生错误：指定的文件 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册 Scav宝箱 配方时发生错误：指定的文件 {correctpath} 存在问题", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"注册 Scav宝箱 配方时发生异常：找不到指定的文件或文件夹 {path}");
+                EventManager.EventLogger.Warn($"注册 Scav宝箱 配方时发生异常：找不到指定的文件或文件夹 {correctpath}");
             }
         }
 
@@ -290,40 +292,42 @@ namespace EternalCycleServer
         /// 将自定义 邪教圈 配方注册到加载事件
         /// </summary>
         /// <param name="path">指定的存放 邪教圈 配方文件的路径</param>
-        public static void RegisterCultistCircleRecipe(string path)
+        public static void RegisterCultistCircleRecipe(string modpath, string path)
         {
-            if (Directory.Exists(path))
+
+            var correctpath = Path.Combine(modpath, path);
+            if (Directory.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadCultistCircleRecipeEvent += (context) =>
                 {
                     try
                     {
-                        InitCultistCircleRecipeData(path, context);
+                        InitCultistCircleRecipeData(correctpath, context);
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册 邪教圈 配方时发生错误：指定的文件夹 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册 邪教圈 配方时发生错误：指定的文件夹 {correctpath} 存在问题", ex);
                     }
                 };
             }
-            else if (File.Exists(path))
+            else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadCultistCircleRecipeEvent += (context) =>
                 {
                     try
                     {
-                        var recipeData = context.JsonUtil.Deserialize<List<CustomCultistCircleRecipe>>(File.ReadAllText(path));
+                        var recipeData = context.JsonUtil.Deserialize<List<CustomCultistCircleRecipe>>(File.ReadAllText(correctpath));
                         InitCultistCircleRecipeData(recipeData, context);
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册 邪教圈 配方时发生错误：指定的文件 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册 邪教圈 配方时发生错误：指定的文件 {correctpath} 存在问题", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"注册 邪教圈 配方时发生异常：找不到指定的文件或文件夹 {path}");
+                EventManager.EventLogger.Warn($"注册 邪教圈 配方时发生异常：找不到指定的文件或文件夹 {correctpath}");
             }
         }
 

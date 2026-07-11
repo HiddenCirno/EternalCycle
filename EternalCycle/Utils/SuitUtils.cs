@@ -39,43 +39,44 @@ namespace EternalCycleServer
         /// <param name="creator">创建者</param>
         /// <param name="modname">Mod名</param>
         /// <param name="traderId">可选：如果这些服装属于特定商人，传入商人ID</param>
-        public static void RegisterSuit(string path, string traderId = null)
+        public static void RegisterSuit(string modpath, string path, string traderId = null)
         {
+            var correctpath = Path.Combine(modpath, path);
             // 文件夹加载模式
-            if (Directory.Exists(path))
+            if (Directory.Exists(correctpath))
             {
                 // 事件名请根据实际情况调整，例如 LoadSuitEvent 或 LoadCustomizationEvent
                 EventManager.DataLoadEvent.LoadSuitEvent += (context) =>
                 {
                     try
                     {
-                        InitCustomSuitData(path, context, traderId);
+                        InitCustomSuitData(correctpath, context, traderId);
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册服装时发生错误：指定的文件夹 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册服装时发生错误：指定的文件夹 {correctpath} 存在问题", ex);
                     }
                 };
             }
             // 单文件加载模式
-            else if (File.Exists(path))
+            else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadSuitEvent += (context) =>
                 {
                     try
                     {
-                        var suitData = context.JsonUtil.Deserialize<List<CustomSuit>>(File.ReadAllText(path));
+                        var suitData = context.JsonUtil.Deserialize<List<CustomSuit>>(File.ReadAllText(correctpath));
                         InitCustomSuitData(suitData, context, traderId);
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册服装时发生错误：指定的文件 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册服装时发生错误：指定的文件 {correctpath} 存在问题", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"注册服装时发生异常：找不到指定的文件或文件夹 {path}");
+                EventManager.EventLogger.Warn($"注册服装时发生异常：找不到指定的文件或文件夹 {correctpath}");
             }
         }
 

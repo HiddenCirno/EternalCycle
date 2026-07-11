@@ -192,18 +192,19 @@ namespace EternalCycleServer
         /// <param name="path">指定的存放单一物品文件的路径或完整的物品文件路径</param>
         /// <param name="creator">创建者</param>
         /// <param name="modname">Mod名</param>
-        public static void RegisterItem(string path, string creator, string modname)
+        public static void RegisterItem(string modpath, string path, string creator, string modname)
         {
+            var correctpath = System.IO.Path.Combine(modpath, path);
             //文件夹
-            if (Directory.Exists(path))
+            if (Directory.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadItemEvent += (context) =>
                 {
-                    InitItem(path, creator, modname, context);
+                    InitItem(correctpath, creator, modname, context);
                 };
             }
             //单文件
-            else if (File.Exists(path))
+            else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadItemEvent += (context) =>
                 {
@@ -211,7 +212,7 @@ namespace EternalCycleServer
                     {
                         //var item = context.JsonUtil.Deserialize<Dictionary<string, CustomItemTemplate>>(File.ReadAllText(path));
                         //var item = context.ModHelper.GetJsonDataFromFile<Dictionary<string, CustomItemTemplate>>("", path);
-                        var item = Utils.ConvertItemData("", path, context.JsonUtil);
+                        var item = Utils.ConvertItemData(modpath, path, context.JsonUtil);
                         InitItem(item, creator, modname, context);
                     }
                     catch (Exception ex)
@@ -1561,6 +1562,59 @@ namespace EternalCycleServer
                     var pool = modHelper.GetJsonDataFromFile<DrawPoolClass>(folderpath, fileName);
                     DrawPoolData.TryAdd(pool.Name, pool);
                 }
+            }
+        }
+
+        /// <summary>
+        /// 将自定义卡池注册到加载事件
+        /// </summary>
+        /// <param name="modpath">Mod根目录</param>
+        /// <param name="path">指定的存放卡池文件的文件夹路径或单个卡池文件路径</param>
+        public static void RegisterDrawPool(string modpath, string path)
+        {
+            var correctpath = System.IO.Path.Combine(modpath, path);
+
+            // 文件夹加载模式
+            if (Directory.Exists(correctpath))
+            {
+                // 注意：事件名请根据实际情况替换（如 LoadDrawPoolEvent 或统合在其他 LoadEvent 中）
+                EventManager.DataLoadEvent.LoadDrawPoolEvent += (context) =>
+                {
+                    try
+                    {
+                        // 调用你已经写好的文件夹读取器
+                        InitDrawPool(correctpath, context);
+                    }
+                    catch (Exception ex)
+                    {
+                        EventManager.EventLogger.Error($"注册卡池时发生错误：指定的文件夹 {correctpath} 存在问题", ex);
+                    }
+                };
+            }
+            // 单文件加载模式
+            else if (File.Exists(correctpath))
+            {
+                EventManager.DataLoadEvent.LoadDrawPoolEvent += (context) =>
+                {
+                    try
+                    {
+                        // 反序列化为 Dictionary 集合 (配合你已有的 InitDrawPool(Dictionary<string, DrawPoolClass> drawPool) 重载)
+                        var poolData = context.JsonUtil.Deserialize<Dictionary<string, DrawPoolClass>>(File.ReadAllText(correctpath));
+
+                        if (poolData != null)
+                        {
+                            InitDrawPool(poolData);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        EventManager.EventLogger.Error($"注册卡池时发生错误：指定的文件 {correctpath} 存在问题", ex);
+                    }
+                };
+            }
+            else
+            {
+                EventManager.EventLogger.Warn($"注册卡池时发生异常：找不到指定的文件或文件夹 {correctpath}");
             }
         }
         //差个卡池注册

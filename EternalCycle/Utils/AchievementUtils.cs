@@ -3,6 +3,7 @@ using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Routers;
 using SPTarkov.Server.Core.Services;
+using System.IO;
 using static EternalCycleServer.ContextManager;
 using Path = System.IO.Path;
 
@@ -20,70 +21,74 @@ namespace EternalCycleServer
         /// <param name="path">指定的存放成就文件的文件夹路径或单个成就文件(列表)路径</param>
         /// <param name="creator">创建者</param>
         /// <param name="modname">Mod名</param>
-        public static void RegisterAchievement(string path, string respath)
+        public static void RegisterAchievement(string modpath, string path, string respath)
         {
+            var correctpath = System.IO.Path.Combine(modpath, path);
+
             // 文件夹加载模式
-            if (Directory.Exists(path))
+            if (Directory.Exists(correctpath))
             {
                 // 注意：事件名请根据实际情况替换（如 LoadAchievementEvent 或统合在 LoadQuestEvent 中）
                 EventManager.DataLoadEvent.LoadAchievementEvent += (context) =>
                 {
                     try
                     {
-                        InitAchievementData(path, respath, context);
+                        InitAchievementData(modpath, path, respath, context);
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册成就时发生错误：指定的文件夹 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册成就时发生错误：指定的文件夹 {correctpath} 存在问题", ex);
                     }
                 };
             }
             // 单文件加载模式
-            else if (File.Exists(path))
+            else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadAchievementEvent += (context) =>
                 {
                     try
                     {
                         // 反序列化为 List 集合
-                        var achievementData = context.JsonUtil.Deserialize<List<CustomAchievementData>>(File.ReadAllText(path));
+                        var achievementData = context.JsonUtil.Deserialize<List<CustomAchievementData>>(File.ReadAllText(correctpath));
 
                         if (achievementData != null)
                         {
-                            InitAchievementData(achievementData, respath, context);
+                            InitAchievementData(achievementData, modpath, respath, context);
                         }
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册成就时发生错误：指定的文件 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册成就时发生错误：指定的文件 {correctpath} 存在问题", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"注册成就时发生异常：找不到指定的文件或文件夹 {path}");
+                EventManager.EventLogger.Warn($"注册成就时发生异常：找不到指定的文件或文件夹 {correctpath}");
             }
         }
 
         /// <summary>
         /// Init重载 1：处理文件夹路径，遍历解析为单个成就对象
         /// </summary>
-        public static void InitAchievementData(string folderpath, string respath, LoadModContext context)
+        public static void InitAchievementData(string modpath, string folderpath, string respath, LoadModContext context)
         {
-            if (!Directory.Exists(folderpath)) return;
+            var correctpath = System.IO.Path.Combine(modpath, folderpath);
 
-            List<string> files = Directory.GetFiles(folderpath).ToList();
+            if (!Directory.Exists(correctpath)) return;
+
+            List<string> files = Directory.GetFiles(correctpath).ToList();
             if (files.Count > 0)
             {
                 foreach (var file in files)
                 {
                     string fileName = Path.GetFileName(file);
                     // 文件夹模式下，按你的原逻辑，每个文件是一个 CustomAchievementData
-                    var achievement = context.ModHelper.GetJsonDataFromFile<CustomAchievementData>(folderpath, fileName);
+                    var achievement = context.ModHelper.GetJsonDataFromFile<CustomAchievementData>(correctpath, fileName);
 
                     if (achievement != null)
                     {
-                        InitAchievement(achievement, respath, context);
+                        InitAchievement(achievement, modpath, respath, context);
                     }
                 }
             }
@@ -92,7 +97,7 @@ namespace EternalCycleServer
         /// <summary>
         /// Init重载 2：处理单文件反序列化出的成就列表
         /// </summary>
-        public static void InitAchievementData(List<CustomAchievementData> achievementData, string respath, LoadModContext context)
+        public static void InitAchievementData(List<CustomAchievementData> achievementData, string modpath, string respath, LoadModContext context)
         {
             if (achievementData == null || achievementData.Count == 0) return;
 
@@ -100,12 +105,12 @@ namespace EternalCycleServer
             {
                 if (achievement != null)
                 {
-                    InitAchievement(achievement, respath, context);
+                    InitAchievement(achievement, modpath, respath, context);
                 }
             }
         }
 
-        public static void InitAchievement(CustomAchievementData achievementData, string respath, LoadModContext context)
+        public static void InitAchievement(CustomAchievementData achievementData, string modpath, string respath, LoadModContext context)
         {
             var zhCNLang = context.DB.GetLocales().Global["ch"];
             var achievements = context.DB.GetAchievements();
@@ -114,7 +119,8 @@ namespace EternalCycleServer
             achievementPattern.Id = achievementid;
             achievementPattern.ImageUrl = achievementData.ImagePath;
             var imageRouter = ServiceLocator.ServiceProvider.GetService<ImageRouter>();
-            ImageUtils.RegisterAchievementRoute(achievementPattern.ImageUrl, Path.Combine(respath, "res/icon/"), imageRouter);
+            var resourcepath = System.IO.Path.Combine(modpath, respath);
+            ImageUtils.RegisterAchievementRoute(achievementPattern.ImageUrl, resourcepath, imageRouter);
             achievementPattern.Conditions = new AchievementQuestConditionTypes
             {
                 AvailableForFinish = new List<QuestCondition>(),

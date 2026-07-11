@@ -139,40 +139,41 @@ namespace EternalCycleServer
         /// <summary>
         /// 将藏身处自定义注册到加载事件
         /// </summary>
-        public static void RegisterHideoutCustomization(string path)
+        public static void RegisterHideoutCustomization(string modpath, string path)
         {
-            if (Directory.Exists(path))
+            var correctpath = Path.Combine(modpath, path);
+            if (Directory.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadHideoutCustomizationEvent += (context) =>
                 {
                     try
                     {
-                        InitHideoutCustomizationData(path, context);
+                        InitHideoutCustomizationData(correctpath, context);
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册藏身处自定义时发生错误：指定的文件夹 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册藏身处自定义时发生错误：指定的文件夹 {correctpath} 存在问题", ex);
                     }
                 };
             }
-            else if (File.Exists(path))
+            else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadHideoutCustomizationEvent += (context) =>
                 {
                     try
                     {
-                        var customData = context.JsonUtil.Deserialize<Dictionary<string, CustomHideoutCustomization>>(File.ReadAllText(path));
+                        var customData = context.JsonUtil.Deserialize<Dictionary<string, CustomHideoutCustomization>>(File.ReadAllText(correctpath));
                         InitHideoutCustomizationData(customData, context);
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册藏身处自定义时发生错误：指定的文件 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册藏身处自定义时发生错误：指定的文件 {correctpath} 存在问题", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"注册藏身处自定义时发生异常：找不到指定的文件或文件夹 {path}");
+                EventManager.EventLogger.Warn($"注册藏身处自定义时发生异常：找不到指定的文件或文件夹 {correctpath}");
             }
         }
 

@@ -75,6 +75,7 @@ namespace EternalCycleServer
             EventManager.InitLoadGiftCodeEvent(context);
             EventManager.InitLoadAlterBotEvent(context);
             EventManager.InitLoadtemTagEvent(context);
+            EventManager.InitLoadDrawPoolEventEvent(context);
             EventManager.InitLoadTraderAssortEvent(context);
             EventManager.InitLoadQuestDataEvent(context);
             EventManager.InitLoadQuestRewardEvent(context);

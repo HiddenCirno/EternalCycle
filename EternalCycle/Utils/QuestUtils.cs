@@ -5,6 +5,7 @@ using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Routers;
 using SPTarkov.Server.Core.Utils.Json;
+using System.IO;
 using static EternalCycleServer.ContextManager;
 using Path = System.IO.Path;
 
@@ -65,11 +66,11 @@ namespace EternalCycleServer
         /// </summary>
         /// <param name="questData">任务数据</param>
         /// <param name="context">上下文实例</param>
-        public static void InitQuestData(Dictionary<string, CustomQuest> questData, string respath, LoadModContext context)
+        public static void InitQuestData(Dictionary<string, CustomQuest> questData, string modpath, string respath, LoadModContext context)
         {
             foreach (var customquest in questData)
             {
-                InitQuest(customquest.Value, respath, context);
+                InitQuest(customquest.Value, modpath, respath, context);
             }
         }
 
@@ -78,16 +79,18 @@ namespace EternalCycleServer
         /// </summary>
         /// <param name="folderpath">文件夹路径</param>
         /// <param name="context">上下文实例</param>
-        public static void InitQuestData(string folderpath, string respath, LoadModContext context)
+        public static void InitQuestData(string modpath, string folderpath, string respath, LoadModContext context)
         {
-            List<string> files = Directory.GetFiles(folderpath).ToList();
+            var correctpath = System.IO.Path.Combine(modpath, folderpath);
+
+            List<string> files = Directory.GetFiles(correctpath).ToList();
             if (files.Count > 0)
             {
                 foreach (var file in files)
                 {
                     string fileName = Path.GetFileName(file);
-                    var customquest = context.ModHelper.GetJsonDataFromFile<CustomQuest>(folderpath, fileName);
-                    InitQuest(customquest, respath, context);
+                    var customquest = context.ModHelper.GetJsonDataFromFile<CustomQuest>(correctpath, fileName);
+                    InitQuest(customquest, modpath, respath, context);
                 }
             }
         }
@@ -97,7 +100,7 @@ namespace EternalCycleServer
         /// </summary>
         /// <param name="customQuest">自定义任务数据</param>
         /// <param name="context">上下文实例</param>
-        public static void InitQuest(CustomQuest customQuest, string respath, LoadModContext context)
+        public static void InitQuest(CustomQuest customQuest, string modpath, string respath, LoadModContext context)
         {
             var questid = customQuest.QuestId;
             //短缺
@@ -139,7 +142,7 @@ namespace EternalCycleServer
             //临时
             context.DB.GetQuests().TryAdd(questid, questPattern);
             var imageRouter = ServiceLocator.ServiceProvider.GetService<ImageRouter>();
-            ImageUtils.RegisterQuestRoute(questPattern.Image, Path.Combine(respath, "res/questimage/"), imageRouter);
+            ImageUtils.RegisterQuestRoute(questPattern.Image, Path.Combine(modpath, respath), imageRouter);
             //为了完成原版兼容, 奖励定义有任务ID, 必须在任务初始化后添加
             //应该可以重载
             EventManager.DataLoadEvent.LoadQuestDataEvent += (eventContext) =>
@@ -285,47 +288,48 @@ namespace EternalCycleServer
         /// <param name="path">指定的存放任务文件的路径或完整的任务文件路径</param>
         /// <param name="creator">创建者</param>
         /// <param name="modname">Mod名</param>
-        public static void RegisterQuest(string path, string respath)
+        public static void RegisterQuest(string modpath, string path, string respath)
         {
+            var correctpath = System.IO.Path.Combine(modpath, path);
             // 文件夹加载模式
-            if (Directory.Exists(path))
+            if (Directory.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadQuestEvent += (context) =>
                 {
                     try
                     {
                         // 对应调用已有的文件夹重载方法
-                        InitQuestData(path, respath, context);
+                        InitQuestData(modpath, path, respath, context);
                         //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务模块(文件夹)注册成功");
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册任务时发生错误：指定的文件夹 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册任务时发生错误：指定的文件夹 {correctpath} 存在问题", ex);
                     }
                 };
             }
             // 单文件加载模式
-            else if (File.Exists(path))
+            else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadQuestEvent += (context) =>
                 {
                     try
                     {
                         // 反序列化为字典字典，对应已有的 Dictionary 重载方法
-                        var questData = context.JsonUtil.Deserialize<Dictionary<string, CustomQuest>>(File.ReadAllText(path));
-                        InitQuestData(questData, respath, context);
+                        var questData = context.JsonUtil.Deserialize<Dictionary<string, CustomQuest>>(File.ReadAllText(correctpath));
+                        InitQuestData(questData, modpath, respath, context);
 
                         //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务模块(单文件)注册成功");
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册任务时发生错误：指定的文件 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册任务时发生错误：指定的文件 {correctpath} 存在问题", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"注册任务时发生异常：找不到指定的文件或文件夹 {path}");
+                EventManager.EventLogger.Warn($"注册任务时发生异常：找不到指定的文件或文件夹 {correctpath}");
             }
         }
 
@@ -937,47 +941,48 @@ namespace EternalCycleServer
         /// <param name="path">指定路径</param>
         /// <param name="creator">创建者</param>
         /// <param name="modname">Mod名</param>
-        public static void RegisterQuestRewards(string path)
+        public static void RegisterQuestRewards(string modpath, string path)
         {
+            var correctpath = Path.Combine(modpath, path);
             // 文件夹加载模式
-            if (Directory.Exists(path))
+            if (Directory.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadQuestRewardEvent += (context) =>
                 {
                     try
                     {
                         //对应调用已有的文件夹重载方法
-                        InitQuestRewards(path, context);
+                        InitQuestRewards(correctpath, context);
                         //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务奖励模块(文件夹)注册成功");
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册任务奖励时发生错误：指定的文件夹 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册任务奖励时发生错误：指定的文件夹 {correctpath} 存在问题", ex);
                     }
                 };
             }
             // 单文件加载模式
-            else if (File.Exists(path))
+            else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadQuestRewardEvent += (context) =>
                 {
                     try
                     {
                         // 反序列化为 List 集合，对应已有的 List 重载方法
-                        var rewardsData = context.JsonUtil.Deserialize<List<CustomQuestRewardData>>(File.ReadAllText(path));
+                        var rewardsData = context.JsonUtil.Deserialize<List<CustomQuestRewardData>>(File.ReadAllText(correctpath));
                         InitQuestRewards(rewardsData, context);
 
                         //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务奖励模块(单文件)注册成功");
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册任务奖励时发生错误：指定的文件 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册任务奖励时发生错误：指定的文件 {correctpath} 存在问题", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"注册任务奖励时发生异常：找不到指定的文件或文件夹 {path}");
+                EventManager.EventLogger.Warn($"注册任务奖励时发生异常：找不到指定的文件或文件夹 {correctpath}");
             }
         }
 
@@ -1333,47 +1338,48 @@ namespace EternalCycleServer
         /// <param name="path">指定的存放任务逻辑文件的路径或完整的任务逻辑文件路径</param>
         /// <param name="creator">创建者</param>
         /// <param name="modname">Mod名</param>
-        public static void RegisterQuestLogicTree(string path)
+        public static void RegisterQuestLogicTree(string modpath, string path)
         {
+            var correctpath = Path.Combine(modpath, path);
             // 文件夹加载模式
-            if (Directory.Exists(path))
+            if (Directory.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadQuestLogicEvent += (context) =>
                 {
                     try
                     {
                         // 对应调用已有的文件夹重载方法
-                        InitQuestLogicTreeData(path, context);
+                        InitQuestLogicTreeData(correctpath, context);
                         //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务逻辑模块(文件夹)注册成功");
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册任务逻辑时发生错误：指定的文件夹 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册任务逻辑时发生错误：指定的文件夹 {correctpath} 存在问题", ex);
                     }
                 };
             }
             // 单文件加载模式
-            else if (File.Exists(path))
+            else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadQuestLogicEvent += (context) =>
                 {
                     try
                     {
                         // 反序列化为字典字典，对应已有的 Dictionary 重载方法
-                        var logicTreeData = context.JsonUtil.Deserialize<Dictionary<string, QuestLogicTree>>(File.ReadAllText(path));
+                        var logicTreeData = context.JsonUtil.Deserialize<Dictionary<string, QuestLogicTree>>(File.ReadAllText(correctpath));
                         InitQuestLogicTreeData(logicTreeData, context);
 
                         //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务逻辑模块(单文件)注册成功");
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"注册任务逻辑时发生错误：指定的文件 {path} 存在问题", ex);
+                        EventManager.EventLogger.Error($"注册任务逻辑时发生错误：指定的文件 {correctpath} 存在问题", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"注册任务逻辑时发生异常：找不到指定的文件或文件夹 {path}");
+                EventManager.EventLogger.Warn($"注册任务逻辑时发生异常：找不到指定的文件或文件夹 {correctpath}");
             }
         }
 
