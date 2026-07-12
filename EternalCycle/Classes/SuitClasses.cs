@@ -66,4 +66,15 @@ public record CustomSuitRequirements : SuitRequirements
     [JsonPropertyName("requiredTid")]
     [JsonConverter(typeof(MongoIdConverter))]
     public virtual MongoId? RequiredTid { get; set; }
+
+    [JsonPropertyName("itemRequirements")]
+    public virtual List<CustomItemRequirement>? ItemRequirements { get; set; }
+}
+
+public record CustomItemRequirement : ItemRequirement
+{
+
+    [JsonPropertyName("_tpl")]
+    [JsonConverter(typeof(MongoIdConverter))]
+    public virtual MongoId Tpl { get; set; }
 }

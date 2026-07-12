@@ -126,7 +126,32 @@ namespace EternalCycleServer
                     { "榴弹发射器", ERagfairTagsType.榴弹发射器 },
                     { "特殊武器", ERagfairTagsType.特殊武器 },
                     { "近战武器", ERagfairTagsType.近战武器 },
-                    { "投掷物", ERagfairTagsType.投掷物 }
+                    { "投掷物", ERagfairTagsType.投掷物 },
+                    { "其他", ERagfairTagsType.其他 },
+                    { "医疗用品", ERagfairTagsType.医疗用品 },
+                    { "工具", ERagfairTagsType.工具 },
+                    { "建筑材料", ERagfairTagsType.建筑材料 },
+                    { "日常用品", ERagfairTagsType.日常用品 },
+                    { "易燃物品", ERagfairTagsType.易燃物品 },
+                    { "电子产品", ERagfairTagsType.电子产品 },
+                    { "能源物品", ERagfairTagsType.能源物品 },
+                    { "贵重物品", ERagfairTagsType.贵重物品 },
+                    { "耳机", ERagfairTagsType.耳机 },
+                    { "背包", ERagfairTagsType.背包 },
+                    { "防弹衣", ERagfairTagsType.防弹衣 },
+                    { "战术胸挂", ERagfairTagsType.战术胸挂 },
+                    { "子弹", ERagfairTagsType.子弹 },
+                    { "弹药包", ERagfairTagsType.弹药包 },
+                    { "食物", ERagfairTagsType.食物 },
+                    { "饮品", ERagfairTagsType.饮品 },
+                    { "创伤处理", ERagfairTagsType.创伤处理 },
+                    { "急救包", ERagfairTagsType.急救包 },
+                    { "注射器", ERagfairTagsType.注射器 },
+                    { "药品", ERagfairTagsType.药品 },
+                    { "机械钥匙", ERagfairTagsType.机械钥匙 },
+                    { "电子钥匙", ERagfairTagsType.电子钥匙 },
+                    { "情报物品", ERagfairTagsType.情报物品 },
+                    { "特殊装备", ERagfairTagsType.特殊装备 }
                 };
 
             // 2. 精准遍历白名单

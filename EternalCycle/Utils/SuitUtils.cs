@@ -128,33 +128,7 @@ namespace EternalCycleServer
         public static void InitCustomSuit(CustomSuit customSuit, LoadModContext context)
         {
             // 换成 context.DB 调用
-            var suit = new Suit
-            {
-                Id = customSuit.Id,
-                SuiteId = customSuit.SuiteId,
-                Tid = customSuit.Tid,
-                IsActive = customSuit.IsActive,
-                InternalObtain = customSuit.InternalObtain,
-                IsHiddenInPVE = customSuit.IsHiddenInPVE,
-                ExternalObtain = customSuit.ExternalObtain,
-                RelatedBattlePassSeason = customSuit.RelatedBattlePassSeason,
-                Requirements = new SuitRequirements
-                {
-                    LoyaltyLevel = customSuit.Requirements.LoyaltyLevel,
-                    PrestigeLevel = customSuit.Requirements.PrestigeLevel,
-                    ProfileLevel = customSuit.Requirements.ProfileLevel,
-                    Standing = customSuit.Requirements.Standing,
-                    RequiredTid = customSuit.Requirements.RequiredTid,
-                    SkillRequirements = new List<string>(),
-                    AchievementRequirements = new List<string>(),
-                    ItemRequirements = customSuit.Requirements.ItemRequirements,
-                    QuestRequirements = new List<string>()
-                }
-            };
-            foreach (var key in customSuit.Requirements.QuestRequirements)
-            {
-                suit.Requirements.QuestRequirements.Add(Utils.ConvertHashID(key));
-            }
+            var suit = GenerateSuit(customSuit);
             var trader = context.DB.GetTrader(suit.Tid) ?? context.DB.GetTrader(Traders.RAGMAN);
             var suits = trader.Suits;
             suits.Add(suit);
@@ -163,6 +137,13 @@ namespace EternalCycleServer
         public static void InitCustomSuit(CustomSuit customSuit, MongoId traderId, LoadModContext context)
         {
             // 换成 context.DB 调用
+            var suit = GenerateSuit(customSuit);
+            var suits = context.DB.GetTrader(traderId).Suits;
+            suits.Add(suit);
+        }
+
+        public static Suit GenerateSuit(CustomSuit customSuit)
+        {
             var suit = new Suit
             {
                 Id = customSuit.Id,
@@ -182,16 +163,23 @@ namespace EternalCycleServer
                     RequiredTid = customSuit.Requirements.RequiredTid,
                     SkillRequirements = new List<string>(),
                     AchievementRequirements = new List<string>(),
-                    ItemRequirements = customSuit.Requirements.ItemRequirements,
+                    ItemRequirements = new List<ItemRequirement>(),
                     QuestRequirements = new List<string>()
                 }
             };
+            foreach (var item in customSuit.Requirements.ItemRequirements)
+            {
+                suit.Requirements.ItemRequirements.Add(item);
+            }
             foreach (var key in customSuit.Requirements.QuestRequirements)
             {
-                suit.Requirements.QuestRequirements.Add(Utils.ConvertHashID(key));
+                suit.Requirements.QuestRequirements.Add(key.ConvertHashID());
             }
-            var suits = context.DB.GetTrader(traderId).Suits;
-            suits.Add(suit);
+            foreach (var key in customSuit.Requirements.AchievementRequirements)
+            {
+                suit.Requirements.AchievementRequirements.Add(key.ConvertHashID());
+            }
+            return suit;
         }
     }
 }
