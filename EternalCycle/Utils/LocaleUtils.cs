@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Logging;
 using SPTarkov.DI.Annotations;
@@ -25,6 +26,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using static System.Net.Mime.MediaTypeNames;
 using Path = System.IO.Path;
 
 namespace EternalCycleServer
@@ -325,21 +327,8 @@ namespace EternalCycleServer
                     continue;
 
                 // 为该语言添加 transformer（延迟加载时注入翻译数据）
-                lazyLocale.AddTransformer(localeData =>
-                {
-                    foreach (var key in langValue)
-                    {
-                        localeData[key.Key] = key.Value;
-                        if (key.Key.StartsWith("MOD_"))
-                        {
-                            for (var i = 0; i < 30; i++)
-                            {
-                                localeData[$"{key.Key}_00{i}"] = key.Value;
-                            }
-                        }
-                    }
-                    return localeData;
-                });
+
+                InitLocale(lazyLocale, langValue);
             }
         }
 
@@ -357,16 +346,29 @@ namespace EternalCycleServer
                     {
                         continue;
                     }
-                    locales.AddTransformer(language =>
-                    {
-                        foreach (var kvp in text)
-                        {
-                            language[kvp.Key] = kvp.Value;
-                        }
-                        return language;
-                    });
+                    InitLocale(locales, text);
                 }
             }
+        }
+
+        public static void InitLocale(LazyLoad<Dictionary<string, string>> lang, Dictionary<string, string> text)
+        {
+            lang.AddTransformer(language =>
+            {
+                foreach (var kvp in text)
+                {
+                    language[kvp.Key] = kvp.Value;
+                    if (kvp.Key.StartsWith("MOD_"))
+                    {
+                        //Utils.commonLogger.Success("slot locale register");
+                        for (var i = 0; i < 30; i++)
+                        {
+                            language[$"{kvp.Key}_{i:D3}"] = kvp.Value;
+                        }
+                    }
+                }
+                return language;
+            });
         }
 
         public static string GetItemName(MongoId itemid, LocaleService localeService)
