@@ -49,7 +49,7 @@ namespace EternalCycleServer
             }
             else
             {
-                EventManager.EventLogger.Warn($"注册兑换码时发生异常：找不到指定的文件或文件夹 {path}");
+                EventManager.EventLogger.Warn($"注册兑换码时发生异常：找不到指定的文件或文件夹 {correctpath}");
             }
         }
 
