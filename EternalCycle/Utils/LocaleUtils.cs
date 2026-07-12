@@ -329,8 +329,14 @@ namespace EternalCycleServer
                 {
                     foreach (var key in langValue)
                     {
-                        //localeData.TryAdd(key.Key, key.Value);
                         localeData[key.Key] = key.Value;
+                        if (key.Key.StartsWith("MOD_"))
+                        {
+                            for (var i = 0; i < 30; i++)
+                            {
+                                localeData[$"{key.Key}_00{i}"] = key.Value;
+                            }
+                        }
                     }
                     return localeData;
                 });

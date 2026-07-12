@@ -1,5 +1,8 @@
+using HarmonyLib;
+using SPTarkov.Server.Core.Helpers;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common;
+using SPTarkov.Server.Core.Models.Spt.Presets;
 using static EternalCycleServer.ContextManager;
 using Path = System.IO.Path;
 
@@ -103,25 +106,29 @@ namespace EternalCycleServer
             var Preset = context.DB.GetGlobals().ItemPresets;
             var zhCNLang = context.DB.GetLocales().Global["ch"];
             var presetname = preset.Name;
-            var itempresetdata = ItemUtils.ConvertItemListData(preset.PresetData, context); //new List<Item>();
-            var presetid = (MongoId)Utils.ConvertHashID(presetname);
-            var realpresetdata = ItemUtils.RegenerateItemListData(itempresetdata, presetname, context);
+            var presetid = presetname.ConvertHashID();
+            var realpresetdata = preset.PresetData.ConvertItemListData(context).RegenerateItemListData(presetname, context);
+            var itemid = realpresetdata[0].Template;
+            //我真操死你妈了, 塔科夫就是他妈的塔科夫, SPT的白皮猪真是和你妈隔壁BSG的四百投注你妈逼双向奔赴上了, 连你妈都保护不了你保护你妈逼的字典呢
+            
             if (preset.IsBasePreset)
             {
-                Preset.TryAdd(presetid, new Preset
+                var newpreset = new Preset
                 {
                     ChangeWeaponName = preset.ChangePresetName,
-                    Encyclopedia = realpresetdata[0].Template,
+                    Encyclopedia = itemid,
                     Id = presetid,
                     Items = realpresetdata,
                     Name = preset.PresetName,
                     Parent = realpresetdata[0].Id,
                     Type = "Preset"
-                });
+                };
+                Preset.TryAdd(presetid, newpreset);
+
             }
             else
             {
-                Preset.TryAdd(presetid, new Preset
+                var newpreset = new Preset
                 {
                     ChangeWeaponName = preset.ChangePresetName,
                     Id = presetid,
@@ -129,7 +136,8 @@ namespace EternalCycleServer
                     Name = preset.PresetName,
                     Parent = realpresetdata[0].Id,
                     Type = "Preset"
-                });
+                };
+                Preset.TryAdd(presetid, newpreset);
             }
             zhCNLang.AddTransformer(lang =>
             {

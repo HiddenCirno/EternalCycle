@@ -84,6 +84,7 @@ namespace EternalCycleServer
                 var itemHelper = ServiceLocator.ServiceProvider.GetService<ItemHelper>();
                 var cloner = ServiceLocator.ServiceProvider.GetService<ICloner>();
                 var localeService = ServiceLocator.ServiceProvider.GetService<LocaleService>();
+                var presetHelper = ServiceLocator.ServiceProvider.GetService<PresetHelper>();
                 var imageRouter = ServiceLocator.ServiceProvider.GetService<ImageRouter>();
 
                 var logger = new ECLogger("Generator", true);
@@ -94,6 +95,7 @@ namespace EternalCycleServer
                     ConfigServer = configServer,
                     ModHelper = modHelper,
                     Logger = Utils.commonLogger,
+                    PresetHelper = presetHelper,
                     ImageRouter = imageRouter,
                     ItemHelper = itemHelper,
                     Cloner = cloner
@@ -206,6 +208,7 @@ namespace EternalCycleServer
                 var configServer = ServiceLocator.ServiceProvider.GetService<ConfigServer>();
                 var modHelper = ServiceLocator.ServiceProvider.GetService<ModHelper>();
                 var itemHelper = ServiceLocator.ServiceProvider.GetService<ItemHelper>();
+                var presetHelper = ServiceLocator.ServiceProvider.GetService<PresetHelper>();
                 var cloner = ServiceLocator.ServiceProvider.GetService<ICloner>();
                 var localeService = ServiceLocator.ServiceProvider.GetService<LocaleService>();
                 var imageRouter = ServiceLocator.ServiceProvider.GetService<ImageRouter>();
@@ -219,6 +222,7 @@ namespace EternalCycleServer
                     ModHelper = modHelper,
                     Logger = Utils.commonLogger,
                     ImageRouter = imageRouter,
+                    PresetHelper = presetHelper,
                     ItemHelper = itemHelper,
                     Cloner = cloner
                 };

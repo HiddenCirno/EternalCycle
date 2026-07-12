@@ -58,6 +58,7 @@ namespace EternalCycleServer
             var modHelper = ServiceLocator.ServiceProvider.GetService<ModHelper>();
             var jsonUtil = ServiceLocator.ServiceProvider.GetService<JsonUtil>();
             var lootGenerator = ServiceLocator.ServiceProvider.GetService<LootGenerator>();
+            var presetHelper = ServiceLocator.ServiceProvider.GetService<PresetHelper>();
             var imageRouter = ServiceLocator.ServiceProvider.GetService<ImageRouter>();
             var cloner = ServiceLocator.ServiceProvider.GetService<ICloner>();
             var context = new ContextManager.LoadModContext
@@ -68,6 +69,7 @@ namespace EternalCycleServer
                 ModHelper = modHelper,
                 Logger = Utils.commonLogger,
                 ImageRouter = imageRouter,
+                PresetHelper = presetHelper,
                 ItemHelper = itemHelper,
                 Cloner = cloner
             };

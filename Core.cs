@@ -114,6 +114,7 @@ public class EternalCycle(
     ICloner cloner,
     ConfigServer configServer,
     ImageRouter imageRouter,
+    PresetHelper presetHelper,
     RagfairOfferService ragfairOfferService,
     RagfairController ragfairController,
     HandbookHelper handbookHelper
@@ -185,6 +186,7 @@ public class EternalCycle(
             Logger = Utils.commonLogger,
             ImageRouter = imageRouter,
             ItemHelper = itemHelper,
+            PresetHelper = presetHelper,
             Cloner = cloner
         };
         var items = databaseService.GetItems();
@@ -246,6 +248,8 @@ public class EternalCycle(
         //new StartupLogPatch().Enable();
         //new RemoveExpiredItemsFromMessagePatch().Enable();
         new RagfairLoadPatch().Enable();
+        new ProfileHelperPatch().Enable();
+        //new PresetHelperPatch().Enable();   
         new BotGeneratorPatch.BotGeneratorPatch_GenerateBot().Enable();
         void testmethod(LoadModContext prlc)
         {
@@ -265,7 +269,9 @@ public class EternalCycle(
         {
             prlc.Logger.Error("Test");
         }
+
         EventManager.OnBeforeRagfairLoadedEvent += testmethod;
+
         //EventManager.OnAfterRagfairLoadedEvent += testmethod2;
         //EventManager.OnAfterModLoadedEvent += testmethod3;
         //EventManager.OnPreBotGenerateEvent += testmethod4;

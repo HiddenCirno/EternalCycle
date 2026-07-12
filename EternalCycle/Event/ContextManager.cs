@@ -29,6 +29,9 @@ namespace EternalCycleServer
 
             public required ItemHelper ItemHelper { get; init; }
 
+            //ËÀÂè¶«Î÷
+            public required PresetHelper PresetHelper { get; init; }
+
             public required ICloner Cloner { get; init; }
         }
     }
