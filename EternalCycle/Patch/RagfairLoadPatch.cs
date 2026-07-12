@@ -66,6 +66,7 @@ namespace EternalCycleServer
                 ItemHelper = itemHelper,
                 Cloner = cloner
             }; 
+            //干他妈的预设缓存
             var itemPresets = context.DB.GetGlobals().ItemPresets;
             var presetHelperInstance = context.PresetHelper;
             Traverse.Create(presetHelper).Field("DefaultWeaponPresets").SetValue(null);
@@ -107,6 +108,54 @@ namespace EternalCycleServer
             // ==========================================
             // HydratePresetStore 是 public 的，直接调用，完美覆盖！
             presetHelper.HydratePresetStore(newPresetCache);
+            //内置tag
+            var taglist = new ItemTagDictionary();
+
+            // 1. 建立武器专用的“白名单映射字典”
+            // 这里只放你明确需要生成的武器类型，彻底隔绝建筑材料、医疗用品等垃圾数据
+            var targetWeapons = new Dictionary<string, string>
+                {
+                    { "突击卡宾枪", ERagfairTagsType.突击卡宾枪 },
+                    { "突击步枪", ERagfairTagsType.突击步枪 },
+                    { "精确射手步枪", ERagfairTagsType.精确射手步枪 },
+                    { "手枪", ERagfairTagsType.手枪 },
+                    { "霰弹枪", ERagfairTagsType.霰弹枪 },
+                    { "冲锋枪", ERagfairTagsType.冲锋枪 },
+                    { "栓动式步枪", ERagfairTagsType.栓动式步枪 },
+                    { "机枪", ERagfairTagsType.机枪 },
+                    { "榴弹发射器", ERagfairTagsType.榴弹发射器 },
+                    { "特殊武器", ERagfairTagsType.特殊武器 },
+                    { "近战武器", ERagfairTagsType.近战武器 },
+                    { "投掷物", ERagfairTagsType.投掷物 }
+                };
+
+            // 2. 精准遍历白名单
+            foreach (var kvp in targetWeapons)
+            {
+                string tagName = kvp.Key;
+                string tagValue = kvp.Value;
+
+                // 每次必须 new 一个新的对象，避免引用陷阱
+                var newTagSet = new ItemTag();
+
+                // 尝试获取该分类下的所有物品
+                var items = ItemUtils.GetItemListByRagfairTag(tagValue, context);
+
+                // 如果获取不到物品，或者集合为空，直接跳过当前分类
+                if (items == null) continue;
+
+                foreach (var item in items)
+                {
+                    newTagSet.Add(item);
+                }
+
+                // 3. 【终极防呆】只有当集合里确确实实装了东西，才允许塞进最终字典！
+                if (newTagSet.Count > 0)
+                {
+                    taglist[tagName] = newTagSet;
+                }
+            }
+            ItemTagUtils.InitItemTagData(taglist, context);
 
             /*
             EventManager.InitPreDataLoadEvent(context);
