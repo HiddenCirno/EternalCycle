@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Logging;
 using SPTarkov.DI.Annotations;
@@ -169,14 +170,19 @@ namespace EternalCycleServer
             };
             foreach (var item in customSuit.Requirements.ItemRequirements)
             {
+                if (item == null) continue;
                 suit.Requirements.ItemRequirements.Add(item);
             }
             foreach (var key in customSuit.Requirements.QuestRequirements)
             {
+                if (key == null) continue;
                 suit.Requirements.QuestRequirements.Add(key.ConvertHashID());
+                //Utils.commonLogger.Debug("Key: " + key);
+                //Utils.commonLogger.Debug(key.ConvertHashID());
             }
             foreach (var key in customSuit.Requirements.AchievementRequirements)
             {
+                if (key == null) continue;
                 suit.Requirements.AchievementRequirements.Add(key.ConvertHashID());
             }
             return suit;
