@@ -137,38 +137,53 @@ public class EternalCycle(
         var special = ERagfairTagsType.特殊物品;
         var dev = ERagfairTagsType.调试物品;
         var quest = ERagfairTagsType.任务物品;
-        databaseService.GetHandbook().Categories.Add(new HandbookCategory
+        var categories = databaseService.GetHandbook().Categories;
+        if(!categories.Any(x=>x.Id == dim))
         {
-            Id = dim,
-            ParentId = "5b47574386f77428ca22b33e",
-            Icon = "/files/icon/nuclear_star.png",
-            Color = "",
-            Order = "100"
-        });
-        databaseService.GetHandbook().Categories.Add(new HandbookCategory
+            databaseService.GetHandbook().Categories.Add(new HandbookCategory
+            {
+                Id = dim,
+                ParentId = "5b47574386f77428ca22b33e",
+                Icon = "/files/icon/nuclear_star.png",
+                Color = "",
+                Order = "100"
+            });
+        }
+        if (!categories.Any(x => x.Id == special))
         {
-            Id = special,
-            ParentId = null,
-            Icon = "/files/icon/barrier.png",
-            Color = "",
-            Order = "15"
-        });
-        databaseService.GetHandbook().Categories.Add(new HandbookCategory
+
+            databaseService.GetHandbook().Categories.Add(new HandbookCategory
+            {
+                Id = special,
+                ParentId = null,
+                Icon = "/files/icon/barrier.png",
+                Color = "",
+                Order = "15"
+            });
+        }
+        if (!categories.Any(x => x.Id == dev))
         {
-            Id = dev,
-            ParentId = null,
-            Icon = "/files/icon/commandblock.png",
-            Color = "",
-            Order = "16"
-        });
-        databaseService.GetHandbook().Categories.Add(new HandbookCategory
+            databaseService.GetHandbook().Categories.Add(new HandbookCategory
+            {
+                Id = dev,
+                ParentId = null,
+                Icon = "/files/icon/commandblock.png",
+                Color = "",
+                Order = "16"
+            });
+        }
+        if (!categories.Any(x => x.Id == quest))
         {
-            Id = quest,
-            ParentId = null,
-            Icon = "/files/icon/quest.png",
-            Color = "",
-            Order = "17"
-        });
+            databaseService.GetHandbook().Categories.Add(new HandbookCategory
+            {
+                Id = quest,
+                ParentId = null,
+                Icon = "/files/icon/quest.png",
+                Color = "",
+                Order = "17"
+            });
+        }
+
         databaseService.GetLocales().Global["ch"].AddTransformer(delegate (Dictionary<string, string> lang)
         {
             lang[dim] = "次元博物";
