@@ -68,7 +68,8 @@ public static class Init
             try
             {
                 //最前列hookAddBundle方法移除重复警告
-                new AddBundlePatch().Enable();
+                //火神之心兼容
+                //new AddBundlePatch().Enable();
             }
             catch (Exception ex)
             {
@@ -132,66 +133,7 @@ public class EternalCycle(
         //var traderBase = modHelper.GetJsonDataFromFile<TraderBase>(pathToMod, "db/base.json");
         //VulcanUtil.DoAsyncWork(logger);
         // VulcanLog.Access("test", logger);
-        ImageUtils.RegisterFolderImageRoute("/files/icon/", System.IO.Path.Combine(modPath, "res/"), imageRouter);
-        var dim = ERagfairTagsType.次元博物;
-        var special = ERagfairTagsType.特殊物品;
-        var dev = ERagfairTagsType.调试物品;
-        var quest = ERagfairTagsType.任务物品;
-        var categories = databaseService.GetHandbook().Categories;
-        if(!categories.Any(x=>x.Id == dim))
-        {
-            databaseService.GetHandbook().Categories.Add(new HandbookCategory
-            {
-                Id = dim,
-                ParentId = "5b47574386f77428ca22b33e",
-                Icon = "/files/icon/nuclear_star.png",
-                Color = "",
-                Order = "100"
-            });
-        }
-        if (!categories.Any(x => x.Id == special))
-        {
 
-            databaseService.GetHandbook().Categories.Add(new HandbookCategory
-            {
-                Id = special,
-                ParentId = null,
-                Icon = "/files/icon/barrier.png",
-                Color = "",
-                Order = "15"
-            });
-        }
-        if (!categories.Any(x => x.Id == dev))
-        {
-            databaseService.GetHandbook().Categories.Add(new HandbookCategory
-            {
-                Id = dev,
-                ParentId = null,
-                Icon = "/files/icon/commandblock.png",
-                Color = "",
-                Order = "16"
-            });
-        }
-        if (!categories.Any(x => x.Id == quest))
-        {
-            databaseService.GetHandbook().Categories.Add(new HandbookCategory
-            {
-                Id = quest,
-                ParentId = null,
-                Icon = "/files/icon/quest.png",
-                Color = "",
-                Order = "17"
-            });
-        }
-
-        databaseService.GetLocales().Global["ch"].AddTransformer(delegate (Dictionary<string, string> lang)
-        {
-            lang[dim] = "次元博物";
-            lang[special] = "特殊物品";
-            lang[dev] = "技术物品";
-            lang[quest] = "任务物品";
-            return lang;
-        });
         var context = new LoadModContext
         {
             DB = databaseService,
@@ -204,49 +146,114 @@ public class EternalCycle(
             PresetHelper = presetHelper,
             Cloner = cloner
         };
-        var items = databaseService.GetItems();
-        foreach (var item in items)
+        //火神之心兼容层
+        if (false)
         {
-            var handbooks = databaseService.GetHandbook().Items;
-            var handbook = handbooks.FirstOrDefault(x => x.Id == item.Value.Id);
-            if (item.Value.Type != "Node" && item.Value.Properties != null)
+            ImageUtils.RegisterFolderImageRoute("/files/icon/", System.IO.Path.Combine(modPath, "res/"), imageRouter);
+            var dim = ERagfairTagsType.次元博物;
+            var special = ERagfairTagsType.特殊物品;
+            var dev = ERagfairTagsType.调试物品;
+            var quest = ERagfairTagsType.任务物品;
+            var categories = databaseService.GetHandbook().Categories;
+            if (!categories.Any(x => x.Id == dim))
             {
-                if (item.Value.Properties.Width >= 10)
+                databaseService.GetHandbook().Categories.Add(new HandbookCategory
                 {
-                    item.Value.Properties.Width = 2;
-                }
-                if (item.Value.Properties.Height >= 10)
+                    Id = dim,
+                    ParentId = "5b47574386f77428ca22b33e",
+                    Icon = "/files/icon/nuclear_star.png",
+                    Color = "",
+                    Order = "100"
+                });
+            }
+            if (!categories.Any(x => x.Id == special))
+            {
+
+                databaseService.GetHandbook().Categories.Add(new HandbookCategory
                 {
-                    item.Value.Properties.Height = 2;
-                }
-                if ((bool)item.Value.Properties.QuestItem)
+                    Id = special,
+                    ParentId = null,
+                    Icon = "/files/icon/barrier.png",
+                    Color = "",
+                    Order = "15"
+                });
+            }
+            if (!categories.Any(x => x.Id == dev))
+            {
+                databaseService.GetHandbook().Categories.Add(new HandbookCategory
                 {
-                    if (handbook != null)
+                    Id = dev,
+                    ParentId = null,
+                    Icon = "/files/icon/commandblock.png",
+                    Color = "",
+                    Order = "16"
+                });
+            }
+            if (!categories.Any(x => x.Id == quest))
+            {
+                databaseService.GetHandbook().Categories.Add(new HandbookCategory
+                {
+                    Id = quest,
+                    ParentId = null,
+                    Icon = "/files/icon/quest.png",
+                    Color = "",
+                    Order = "17"
+                });
+            }
+
+            databaseService.GetLocales().Global["ch"].AddTransformer(delegate (Dictionary<string, string> lang)
+            {
+                lang[dim] = "次元博物";
+                lang[special] = "特殊物品";
+                lang[dev] = "技术物品";
+                lang[quest] = "任务物品";
+                return lang;
+            });
+
+            var items = databaseService.GetItems();
+            foreach (var item in items)
+            {
+                var handbooks = databaseService.GetHandbook().Items;
+                var handbook = handbooks.FirstOrDefault(x => x.Id == item.Value.Id);
+                if (item.Value.Type != "Node" && item.Value.Properties != null)
+                {
+                    if (item.Value.Properties.Width >= 10)
                     {
-                        handbook.ParentId = quest;
-                        ItemUtils.AddBlackList(item.Value.Id, 31, context);
+                        item.Value.Properties.Width = 2;
                     }
-                    else
+                    if (item.Value.Properties.Height >= 10)
                     {
+                        item.Value.Properties.Height = 2;
+                    }
+                    if ((bool)item.Value.Properties.QuestItem)
+                    {
+                        if (handbook != null)
+                        {
+                            handbook.ParentId = quest;
+                            ItemUtils.AddBlackList(item.Value.Id, 31, context);
+                        }
+                        else
+                        {
+                            handbooks.Add(new HandbookItem
+                            {
+                                Id = item.Value.Id,
+                                ParentId = quest,
+                                Price = 20000
+                            });
+                            ItemUtils.AddBlackList(item.Value.Id, 31, context);
+                        }
+                    }
+                    else if (handbook == null)
+                    {
+                        item.Value.Properties.CanSellOnRagfair = false;
                         handbooks.Add(new HandbookItem
                         {
                             Id = item.Value.Id,
-                            ParentId = quest,
+                            ParentId = dev,
                             Price = 20000
                         });
-                        ItemUtils.AddBlackList(item.Value.Id, 31, context);
+                        ItemUtils.AddBlackList(item.Value.Id, 64, context);
                     }
-                }
-                else if (handbook == null)
-                {
-                    item.Value.Properties.CanSellOnRagfair = false;
-                    handbooks.Add(new HandbookItem
-                    {
-                        Id = item.Value.Id,
-                        ParentId = dev,
-                        Price = 20000
-                    });
-                    ItemUtils.AddBlackList(item.Value.Id, 64, context);
                 }
             }
         }
@@ -258,14 +265,14 @@ public class EternalCycle(
         {
             //new ReplaceFleaBasePricesPatch().Enable();
         }
-        new OpenRandomLootContainerPatch().Enable();
+        //new OpenRandomLootContainerPatch().Enable();
 
         //new StartupLogPatch().Enable();
         //new RemoveExpiredItemsFromMessagePatch().Enable();
         new RagfairLoadPatch().Enable();
         new ProfileHelperPatch().Enable();
         //new PresetHelperPatch().Enable();   
-        new BotGeneratorPatch.BotGeneratorPatch_GenerateBot().Enable();
+        //new BotGeneratorPatch.BotGeneratorPatch_GenerateBot().Enable();
         void testmethod(LoadModContext prlc)
         {
             var item = prlc.DB.GetItems();

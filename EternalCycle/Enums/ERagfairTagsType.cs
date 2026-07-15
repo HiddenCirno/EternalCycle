@@ -88,7 +88,7 @@ public static class ERagfairTagsType
     public static string 近战武器 = "5b5f7a0886f77409407a7f96";
     public static string 投掷物 = "5b5f7a2386f774093f2ed3c4";
     public static string 次元博物 = "66f1d60097d24f49a043bbd1";
-    public static string 特殊物品 = Utils.ConvertHashID("VulcanSpecialItem");
-    public static string 调试物品 = Utils.ConvertHashID("VulcanDevItem");
-    public static string 任务物品 = Utils.ConvertHashID("VulcanQuestItem");
+    public static string 特殊物品 = "VulcanSpecialItem".ConvertHashID();
+    public static string 调试物品 = "VulcanDevItem".ConvertHashID();
+    public static string 任务物品 = "VulcanQuestItem".ConvertHashID();
 }
