@@ -1431,7 +1431,7 @@ namespace EternalCycleServer
                 var questid = Utils.ConvertHashID(quest.Key);
                 InitCompleteQuestDataConditions(questTarget.Conditions.AvailableForStart, new CompleteQuestData
                 {
-                    Id = Utils.ConvertHashID($"{questLogicTree.Id}_PreQuest_{quest.Key}"),
+                    Id = $"{questLogicTree.Id}_PreQuest_{quest.Key}".ConvertHashID(),
                     QuestId = questid,
                     QuestStatus = quest.Value.PreQuestState,
                     AvailableAfterTime = quest.Value.AvailableAfterTime,
@@ -1444,7 +1444,7 @@ namespace EternalCycleServer
                 var traderid = Utils.ConvertHashID(trader.Key);
                 InitReachTraderStandingDataConditions(questTarget.Conditions.AvailableForStart, new ReachTraderStandingData
                 {
-                    Id = Utils.ConvertHashID($"{questLogicTree.Id}_PreTraderStanding_{trader.Key}"),
+                    Id = $"{questLogicTree.Id}_PreTraderStanding_{trader.Key}".ConvertHashID(),
                     TraderId = traderid,
                     TrustStanding = trader.Value
                 },
@@ -1455,7 +1455,7 @@ namespace EternalCycleServer
                 var traderid = Utils.ConvertHashID(trader.Key);
                 InitReachTraderTrustLevelDataConditions(questTarget.Conditions.AvailableForStart, new ReachTraderTrustLevelData
                 {
-                    Id = Utils.ConvertHashID($"{questLogicTree.Id}_PreTraderTrustLevel_{trader.Key}"),
+                    Id = $"{questLogicTree.Id}_PreTraderTrustLevel_{trader.Key}".ConvertHashID(),
                     TraderId = traderid,
                     TrustLevel = trader.Value
                 },
@@ -1465,7 +1465,7 @@ namespace EternalCycleServer
             {
                 InitReachLevelDataConditions(questTarget.Conditions.AvailableForStart, new ReachLevelData
                 {
-                    Id = Utils.ConvertHashID($"{questLogicTree.Id}_PrePlayerLevel"),
+                    Id = $"{questLogicTree.Id}_PrePlayerLevel".ConvertHashID(),
                     Count = questLogicTree.PrePlayerLevel
                 },
                 context);
@@ -1474,7 +1474,7 @@ namespace EternalCycleServer
             {
                 InitReachPrestigeLevelDataConditions(questTarget.Conditions.AvailableForStart, new ReachPrestigeLevelData
                 {
-                    Id = Utils.ConvertHashID($"{questLogicTree.Id}_PrePlayerPrestigeLevel"),
+                    Id = $"{questLogicTree.Id}_PrePlayerPrestigeLevel".ConvertHashID(),
                     CompareType = questLogicTree.PrestigeCompareType ?? 3,
                     Level = (int)questLogicTree.PrePlayerPrestigeLevel
                 },
