@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using MonoMod.Core.Platforms;
 using SPTarkov.DI.Annotations;
@@ -28,8 +29,10 @@ using SPTarkov.Server.Core.Services.Mod;
 using SPTarkov.Server.Core.Utils;
 using SPTarkov.Server.Core.Utils.Cloners;
 using SPTarkov.Server.Core.Utils.Json.Converters;
+using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -48,7 +51,7 @@ public record ModMetadata : AbstractModMetadata
     public override List<string>? Incompatibilities { get; init; }
     public override Dictionary<string, SemanticVersioning.Range>? ModDependencies { get; init; }
     public override string? Url { get; init; } = "https://github.com/sp-tarkov/server-mod-examples";
-    public override bool? IsBundleMod { get; init; } = false;
+    public override bool? IsBundleMod { get; init; } = true;
     public override string? License { get; init; } = "MIT";
 }
 public static class Init
@@ -69,7 +72,7 @@ public static class Init
             {
                 //最前列hookAddBundle方法移除重复警告
                 //火神之心兼容
-                //new AddBundlePatch().Enable();
+                new AddBundlePatch().Enable();
             }
             catch (Exception ex)
             {
@@ -127,7 +130,7 @@ public class EternalCycle(
     {
         BaseInteractionRequestDataConverter.RegisterModDataHandler("SyncStashExtend", (jsonText) =>
         {
-            return jsonUtil.Deserialize<ProfileStashSyncExtendRequestData>(jsonText);
+            return jsonUtil.Deserialize<ProfileStashSyncRequestData>(jsonText);
         });
 
         //var traderBase = modHelper.GetJsonDataFromFile<TraderBase>(pathToMod, "db/base.json");
@@ -147,8 +150,6 @@ public class EternalCycle(
             Cloner = cloner
         };
         //火神之心兼容层
-        if (false)
-        {
             ImageUtils.RegisterFolderImageRoute("/files/icon/", System.IO.Path.Combine(modPath, "res/"), imageRouter);
             var dim = ERagfairTagsType.次元博物;
             var special = ERagfairTagsType.特殊物品;
@@ -256,7 +257,6 @@ public class EternalCycle(
                     }
                 }
             }
-        }
         //LootUtils.GenerateStaticLootMap(databaseService, logger);
         //ItemUtils.GetItem("5e42c81886f7742a01529f57", databaseService).Properties.MaximumNumberOfUsage = 0; //完全可以
         //databaseService.GetTraders().Values[IEnumerable<Trader>.]
@@ -265,7 +265,7 @@ public class EternalCycle(
         {
             //new ReplaceFleaBasePricesPatch().Enable();
         }
-        //new OpenRandomLootContainerPatch().Enable();
+        new OpenRandomLootContainerPatch().Enable();
 
         //new StartupLogPatch().Enable();
         //new RemoveExpiredItemsFromMessagePatch().Enable();
@@ -293,6 +293,49 @@ public class EternalCycle(
         }
 
         EventManager.OnBeforeRagfairLoadedEvent += testmethod;
+
+        string pubkey = "-----BEGIN PUBLIC KEY-----MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEApwO5ENxGmgxJLCld9mdzziVmeOvmBeno9vMxJDZ1hZqszSwmJnGx/QZDBefd5swguXvRBVjYcrM5CQ7ZDmr0JsBlOpFizrLKdM91l10rxnPkWGVYU1no6usVagoTlyZx8NyERSrOLsM05s49MbOSwdc5v4X5NPbU3ZSfAK7EOTEJUsikMLZL4ZpVWiYqiIZdix61Sq5W2Dj1mXHHAkNTfAAgjIWN4iil/Y9VGfG4j8A/XSOkHS29kp4KT+BuF+gz8/hf9w6jFmQ4lBFOZeBi1ewp8c/yWsMnMPntFeHeEmhryD8O1h8WPEaFWZ3e85aYElclvYkUY2WMDIstV8neT+OXfcmBqg7Nz3kNA9uMj64k/cYft5WjZGEHb+qK0ED/ofzAJ9Bd4EoV1rJIeZKU0bvoCy2nXJMcCJOqPBQUwHCdqaDHsSqFm1T1c7GUXa2sVXIUQWgDeUXval2DQ19j3TC3YeKAJUUZ5PWnULVusR1prpVhsdiAVPHVD5roKPSA7ywk0UZc7FJMlRPdFoCYMduUmbrdeRu2R2z+UARrQKrsBzDxzueXXJ8rKer+9FN6GT2VxLTNcgo4MZM2FVDctha4n+lij/ZEWRKorQ43CQQn1iuE1CQhlgRg7teo0xDUz5OEANlFIQYo2FubAsrLUqzbmYWOHz/IKFsUuS+Tp9MCAwEAAQ==-----END PUBLIC KEY-----";
+
+        EventManager.DataLoadEvent.LoadItemEvent += (context) =>
+        {
+            try
+            {
+                var item = Utils.ConvertItemData(FileDecodeUtils.DecodeToRawJson(modPath, "永恒之环.ecf", "永恒之环.sig", "eternalcycle.sig", pubkey, "201633e196f836f185ef4c1ded38ea5181064a08d946099df4b4d4362d370cb8", "da91b793b230778064740ea9a953cbce"), context.JsonUtil);
+                ItemUtils.InitItem(item, "<color=#5BCEFA>永恒<color=#F5A9B8>时序</color></color>", "<color=#5BCEFA>永恒<color=#F5A9B8>时序</color></color>", context);
+            }
+            catch (Exception ex)
+            {
+            }
+        }; 
+        EventManager.DataLoadEvent.FixItemCompatibleEvent += (context) =>
+        {
+            try
+            {
+                var 永恒之环 = "永恒之环".ConvertHashID();
+                var items = context.DB.GetItems();
+                items["55d7217a4bdc2d86028b456d"]
+                    .Properties.Slots
+                    .First(x => x.Name == "ArmBand")
+                    .Properties.Filters
+                    .First()
+                    .Filter
+                    .Add(永恒之环);
+                foreach (var item in items.Values)
+                {
+                    if (item.Id == 永恒之环) continue;
+                    foreach (var filter in item.Properties?.Grids?
+                         .SelectMany(x => x.Properties.Filters ?? Enumerable.Empty<GridFilter>())
+                         ?? Enumerable.Empty<GridFilter>())
+                    {
+                        filter?.ExcludedFilter?.Add(永恒之环);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+        };
+
 
         //EventManager.OnAfterRagfairLoadedEvent += testmethod2;
         //EventManager.OnAfterModLoadedEvent += testmethod3;
@@ -327,7 +370,12 @@ public class EternalCycle(
         return Task.CompletedTask;
     }
 
-    public record ProfileStashSyncExtendRequestData : BaseInteractionRequestData
+    public record EternalCycleCloneRequestData : BaseInteractionRequestData
+    {
+        [JsonPropertyName("itemData")]
+        public Item[] StashData { get; set; }
+    }
+    public record ProfileStashSyncRequestData : BaseInteractionRequestData
     {
         [JsonPropertyName("stashData")]
         public Item[] StashData { get; set; }
@@ -352,7 +400,7 @@ public class EternalCycle(
             MongoId sessionID,
             ItemEventRouterResponse output)
         {
-            if (url == "SyncStashExtend" && body is ProfileStashSyncExtendRequestData requestBody)
+            if (url == "SyncStashExtend" && body is ProfileStashSyncRequestData requestBody)
             {
                 if (requestBody.StashData != null && requestBody.StashData.Length > 0)
                 {

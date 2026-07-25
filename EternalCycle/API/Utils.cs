@@ -154,6 +154,29 @@ namespace EternalCycleServer
             }
             return dict;
         }
+
+        public static Dictionary<string, CustomItemTemplate> ConvertItemData(string rawFile, JsonUtil jsonutil)
+        {
+            JsonNode rootNode = JsonNode.Parse(rawFile, null, convertOptions);
+            var dict = new Dictionary<string, CustomItemTemplate>();
+            foreach (var item in rootNode.AsObject())
+            {
+                //var files = item.Value.AsValue().ToString();
+                //草率了, 这里不应该用泛型定义方法返回值的....
+                //就这样吧, 反正本来也是给自定义物品用的
+                //再改还得改其他mod, 太麻烦了
+                //论屎山是怎么形成的.jpg
+                //....
+                //坏了, 改的话应该怎么改来着?
+                //完了
+                //那还是继续用吧
+                //哦, 我懂了
+                //在改了和算了之间选择了懂了
+                dict[item.Key] = ResolveJsonNode<CustomItemTemplate>(item.Value, jsonutil);
+            }
+            return dict;
+        }
+
         /// <summary>
         /// 转换物品数据（直接从JSON字符串加载，递归处理内部引用ID）
         /// </summary>

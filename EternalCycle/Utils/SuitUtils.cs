@@ -157,33 +157,40 @@ namespace EternalCycleServer
                 RelatedBattlePassSeason = customSuit.RelatedBattlePassSeason,
                 Requirements = new SuitRequirements
                 {
-                    LoyaltyLevel = customSuit.Requirements.LoyaltyLevel,
-                    PrestigeLevel = customSuit.Requirements.PrestigeLevel,
-                    ProfileLevel = customSuit.Requirements.ProfileLevel,
-                    Standing = customSuit.Requirements.Standing,
-                    RequiredTid = customSuit.Requirements.RequiredTid,
+                    LoyaltyLevel = customSuit.Requirements?.LoyaltyLevel ?? 0,
+                    PrestigeLevel = customSuit.Requirements?.PrestigeLevel ?? 0,
+                    ProfileLevel = customSuit.Requirements?.ProfileLevel ?? 0,
+                    Standing = customSuit.Requirements?.Standing ?? 0,
+                    RequiredTid = customSuit.Requirements?.RequiredTid ?? Traders.RAGMAN,
                     SkillRequirements = new List<string>(),
                     AchievementRequirements = new List<string>(),
                     ItemRequirements = new List<ItemRequirement>(),
                     QuestRequirements = new List<string>()
                 }
             };
-            foreach (var item in customSuit.Requirements.ItemRequirements)
+            if (customSuit.Requirements.ItemRequirements != null)
             {
-                if (item == null) continue;
-                suit.Requirements.ItemRequirements.Add(item);
+                foreach (var item in customSuit.Requirements.ItemRequirements)
+                {
+                    if (item == null) continue;
+                    suit.Requirements.ItemRequirements.Add(item);
+                }
             }
-            foreach (var key in customSuit.Requirements.QuestRequirements)
+            if (customSuit.Requirements.QuestRequirements != null)
             {
-                if (key == null) continue;
-                suit.Requirements.QuestRequirements.Add(key.ConvertHashID());
-                //Utils.commonLogger.Debug("Key: " + key);
-                //Utils.commonLogger.Debug(key.ConvertHashID());
+                foreach (var key in customSuit.Requirements.QuestRequirements)
+                {
+                    if (key == null) continue;
+                    suit.Requirements.QuestRequirements.Add(key.ConvertHashID());
+                }
             }
-            foreach (var key in customSuit.Requirements.AchievementRequirements)
+            if (customSuit.Requirements.AchievementRequirements != null)
             {
-                if (key == null) continue;
-                suit.Requirements.AchievementRequirements.Add(key.ConvertHashID());
+                foreach (var key in customSuit.Requirements.AchievementRequirements)
+                {
+                    if (key == null) continue;
+                    suit.Requirements.AchievementRequirements.Add(key.ConvertHashID());
+                }
             }
             return suit;
         }
