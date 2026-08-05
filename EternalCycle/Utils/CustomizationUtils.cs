@@ -98,7 +98,7 @@ namespace EternalCycleServer
 
             if (customCustomizationItem.Properties.Prefab != null && customCustomizationItem.Properties.IsVoice == true)
             {
-                var storage = context.DB.GetTables().Templates.CustomisationStorage;
+                var storage = context.DB.GetTemplates().CustomisationStorage;
                 storage.Add(new CustomisationStorage
                 {
                     Id = customid,

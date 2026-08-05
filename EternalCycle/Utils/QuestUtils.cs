@@ -141,8 +141,7 @@ namespace EternalCycleServer
             //InitQuestConditions(questPattern.Conditions.Fail, customQuest.QuestConditions.QuestFailedData, context);
             //临时
             context.DB.GetQuests().TryAdd(questid, questPattern);
-            var imageRouter = ServiceLocator.ServiceProvider.GetService<ImageRouter>();
-            ImageUtils.RegisterQuestRoute(questPattern.Image, Path.Combine(modpath, respath), imageRouter);
+            ImageUtils.RegisterQuestRoute(questPattern.Image, Path.Combine(modpath, respath), context.ImageRouter);
             //为了完成原版兼容, 奖励定义有任务ID, 必须在任务初始化后添加
             //应该可以重载
             EventManager.DataLoadEvent.LoadQuestDataEvent += (eventContext) =>
@@ -1143,7 +1142,7 @@ namespace EternalCycleServer
                         }
                     });
                     copyreward.Target = copyreward.Items[0].Id;
-                    copyreward.TraderId = (int)recipeUnlockRewardData.RecipeData.AreaType;
+                    copyreward.TraderId = new StringOrInt(null, (int)recipeUnlockRewardData.RecipeData.AreaType);
                     copyreward.LoyaltyLevel = (int)recipeUnlockRewardData.RecipeData.AreaLevel;
                     target[queststage].Add(copyreward);
                     EventManager.DataLoadEvent.LoadLockedRecipeEvent += (eventContext) =>
@@ -1178,7 +1177,7 @@ namespace EternalCycleServer
                         copyreward.Items.Add(item);
                     }
                     copyreward.Target = copyreward.Items[0].Id;
-                    copyreward.TraderId = traderid;
+                    copyreward.TraderId = new StringOrInt(traderid, null);
                     copyreward.LoyaltyLevel = assortUnlockRewardData.AssortData.TrustLevel;
                     target[queststage].Add(copyreward);
                     EventManager.DataLoadEvent.LoadLockedTraderAssortEvent += (eventContext) =>

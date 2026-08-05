@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>VulcanCore</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -9,7 +9,7 @@
 	  <NoWarn>CS8622</NoWarn>
     <Version>0.0.1</Version>
     <!-- The two lines below will set the output path for the binaries -->
-    <OutputPath>I:\TKF\SPT\user\mods\$(ProjectName)\$(AssemblyName)\</OutputPath>
+    <OutputPath>I:\TKF\SPT_Runtime\user\mods\$(ProjectName)\$(AssemblyName)\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
@@ -24,10 +24,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="SPTarkov.Common" Version="4.0.13" />
-    <PackageReference Include="SPTarkov.DI" Version="4.0.13" />
-    <PackageReference Include="SPTarkov.Reflection" Version="4.0.13" />
-    <PackageReference Include="SPTarkov.Server.Core" Version="4.0.13" />
+    <PackageReference Include="SPTarkov.Common" Version="4.1.1" />
+    <PackageReference Include="SPTarkov.DI" Version="4.1.1" />
+    <PackageReference Include="SPTarkov.Reflection" Version="4.1.1" />
+    <PackageReference Include="SPTarkov.Server.Core" Version="4.1.1" />
   </ItemGroup>
 
   <ItemGroup>

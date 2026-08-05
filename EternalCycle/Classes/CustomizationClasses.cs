@@ -1,6 +1,5 @@
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
-using SPTarkov.Server.Core.Models.Logging;
 using SPTarkov.Server.Core.Models.Spt.Mod;
 using SPTarkov.Server.Core.Models.Utils;
 using SPTarkov.Server.Core.Services;
@@ -35,26 +34,23 @@ public class CustomCustomizationProperties : CustomizationProperties
 
     [JsonPropertyName("Body")]
     [JsonConverter(typeof(MongoIdConverter))]
-    public override MongoId? Body { get; set; }
+    public new MongoId? Body { get; set; }
 
     [JsonPropertyName("Feet")]
     [JsonConverter(typeof(MongoIdConverter))]
-    public override MongoId? Feet { get; set; }
+    public new MongoId? Feet { get; set; }
 
     [JsonPropertyName("Hands")]
     [JsonConverter(typeof(MongoIdConverter))]
-    public override MongoId? Hands { get; set; }
+    public new MongoId? Hands { get; set; }
 
     [JsonPropertyName("BearTemplateId")]
     [JsonConverter(typeof(MongoIdConverter))]
-    public override MongoId? BearTemplateId { get; set; }
+    public new MongoId? BearTemplateId { get; set; }
 
     [JsonPropertyName("UsecTemplateId")]
     [JsonConverter(typeof(MongoIdConverter))]
-    public override MongoId? UsecTemplateId { get; set; }
-
-    [JsonPropertyName("HideGarbage")]
-    public override bool? HideGarbage { get; set; }
+    public new MongoId? UsecTemplateId { get; set; }
 
     [JsonPropertyName("IsVoice")]
     public bool? IsVoice { get; set; }

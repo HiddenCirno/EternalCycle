@@ -1,44 +1,81 @@
+using HarmonyLib;
+using Microsoft.AspNetCore.Components;
+using SPTarkov.DI.Annotations;
+using SPTarkov.Reflection.Patching;
+using SPTarkov.Server.Core.Helpers.Items;
+using SPTarkov.Server.Core.Helpers.Server;
+using SPTarkov.Server.Core.Models.Spt.Tables;
+using SPTarkov.Server.Core.Routers;
+using SPTarkov.Server.Core.Servers;
+using SPTarkov.Server.Core.Services.Hosted;
+using SPTarkov.Server.Core.Services.Locales;
+using SPTarkov.Server.Core.Utils;
+using SPTarkov.Server.Core.Utils.Cloners;
 using System;
 using System.Reflection;
-using HarmonyLib;
-using SPTarkov.Reflection.Patching;
+using static EternalCycleServer.ContextManager;
 
 namespace EternalCycleServer
 {
+    [Injectable]
     public class StartupLogPatch : AbstractPatch
     {
+        private static TemplateTable _templateTable = default!;
+        private static LocaleTable _localeTable = default!;
+        private static GlobalTable _globalTable = default!;
+        private static TradersTable _tradersTable = default!;
+        private static HideoutTable _hideoutTable = default!;
+        private static LocationTable _locationTable = default!;
+        private static JsonUtil _jsonUtil = default!;
+        private static ConfigServer _configServer = default!;
+        private static ModHelper _modHelper = default!;
+        private static ItemHelper _itemHelper = default!;
+        private static LocaleService _localeService = default!;
+        private static ICloner _cloner = default!;
+        private static PresetHelper _presetHelper = default!;
+        private static ImageRouter _imageRouter = default!;
+        private static ECLogger _logger = default!;
+        public StartupLogPatch(
+        TemplateTable templateTable,
+        LocaleTable localeTable,
+        GlobalTable globalTable,
+        TradersTable tradersTable,
+        HideoutTable hideoutTable,
+        LocationTable locationTable,
+        JsonUtil jsonUtil,
+        ConfigServer configServer,
+        ModHelper modHelper,
+        ItemHelper itemHelper,
+        LocaleService localeService,
+        ICloner cloner,
+        PresetHelper presetHelper,
+        ImageRouter imageRouter)
+        {
+            _templateTable = templateTable;
+            _localeTable = localeTable;
+            _globalTable = globalTable;
+            _tradersTable = tradersTable;
+            _hideoutTable = hideoutTable;
+            _locationTable = locationTable;
+            _jsonUtil = jsonUtil;
+            _configServer = configServer;
+            _modHelper = modHelper;
+            _itemHelper = itemHelper;
+            _localeService = localeService;
+            _cloner = cloner;
+            _presetHelper = presetHelper;
+            _imageRouter = imageRouter;
+            _logger = new ECLogger("SPTStartupHostedService", true);
+        }
         protected override MethodBase GetTargetMethod()
         {
-            // 1. 通过字符串反射获取编译器看不见的类型
-            // 格式："完整命名空间.类名, 所在程序集(不需要.dll后缀)"
-            Type targetType = Type.GetType("SPTarkov.Server.Core.Services.Hosted.SPTStartupHostedService");
-
-            // 防御性编程：如果当前上下文找不到，就去遍历所有已加载的程序集强行搜
-            if (targetType == null)
-            {
-                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-                {
-                    if (assembly.GetName().Name == "SPTarkov.Server.Core")
-                    {
-                        targetType = assembly.GetType("SPTarkov.Server.Core.Services.Hosted.SPTStartupHostedService");
-                        break;
-                    }
-                }
-            }
-
-            if (targetType == null)
-            {
-                // 找不到类直接抛出异常，方便排错
-                throw new Exception("StartupLogPatch failed: Cannot find SPTStartupHostedService.");
-            }
-
-            // 2. 返回我们要拦截的私有方法 GetRandomisedStartMessage
-            return targetType.GetMethod("GetRandomisedStartMessage", BindingFlags.NonPublic | BindingFlags.Instance);
+            return typeof(SPTStartupHostedService).GetMethod("GetRandomisedStartMessage", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
         }
 
         [PatchPostfix]
         public static void Postfix(ref string __result)
         {
+
             // 这是目标方法原版执行完、刚刚准备把返回的文字丢给 logger.Success 打印时的瞬间
             Utils.commonLogger.Info("123123123");
             Console.WriteLine("======================================");

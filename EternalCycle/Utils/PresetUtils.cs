@@ -113,7 +113,7 @@ namespace EternalCycleServer
             
             if (preset.IsBasePreset)
             {
-                var newpreset = new Preset
+                var newpreset = new SPTarkov.Server.Core.Models.Spt.Tables.Preset
                 {
                     ChangeWeaponName = preset.ChangePresetName,
                     Encyclopedia = itemid,
@@ -128,7 +128,7 @@ namespace EternalCycleServer
             }
             else
             {
-                var newpreset = new Preset
+                var newpreset = new SPTarkov.Server.Core.Models.Spt.Tables.Preset
                 {
                     ChangeWeaponName = preset.ChangePresetName,
                     Id = presetid,

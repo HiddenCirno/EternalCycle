@@ -1,3 +1,4 @@
+using EternalCycleServer;
 using HarmonyLib;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -8,22 +9,24 @@ using SPTarkov.Server.Core.Constants;
 using SPTarkov.Server.Core.Controllers;
 using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.Generators;
+using SPTarkov.Server.Core.Generators.Loot;
 using SPTarkov.Server.Core.Helpers;
+using SPTarkov.Server.Core.Helpers.Items;
+using SPTarkov.Server.Core.Helpers.Profile;
+using SPTarkov.Server.Core.Helpers.Server;
+using SPTarkov.Server.Core.Helpers.Traders;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Bot;
 using SPTarkov.Server.Core.Models.Eft.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Eft.Inventory;
 using SPTarkov.Server.Core.Models.Eft.ItemEvent;
-using SPTarkov.Server.Core.Models.Logging;
-using SPTarkov.Server.Core.Models.Spt.Bots;
+using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Models.Spt.Config;
 using SPTarkov.Server.Core.Models.Spt.Mod;
+using SPTarkov.Server.Core.Models.Spt.Tables;
 using SPTarkov.Server.Core.Models.Utils;
 using SPTarkov.Server.Core.Routers;
-using SPTarkov.Server.Core.Servers;
-using SPTarkov.Server.Core.Services;
-using SPTarkov.Server.Core.Services.Mod;
 using SPTarkov.Server.Core.Utils;
 using SPTarkov.Server.Core.Utils.Cloners;
 using System;
@@ -35,12 +38,70 @@ using System.Runtime.Intrinsics.Arm;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using EternalCycleServer;
+using static EternalCycleServer.ContextManager;
 
 namespace EternalCycleServer
 {
+    [Injectable]
     public class OpenRandomLootContainerPatch : AbstractPatch
     {
+
+        private static TemplateTable _templateTable = default!;
+        private static LocaleTable _localeTable = default!;
+        private static GlobalTable _globalTable = default!;
+        private static TradersTable _tradersTable = default!;
+        private static HideoutTable _hideoutTable = default!;
+        private static LocationTable _locationTable = default!;
+        private static JsonUtil _jsonUtil = default!;
+        private static ConfigServer _configServer = default!;
+        private static ModHelper _modHelper = default!;
+        private static ProfileHelper _profileHelper = default!;
+        private static TraderHelper _traderHelper = default!;
+        private static InventoryHelper _inventoryHelper = default!;
+        private static LootGenerator _lootGenerator = default!;
+        private static ItemHelper _itemHelper = default!;
+        private static ICloner _cloner = default!;
+        private static PresetHelper _presetHelper = default!;
+        private static ImageRouter _imageRouter = default!;
+        private static ECLogger _logger = default!;
+        public OpenRandomLootContainerPatch(
+        TemplateTable templateTable,
+        LocaleTable localeTable,
+        GlobalTable globalTable,
+        TradersTable tradersTable,
+        HideoutTable hideoutTable,
+        LocationTable locationTable,
+        JsonUtil jsonUtil,
+        ConfigServer configServer,
+        ModHelper modHelper,
+        ProfileHelper profileHelper,
+        TraderHelper traderHelper,
+        InventoryHelper inventoryHelper,
+        LootGenerator lootGenerator,
+        ItemHelper itemHelper,
+        ICloner cloner,
+        PresetHelper presetHelper,
+        ImageRouter imageRouter)
+        {
+            _templateTable = templateTable;
+            _localeTable = localeTable;
+            _globalTable = globalTable;
+            _tradersTable = tradersTable;
+            _jsonUtil = jsonUtil;
+            _configServer = configServer;
+            _modHelper = modHelper;
+            _profileHelper = profileHelper;
+            _traderHelper = traderHelper;
+            _hideoutTable = hideoutTable;
+            _locationTable = locationTable;
+            _inventoryHelper = inventoryHelper;
+            _lootGenerator = lootGenerator;
+            _itemHelper = itemHelper;
+            _cloner = cloner;
+            _presetHelper = presetHelper;
+            _imageRouter = imageRouter;
+            _logger = new ECLogger("OpenRandomLootContainer", true);
+        }
         protected override MethodBase GetTargetMethod()
         {
             return typeof(InventoryController).GetMethod("OpenRandomLootContainer", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
@@ -48,36 +109,23 @@ namespace EternalCycleServer
         [PatchPrefix]
         public static bool Prefix(InventoryController __instance, PmcData pmcData, OpenRandomLootContainerRequestData request, MongoId sessionId, ItemEventRouterResponse output)
         {
-            var databaseService = ServiceLocator.ServiceProvider.GetService<DatabaseService>();
-            var logger = ServiceLocator.ServiceProvider.GetService<ISptLogger<EternalCycle>>();
-            var configServer = ServiceLocator.ServiceProvider.GetService<ConfigServer>();
-            var itemHelper = ServiceLocator.ServiceProvider.GetService<ItemHelper>();
-            var inventoryHelper = ServiceLocator.ServiceProvider.GetService<InventoryHelper>();
-            var profileHelper = ServiceLocator.ServiceProvider.GetService<ProfileHelper>();
-            var traderHelper = ServiceLocator.ServiceProvider.GetService<TraderHelper>();
-            var modHelper = ServiceLocator.ServiceProvider.GetService<ModHelper>();
-            var jsonUtil = ServiceLocator.ServiceProvider.GetService<JsonUtil>();
-            var lootGenerator = ServiceLocator.ServiceProvider.GetService<LootGenerator>();
-            var presetHelper = ServiceLocator.ServiceProvider.GetService<PresetHelper>();
-            var imageRouter = ServiceLocator.ServiceProvider.GetService<ImageRouter>();
-            var cloner = ServiceLocator.ServiceProvider.GetService<ICloner>();
-            var context = new ContextManager.LoadModContext
+            var context = new LoadModContext
             {
-                DB = databaseService,
-                JsonUtil = jsonUtil,
-                ConfigServer = configServer,
-                ModHelper = modHelper,
+                DB = new DatabaseService(_templateTable, _localeTable, _globalTable, _tradersTable, _hideoutTable, _locationTable),
+                JsonUtil = _jsonUtil,
+                ConfigServer = _configServer,
+                ModHelper = _modHelper,
                 Logger = Utils.commonLogger,
-                ImageRouter = imageRouter,
-                PresetHelper = presetHelper,
-                ItemHelper = itemHelper,
-                Cloner = cloner
+                PresetHelper = _presetHelper,
+                ImageRouter = _imageRouter,
+                ItemHelper = _itemHelper,
+                Cloner = _cloner
             };
             Random random = new Random();
 
             // Container player opened in their inventory
             var openedItem = pmcData.Inventory.Items.FirstOrDefault(item => item.Id == request.Item);
-            var containerDetailsDb = itemHelper.GetItem(openedItem.Template);
+            var containerDetailsDb = context.ItemHelper.GetItem(openedItem.Template);
             var isSealedWeaponBox = containerDetailsDb.Value.Name.Contains("event_container_airdrop");
 
             var foundInRaid = openedItem.Upd?.SpawnedInSession;
@@ -106,12 +154,12 @@ namespace EternalCycleServer
                     ItemUtils.DrawPoolData.TryGetValue(drawpoolname, out var drawpool);
                     if (drawpool != null)
                     {
-                        var modPath = modHelper.GetAbsolutePathToModFolder(Assembly.GetExecutingAssembly());
+                        var modPath = context.ModHelper.GetAbsolutePathToModFolder(Assembly.GetExecutingAssembly());
                         var recordfile = System.IO.Path.Combine(modPath, "drawrecord.json");
                         Dictionary<MongoId, Dictionary<string, DrawRecord>> currentRecordCache;
                         if (File.Exists(recordfile))
                         {
-                            currentRecordCache = jsonUtil.Deserialize<Dictionary<MongoId, Dictionary<string, DrawRecord>>>(File.ReadAllText(recordfile))
+                            currentRecordCache = context.JsonUtil.Deserialize<Dictionary<MongoId, Dictionary<string, DrawRecord>>>(File.ReadAllText(recordfile))
                                                  ?? new Dictionary<MongoId, Dictionary<string, DrawRecord>>();
                         }
                         else
@@ -126,7 +174,7 @@ namespace EternalCycleServer
                                 rewards.Add(result);
                             }
                         }
-                        File.WriteAllText(recordfile, jsonUtil.Serialize(currentRecordCache, true));
+                        File.WriteAllText(recordfile, context.JsonUtil.Serialize(currentRecordCache, true));
                     }
                 }
             }
@@ -174,7 +222,7 @@ namespace EternalCycleServer
                                             }
                                         }
                                     });
-                                    profileHelper.AddSkillPointsToPlayer(pmcData, skillData.Skill, (double)skillData.Count, false);
+                                    _profileHelper.AddSkillPointsToPlayer(pmcData, skillData.Skill, (double)skillData.Count, false);
                                 }
                                 break;
                             case GiftDataExperienceData experienceData:
@@ -191,7 +239,7 @@ namespace EternalCycleServer
                                             }
                                         }
                                     });
-                                    profileHelper.AddExperienceToPmc(sessionId, experienceData.Count);
+                                    _profileHelper.AddExperienceToPmc(sessionId, experienceData.Count);
                                 }
                                 break;
                             case GiftDataTraderStandingData traderStandingData:
@@ -208,7 +256,7 @@ namespace EternalCycleServer
                                             }
                                         }
                                     });
-                                    traderHelper.AddStandingToTrader(sessionId, traderStandingData.TraderId, traderStandingData.Count);
+                                    _traderHelper.AddStandingToTrader(sessionId, traderStandingData.TraderId, traderStandingData.Count);
                                 }
                                 break;
                         }
@@ -219,8 +267,8 @@ namespace EternalCycleServer
             {
                 if (isSealedWeaponBox || unlockedWeaponCrates.Contains(containerDetailsDb.Value.Id))
                 {
-                    var containerSettings = inventoryHelper.GetInventoryConfig().SealedAirdropContainer;
-                    rewards.AddRange(lootGenerator.GetSealedWeaponCaseLoot(containerSettings));
+                    var containerSettings = _inventoryHelper.GetInventoryConfig().SealedAirdropContainer;
+                    rewards.AddRange(_lootGenerator.GetSealedWeaponCaseLoot(containerSettings));
 
                     if (containerSettings.FoundInRaid)
                     {
@@ -229,14 +277,14 @@ namespace EternalCycleServer
                 }
                 else
                 {
-                    var rewardContainerDetails = inventoryHelper.GetRandomLootContainerRewardDetails(openedItem.Template);
+                    var rewardContainerDetails = _inventoryHelper.GetRandomLootContainerRewardDetails(openedItem.Template);
                     if (rewardContainerDetails?.RewardCount == null)
                     {
-                        logger.Error($"Unable to add loot to container: {openedItem.Template}, no rewards found");
+                        _logger.Error($"Unable to add loot to container: {openedItem.Template}, no rewards found");
                     }
                     else
                     {
-                        rewards.AddRange(lootGenerator.GetRandomLootContainerLoot(rewardContainerDetails));
+                        rewards.AddRange(_lootGenerator.GetRandomLootContainerLoot(rewardContainerDetails));
 
                         if (rewardContainerDetails.FoundInRaid)
                         {
@@ -256,7 +304,7 @@ namespace EternalCycleServer
                     Callback = null,
                     UseSortingTable = true,
                 };
-                inventoryHelper.AddItemsToStash(sessionId, addItemsRequest, pmcData, output);
+                _inventoryHelper.AddItemsToStash(sessionId, addItemsRequest, pmcData, output);
                 if (output.Warnings?.Count > 0)
                 {
                     return false;
@@ -264,7 +312,7 @@ namespace EternalCycleServer
             }
 
             // Find and delete opened container item from player inventory
-            inventoryHelper.RemoveItemByCount(pmcData, request.Item, 1, sessionId, output);
+            _inventoryHelper.RemoveItemByCount(pmcData, request.Item, 1, sessionId, output);
 
             return false;
         }

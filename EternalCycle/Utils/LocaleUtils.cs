@@ -4,28 +4,27 @@ using Microsoft.Extensions.Logging;
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.Helpers;
+using SPTarkov.Server.Core.Helpers.Server;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Eft.Inventory;
 using SPTarkov.Server.Core.Models.Enums;
-using SPTarkov.Server.Core.Models.Logging;
 using SPTarkov.Server.Core.Models.Spt.Config;
 using SPTarkov.Server.Core.Models.Spt.Mod;
-using SPTarkov.Server.Core.Models.Spt.Templates;
+using SPTarkov.Server.Core.Models.Spt.Tables;
 using SPTarkov.Server.Core.Models.Utils;
 using SPTarkov.Server.Core.Routers;
 using SPTarkov.Server.Core.Servers;
 using SPTarkov.Server.Core.Services;
-using SPTarkov.Server.Core.Services.Mod;
-using SPTarkov.Server.Core.Utils;
+using SPTarkov.Server.Core.Services.Locales;
 using SPTarkov.Server.Core.Utils.Cloners;
 using SPTarkov.Server.Core.Utils.Json;
-using SPTarkov.Server.Core.Utils.Logger;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using static EternalCycleServer.ContextManager;
 using static System.Net.Mime.MediaTypeNames;
 using Path = System.IO.Path;
 
@@ -243,7 +242,7 @@ namespace EternalCycleServer
 
         public static void AddTraderToLocales(TraderBaseWithDesc baseJson, DatabaseService databaseService, string creator, string modname)
         {
-            var locales = databaseService.GetTables().Locales.Global;
+            var locales = databaseService.GetLocales().Global;
             var newTraderId = baseJson.Id;
             var modstring = $"<color=#FFFFFF><b>\n由{creator}创建\n添加者: {modname}\n商人API：永恒时序\n商人ID：{newTraderId}</b></color>";
 
@@ -323,7 +322,7 @@ namespace EternalCycleServer
                 var langValue = languageEntry.Value;   // Dictionary<string, CustomQuestLocaleData>
 
                 // 获取目标语言对应的全局本地化 LazyLoad
-                if (!databaseService.GetLocales().Global.TryGetValue(langKey, out LazyLoad<Dictionary<string, string>> lazyLocale))
+                if (!databaseService.GetLocales().Global.TryGetValue(langKey, out LazyLoad<GlobalLocaleDictionary> lazyLocale))
                     continue;
 
                 // 为该语言添加 transformer（延迟加载时注入翻译数据）
@@ -351,7 +350,7 @@ namespace EternalCycleServer
             }
         }
 
-        public static void InitLocale(LazyLoad<Dictionary<string, string>> lang, Dictionary<string, string> text)
+        public static void InitLocale(LazyLoad<GlobalLocaleDictionary> lang, Dictionary<string, string> text)
         {
             lang.AddTransformer(language =>
             {

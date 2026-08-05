@@ -1,6 +1,5 @@
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
-using SPTarkov.Server.Core.Models.Logging;
 using SPTarkov.Server.Core.Models.Spt.Mod;
 using SPTarkov.Server.Core.Models.Utils;
 using SPTarkov.Server.Core.Services;
@@ -13,6 +12,7 @@ using System.Text.Json.Serialization;
 using static EternalCycleServer.Utils;
 using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Utils.Json;
+using SPTarkov.Server.Core.Models.Spt.Tables;
 
 namespace EternalCycleServer
 {
@@ -410,10 +410,10 @@ namespace EternalCycleServer
         public virtual bool? RandomRotation { get; set; }
 
         [JsonPropertyName("Position")]
-        public virtual XYZ? Position { get; set; }
+        public virtual Vector3? Position { get; set; }
 
         [JsonPropertyName("Rotation")]
-        public virtual XYZ? Rotation { get; set; }
+        public virtual Vector3? Rotation { get; set; }
 
         [JsonPropertyName("IsAlwaysSpawn")]
         public virtual bool? IsAlwaysSpawn { get; set; }
@@ -450,23 +450,9 @@ namespace EternalCycleServer
     }
     public record CustomItem : Item
     {
-        [JsonPropertyName("_id")]
-        [JsonConverter(typeof(MongoIdConverter))]
-        public required override MongoId Id { get; set; }
-
-        [JsonPropertyName("_tpl")]
-        [JsonConverter(typeof(MongoIdConverter))]
-        public required override MongoId Template { get; set; }
-
-        [JsonPropertyName("parentId")]
-        [JsonConverter(typeof(StringHashConverter))]
-        public override string? ParentId { get => base.ParentId; set => base.ParentId = value; }
     }
     public record CustomMastering : Mastering
     {
-        [JsonPropertyName("Templates")]
-        [JsonConverter(typeof(MongoIdEnumerableConverter))]
-        public required override IEnumerable<MongoId> Templates { get; set; }
     }
     public class CustomDogTag
     {

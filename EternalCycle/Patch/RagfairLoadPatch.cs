@@ -7,21 +7,21 @@ using SPTarkov.Server.Core.Constants;
 using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.Generators;
 using SPTarkov.Server.Core.Helpers;
+using SPTarkov.Server.Core.Helpers.Items;
+using SPTarkov.Server.Core.Helpers.Server;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Bot;
 using SPTarkov.Server.Core.Models.Eft.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
-using SPTarkov.Server.Core.Models.Logging;
-using SPTarkov.Server.Core.Models.Spt.Bots;
 using SPTarkov.Server.Core.Models.Spt.Config;
 using SPTarkov.Server.Core.Models.Spt.Launcher;
 using SPTarkov.Server.Core.Models.Spt.Mod;
 using SPTarkov.Server.Core.Models.Spt.Presets;
+using SPTarkov.Server.Core.Models.Spt.Tables;
 using SPTarkov.Server.Core.Models.Utils;
 using SPTarkov.Server.Core.Routers;
 using SPTarkov.Server.Core.Servers;
-using SPTarkov.Server.Core.Services;
-using SPTarkov.Server.Core.Services.Mod;
+using SPTarkov.Server.Core.Services.Locales;
 using SPTarkov.Server.Core.Utils;
 using SPTarkov.Server.Core.Utils.Cloners;
 using System;
@@ -32,11 +32,60 @@ using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.Arm;
 using System.Text;
 using System.Text.Json;
+using static EternalCycleServer.ContextManager;
 
 namespace EternalCycleServer
 {
+    [Injectable]
     public class RagfairLoadPatch : AbstractPatch
     {
+        private static TemplateTable _templateTable = default!;
+        private static LocaleTable _localeTable = default!;
+        private static GlobalTable _globalTable = default!;
+        private static TradersTable _tradersTable = default!;
+        private static HideoutTable _hideoutTable = default!;
+        private static LocationTable _locationTable = default!;
+        private static JsonUtil _jsonUtil = default!;
+        private static ConfigServer _configServer = default!;
+        private static ModHelper _modHelper = default!;
+        private static ItemHelper _itemHelper = default!;
+        private static LocaleService _localeService = default!;
+        private static ICloner _cloner = default!;
+        private static PresetHelper _presetHelper = default!;
+        private static ImageRouter _imageRouter = default!;
+        private static ECLogger _logger = default!;
+        public RagfairLoadPatch(
+        TemplateTable templateTable,
+        LocaleTable localeTable,
+        GlobalTable globalTable,
+        TradersTable tradersTable,
+        HideoutTable hideoutTable,
+        LocationTable locationTable,
+        JsonUtil jsonUtil,
+        ConfigServer configServer,
+        ModHelper modHelper,
+        ItemHelper itemHelper,
+        LocaleService localeService,
+        ICloner cloner,
+        PresetHelper presetHelper,
+        ImageRouter imageRouter)
+        {
+            _templateTable = templateTable;
+            _localeTable = localeTable;
+            _globalTable = globalTable;
+            _tradersTable = tradersTable;
+            _hideoutTable = hideoutTable;
+            _locationTable = locationTable;
+            _jsonUtil = jsonUtil;
+            _configServer = configServer;
+            _modHelper = modHelper;
+            _itemHelper = itemHelper;
+            _localeService = localeService;
+            _cloner = cloner;
+            _presetHelper = presetHelper;
+            _imageRouter = imageRouter;
+            _logger = new ECLogger("RagfairServer", true);
+        }
         protected override MethodBase GetTargetMethod()
         {
             return typeof(RagfairServer).GetMethod("Load", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
@@ -45,32 +94,23 @@ namespace EternalCycleServer
         [PatchPrefix]
         public static bool Prefix(RagfairServer __instance)
         {
-            var jsonUtil = ServiceLocator.ServiceProvider.GetService<JsonUtil>();
-            var databaseService = ServiceLocator.ServiceProvider.GetService<DatabaseService>();
-            var configServer = ServiceLocator.ServiceProvider.GetService<ConfigServer>();
-            var modHelper = ServiceLocator.ServiceProvider.GetService<ModHelper>();
-            var itemHelper = ServiceLocator.ServiceProvider.GetService<ItemHelper>();
-            var cloner = ServiceLocator.ServiceProvider.GetService<ICloner>();
-            var localeService = ServiceLocator.ServiceProvider.GetService<LocaleService>();
-            var presetHelper = ServiceLocator.ServiceProvider.GetService<PresetHelper>();
-            var imageRouter = ServiceLocator.ServiceProvider.GetService<ImageRouter>();
-            var context = new ContextManager.LoadModContext
+            var context = new LoadModContext
             {
-                DB = databaseService,
-                JsonUtil = jsonUtil,
-                ConfigServer = configServer,
-                ModHelper = modHelper,
+                DB = new DatabaseService(_templateTable, _localeTable, _globalTable, _tradersTable, _hideoutTable, _locationTable),
+                JsonUtil = _jsonUtil,
+                ConfigServer = _configServer,
+                ModHelper = _modHelper,
                 Logger = Utils.commonLogger,
-                PresetHelper = presetHelper,
-                ImageRouter = imageRouter,
-                ItemHelper = itemHelper,
-                Cloner = cloner
-            }; 
+                PresetHelper = _presetHelper,
+                ImageRouter = _imageRouter,
+                ItemHelper = _itemHelper,
+                Cloner = _cloner
+            };
             //干他妈的预设缓存
             var itemPresets = context.DB.GetGlobals().ItemPresets;
             var presetHelperInstance = context.PresetHelper;
-            Traverse.Create(presetHelper).Field("DefaultWeaponPresets").SetValue(null);
-            Traverse.Create(presetHelper).Field("DefaultEquipmentPresets").SetValue(null);
+            Traverse.Create(context.PresetHelper).Field("DefaultWeaponPresets").SetValue(null);
+            Traverse.Create(context.PresetHelper).Field("DefaultEquipmentPresets").SetValue(null);
             var newPresetCache = new Dictionary<MongoId, PresetCacheDetails>();
 
             foreach (var kvp in itemPresets)
@@ -107,7 +147,7 @@ namespace EternalCycleServer
             // 3. 将最新、最全的缓存注入回单例中！
             // ==========================================
             // HydratePresetStore 是 public 的，直接调用，完美覆盖！
-            presetHelper.HydratePresetStore(newPresetCache);
+            context.PresetHelper.HydratePresetStore(newPresetCache);
             //内置tag
             var taglist = new ItemTagDictionary();
 
@@ -182,53 +222,10 @@ namespace EternalCycleServer
             }
             ItemTagUtils.InitItemTagData(taglist, context);
 
-            /*
-            EventManager.InitPreDataLoadEvent(context);
-
-            EventManager.InitLoadItemEvent(context);
-            EventManager.InitLoadTraderBaseEvent(context);
-            EventManager.InitLoadQuestEvent(context);
-            EventManager.InitLoadAchievementEvent(context);
-            EventManager.InitLoadRecipeEvent(context);
-            EventManager.InitLoadScavCaseRecipeEvent(context);
-            EventManager.InitLoadCultistCircleRecipeEvent(context);
-            EventManager.InitLoadGiftCodeEvent(context);
-            EventManager.InitLoadAlterBotEvent(context);
-            EventManager.InitLoadtemTagEvent(context);
-            EventManager.InitLoadDrawPoolEventEvent(context);
-            EventManager.InitLoadTraderAssortEvent(context);
-            EventManager.InitLoadQuestDataEvent(context);
-            EventManager.InitLoadQuestRewardEvent(context);
-            EventManager.InitLoadLockedTraderAssortEvent(context);
-            EventManager.InitLoadLockedRecipeEvent(context);
-            EventManager.InitLoadQuestLogicEvent(context);
-            EventManager.InitLoadQuestLocaleEvent(context);
-            EventManager.InitLoadLocaleEvent(context);
-            EventManager.InitLoadPresetEvent(context);
-            EventManager.InitLoadCustomizationEvent(context);
-            EventManager.InitLoadSuitEvent(context);
-            EventManager.InitLoadHideoutCustomizationEvent(context);
-            EventManager.InitLoadResourceEventEvent(context);
-
-            EventManager.InitPostDataLoadEvent(context);
-
-            //调试代码
-            var items = databaseService.GetItems();
-            foreach (var item in items)
-            {
-                if (item.Value == null || item.Value.Properties == null) continue;
-                //item.Value.Properties.ExaminedByDefault = true;
-            }
-            ItemUtils.RegisterFixItem();
-            EventManager.InitFixItemCompatibleEventEvent(context);
-            EventManager.InitAfterModLoadedEvent(context);
-            EventManager.InitPreRagfairLoadEvent(context);
-            LocaleUtils.InitGiftBoxLocale(databaseService, localeService);
-            */
-            File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportidmap.json"), jsonUtil.Serialize(Utils.hashIdList, true));
-            File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportquest.json"), jsonUtil.Serialize(databaseService.GetQuests(), true));
-            File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportitem.json"), jsonUtil.Serialize(databaseService.GetItems(), true));
-            File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportlocale.json"), jsonUtil.Serialize(localeService.GetLocaleDb("ch"), true));
+            File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportidmap.json"), context.JsonUtil.Serialize(Utils.hashIdList, true));
+            File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportquest.json"), context.JsonUtil.Serialize(context.DB.GetQuests(), true));
+            File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportitem.json"), context.JsonUtil.Serialize(context.DB.GetItems(), true));
+            File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportlocale.json"), context.JsonUtil.Serialize(_localeService.GetLocaleDb("ch"), true));
             //试试游戏启动抓到的语言是不是MiniHUD的版本
             //是的话还得改过去(不会出问题吧)
             //看看迷宫的机关怎么回事
@@ -238,108 +235,20 @@ namespace EternalCycleServer
         [PatchPostfix]
         public static void Postfix(RagfairServer __instance)
         {
-            var jsonUtil = ServiceLocator.ServiceProvider.GetService<JsonUtil>();
-            var databaseService = ServiceLocator.ServiceProvider.GetService<DatabaseService>();
-            var configServer = ServiceLocator.ServiceProvider.GetService<ConfigServer>();
-            var modHelper = ServiceLocator.ServiceProvider.GetService<ModHelper>();
-            var cloner = ServiceLocator.ServiceProvider.GetService<ICloner>();
-            var itemHelper = ServiceLocator.ServiceProvider.GetService<ItemHelper>();
-            var imageRouter = ServiceLocator.ServiceProvider.GetService<ImageRouter>();
-            var presetHelper = ServiceLocator.ServiceProvider.GetService<PresetHelper>();
-            var logger = new ECLogger("PostRagfairLoadEvent", true);
-            var context = new ContextManager.LoadModContext
+            var context = new LoadModContext
             {
-                DB = databaseService,
-                JsonUtil = jsonUtil,
-                ConfigServer = configServer,
-                ModHelper = modHelper,
+                DB = new DatabaseService(_templateTable, _localeTable, _globalTable, _tradersTable, _hideoutTable, _locationTable),
+                JsonUtil = _jsonUtil,
+                ConfigServer = _configServer,
+                ModHelper = _modHelper,
                 Logger = Utils.commonLogger,
-                ImageRouter = imageRouter,
-                PresetHelper = presetHelper,
-                ItemHelper = itemHelper,
-                Cloner = cloner
+                PresetHelper = _presetHelper,
+                ImageRouter = _imageRouter,
+                ItemHelper = _itemHelper,
+                Cloner = _cloner
             };
             EventManager.InitPostRagfairLoadEvent(context);
         }
 
     }
-    public class ProfileHelperPatch : AbstractPatch
-    {
-        protected override MethodBase GetTargetMethod()
-        {
-            return typeof(SaveServer).GetMethod("LoadAsync", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-        }
-
-        [PatchPrefix]
-        public static bool Prefix(SaveServer __instance)
-        {
-            var jsonUtil = ServiceLocator.ServiceProvider.GetService<JsonUtil>();
-            var databaseService = ServiceLocator.ServiceProvider.GetService<DatabaseService>();
-            var configServer = ServiceLocator.ServiceProvider.GetService<ConfigServer>();
-            var modHelper = ServiceLocator.ServiceProvider.GetService<ModHelper>();
-            var itemHelper = ServiceLocator.ServiceProvider.GetService<ItemHelper>();
-            var cloner = ServiceLocator.ServiceProvider.GetService<ICloner>();
-            var localeService = ServiceLocator.ServiceProvider.GetService<LocaleService>();
-            var presetHelper = ServiceLocator.ServiceProvider.GetService<PresetHelper>();
-            var imageRouter = ServiceLocator.ServiceProvider.GetService<ImageRouter>();
-            var context = new ContextManager.LoadModContext
-            {
-                DB = databaseService,
-                JsonUtil = jsonUtil,
-                ConfigServer = configServer,
-                ModHelper = modHelper,
-                Logger = Utils.commonLogger,
-                ImageRouter = imageRouter,
-                PresetHelper = presetHelper,
-                ItemHelper = itemHelper,
-                Cloner = cloner
-            };
-
-            EventManager.InitPreDataLoadEvent(context);
-
-            EventManager.InitLoadItemEvent(context);
-            EventManager.InitLoadTraderBaseEvent(context);
-            EventManager.InitLoadQuestEvent(context);
-            EventManager.InitLoadAchievementEvent(context);
-            EventManager.InitLoadRecipeEvent(context);
-            EventManager.InitLoadScavCaseRecipeEvent(context);
-            EventManager.InitLoadCultistCircleRecipeEvent(context);
-            EventManager.InitLoadGiftCodeEvent(context);
-            EventManager.InitLoadAlterBotEvent(context);
-            EventManager.InitLoadtemTagEvent(context);
-            EventManager.InitLoadDrawPoolEventEvent(context);
-            EventManager.InitLoadTraderAssortEvent(context);
-            EventManager.InitLoadQuestDataEvent(context);
-            EventManager.InitLoadQuestRewardEvent(context);
-            EventManager.InitLoadLockedTraderAssortEvent(context);
-            EventManager.InitLoadLockedRecipeEvent(context);
-            EventManager.InitLoadQuestLogicEvent(context);
-            EventManager.InitLoadQuestLocaleEvent(context);
-            EventManager.InitLoadLocaleEvent(context);
-            EventManager.InitLoadPresetEvent(context);
-            EventManager.InitLoadCustomizationEvent(context);
-            EventManager.InitLoadSuitEvent(context);
-            EventManager.InitLoadHideoutCustomizationEvent(context);
-            EventManager.InitLoadResourceEventEvent(context);
-
-            EventManager.InitPostDataLoadEvent(context);
-
-            //调试代码
-            var items = databaseService.GetItems();
-            foreach (var item in items)
-            {
-                if (item.Value == null || item.Value.Properties == null) continue;
-                //item.Value.Properties.ExaminedByDefault = true;
-            }
-            ItemUtils.RegisterFixItem();
-            EventManager.InitFixItemCompatibleEventEvent(context);
-            EventManager.InitAfterModLoadedEvent(context);
-            EventManager.InitPreRagfairLoadEvent(context);
-            LocaleUtils.InitGiftBoxLocale(databaseService, localeService);
-            //试试游戏启动抓到的语言是不是MiniHUD的版本
-            //是的话还得改过去(不会出问题吧)
-            //看看迷宫的机关怎么回事
-            return true;
-        }
-    }
-    }
+}

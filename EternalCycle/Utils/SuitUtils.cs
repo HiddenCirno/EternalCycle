@@ -9,19 +9,6 @@ using SPTarkov.Server.Core.Models.Eft.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Eft.Inventory;
 using SPTarkov.Server.Core.Models.Enums;
-using SPTarkov.Server.Core.Models.Logging;
-using SPTarkov.Server.Core.Models.Spt.Config;
-using SPTarkov.Server.Core.Models.Spt.Mod;
-using SPTarkov.Server.Core.Models.Spt.Templates;
-using SPTarkov.Server.Core.Models.Utils;
-using SPTarkov.Server.Core.Routers;
-using SPTarkov.Server.Core.Servers;
-using SPTarkov.Server.Core.Services;
-using SPTarkov.Server.Core.Services.Mod;
-using SPTarkov.Server.Core.Utils;
-using SPTarkov.Server.Core.Utils.Cloners;
-using SPTarkov.Server.Core.Utils.Json;
-using SPTarkov.Server.Core.Utils.Logger;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
@@ -162,7 +149,7 @@ namespace EternalCycleServer
                     ProfileLevel = customSuit.Requirements?.ProfileLevel ?? 0,
                     Standing = customSuit.Requirements?.Standing ?? 0,
                     RequiredTid = customSuit.Requirements?.RequiredTid ?? Traders.RAGMAN,
-                    SkillRequirements = new List<string>(),
+                    SkillRequirements = new List<SkillRequirement>(),
                     AchievementRequirements = new List<string>(),
                     ItemRequirements = new List<ItemRequirement>(),
                     QuestRequirements = new List<string>()

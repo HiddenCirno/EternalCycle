@@ -1,6 +1,5 @@
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
-using SPTarkov.Server.Core.Models.Logging;
 using SPTarkov.Server.Core.Models.Spt.Mod;
 using SPTarkov.Server.Core.Models.Utils;
 using SPTarkov.Server.Core.Services;
@@ -63,9 +62,6 @@ public class CustomSuit
 }
 public record CustomSuitRequirements : SuitRequirements
 {
-    [JsonPropertyName("requiredTid")]
-    [JsonConverter(typeof(MongoIdConverter))]
-    public override MongoId? RequiredTid { get; set; }
 
     [JsonPropertyName("itemRequirements")]
     public virtual List<CustomItemRequirement>? ItemRequirements { get; set; }
@@ -74,7 +70,4 @@ public record CustomSuitRequirements : SuitRequirements
 public record CustomItemRequirement : ItemRequirement
 {
 
-    [JsonPropertyName("_tpl")]
-    [JsonConverter(typeof(MongoIdConverter))]
-    public override MongoId Tpl { get; set; }
 }

@@ -1,155 +1,145 @@
 ﻿using HarmonyLib;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Razor.TagHelpers;
-using MonoMod.Core.Platforms;
 using SPTarkov.DI.Annotations;
 using SPTarkov.Reflection.Patching;
 using SPTarkov.Server.Core.Controllers;
 using SPTarkov.Server.Core.DI;
+using SPTarkov.Server.Core.DI.Routing;
 using SPTarkov.Server.Core.Extensions;
-using SPTarkov.Server.Core.Generators;
-using SPTarkov.Server.Core.Helpers;
-using SPTarkov.Server.Core.Loaders;
+using SPTarkov.Server.Core.Helpers.Items;
+using SPTarkov.Server.Core.Helpers.Profile;
+using SPTarkov.Server.Core.Helpers.Server;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Request;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
-using SPTarkov.Server.Core.Models.Eft.Inventory;
 using SPTarkov.Server.Core.Models.Eft.ItemEvent;
-using SPTarkov.Server.Core.Models.Eft.Ragfair;
 using SPTarkov.Server.Core.Models.Enums;
-using SPTarkov.Server.Core.Models.Logging;
 using SPTarkov.Server.Core.Models.Spt.Bots;
 using SPTarkov.Server.Core.Models.Spt.Mod;
-using SPTarkov.Server.Core.Models.Utils;
+using SPTarkov.Server.Core.Models.Spt.Tables;
 using SPTarkov.Server.Core.Routers;
-using SPTarkov.Server.Core.Servers;
-using SPTarkov.Server.Core.Services;
-using SPTarkov.Server.Core.Services.Mod;
+using SPTarkov.Server.Core.Services.Locales;
+using SPTarkov.Server.Core.Services.Modding.Custom;
+using SPTarkov.Server.Core.Services.Ragfair;
 using SPTarkov.Server.Core.Utils;
 using SPTarkov.Server.Core.Utils.Cloners;
-using SPTarkov.Server.Core.Utils.Json.Converters;
-using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
-using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
-using System.Threading;
-using static EternalCycleServer.AddBundlePatch;
 using static EternalCycleServer.ContextManager;
-namespace EternalCycleServer;
-public record ModMetadata : AbstractModMetadata
+namespace EternalCycleServer
 {
-    public override string ModGuid { get; init; } = "projectspark.hiddenhiragi.eternalcycleserver";
-    public override string Name { get; init; } = "永恒时序";
-    public override string Author { get; init; } = "HiddenHiragi";
-    public override List<string>? Contributors { get; init; }
-    public override SemanticVersioning.Version Version { get; init; } = new("1.0.1");
-    public override SemanticVersioning.Range SptVersion { get; init; } = new(">=4.0.13");
-    public override List<string>? Incompatibilities { get; init; }
-    public override Dictionary<string, SemanticVersioning.Range>? ModDependencies { get; init; }
-    public override string? Url { get; init; } = "https://github.com/sp-tarkov/server-mod-examples";
-    public override bool? IsBundleMod { get; init; } = true;
-    public override string? License { get; init; } = "MIT";
-}
-public static class Init
-{
-    private static bool _initialized;
-    private static readonly object InitLock = new();
-
-    [ModuleInitializer]
-    public static void Initialize()
+    public record ModMetadata : IModMetadata
     {
-        lock (InitLock)
+        public string ModGuid { get; init; } = "projectspark.hiddenhiragi.eternalcycleserver";
+        public  string Name { get; init; } = "永恒时序";
+        public  string Author { get; init; } = "HiddenHiragi";
+        public  List<string>? Contributors { get; init; }
+        public  SemanticVersioning.Version Version { get; init; } = new("1.1.0");
+        public  SemanticVersioning.Range SptVersion { get; init; } = new("~4.1.0");
+        public  List<string>? Incompatibilities { get; init; }
+        public  Dictionary<string, SemanticVersioning.Range>? ModDependencies { get; init; }
+        public  string? Url { get; init; } = "https://github.com/sp-tarkov/server-mod-examples";
+        public  bool? IsBundleMod { get; init; } = true;
+        public  string? License { get; init; } = "MIT";
+        public bool HasPrepatcher {  get; init; } = false;
+    }
+    public static class Init
+    {
+        private static bool _initialized;
+        private static readonly object InitLock = new();
+
+        [ModuleInitializer]
+        public static void Initialize()
         {
-            if (_initialized) return;
-            //这个开关检测有必要吗?
-            //不知道, 那就留着吧
-            _initialized = true;
-            try
+            lock (InitLock)
             {
-                //最前列hookAddBundle方法移除重复警告
-                //火神之心兼容
-                new AddBundlePatch().Enable();
-            }
-            catch (Exception ex)
-            {
+                if (_initialized) return;
+                //这个开关检测有必要吗?
+                //不知道, 那就留着吧
+                _initialized = true;
+                try
+                {
+                    //最前列hookAddBundle方法移除重复警告
+                    //火神之心兼容
+                    new AddBundlePatch().Enable();
+                    //我去你妈的傻逼白皮, 会写代码吗
+                    new FuckMongoIdPatch().Enable();
+                    new FuckMongoIdPatch2().Enable();
+                    new FuckParentIdPatch().Enable();
+                }
+                catch (Exception ex)
+                {
+                }
             }
         }
     }
-}
-[Injectable(TypePriority = OnLoadOrder.PreSptModLoader + 1)]
-public class CorePreSptLoad(
-    ISptLogger<EternalCycle> logger,
-    DatabaseService databaseService,
-    CustomItemService customItemService,
-    ModHelper modHelper,
-    JsonUtil jsonutil,
-    ICloner cloner,
-    ConfigServer configServer,
-    ImageRouter imageRouter
-    ) // We inject a logger for use inside our class, it must have the class inside the diamond <> brackets
-    : IOnLoad // Implement the IOnLoad interface so that this mod can do something on server load
-{
-    public Task OnLoad()
+
+    public class ModDiRegistration : IOnDIConstruct
     {
-        //new AddBundlePatch().Enable();
-        //new SafeRagfairPricePatch().Enable();
-        //var traderBase = modHelper.GetJsonDataFromFile<TraderBase>(pathToMod, "db/base.json");
-        //VulcanUtil.DoAsyncWork(logger);
-        //VulcanLog.Access("test", logger);
-        //LootUtils.GenerateStaticLootMap(databaseService, logger);
-        //ItemUtils.GetItem("5e42c81886f7742a01529f57", databaseService).Properties.MaximumNumberOfUsage = 0; //完全可以
-        //databaseService.GetTraders().Values[IEnumerable<Trader>.]
-        return Task.CompletedTask;
+        public static async Task OnDIConstructAsync(IServiceCollection serviceCollection, CancellationToken cancellationToken)
+        {
+            // 将 ConfigServer 注册为全局单例
+            serviceCollection.AddSingleton<ConfigServer>();
+            await Task.CompletedTask;
+        }
     }
-}
-// We want to load after PreSptModLoader is complete, so we set our type priority to that, plus 1.
-[Injectable(TypePriority = OnLoadOrder.PostDBModLoader + 1)]
-public class EternalCycle(
-    ISptLogger<EternalCycle> logger,
-    DatabaseService databaseService,
-    CustomItemService customItemService,
-    ModHelper modHelper,
-    ItemHelper itemHelper,
-    JsonUtil jsonUtil,
-    ICloner cloner,
-    ConfigServer configServer,
-    ImageRouter imageRouter,
-    PresetHelper presetHelper,
-    RagfairOfferService ragfairOfferService,
-    RagfairController ragfairController,
-    HandbookHelper handbookHelper
-    ) // We inject a logger for use inside our class, it must have the class inside the diamond <> brackets
-    : IOnLoad // Implement the IOnLoad interface so that this mod can do something on server load
-{
-    public string modPath = modHelper.GetAbsolutePathToModFolder(Assembly.GetExecutingAssembly());
-    public Task OnLoad()
+
+    [Injectable(TypePriority = OnLoadOrder.Preload + 1)]
+    public class PatchEnabler(IEnumerable<IRuntimePatch> patches) : IOnLoad
     {
-        BaseInteractionRequestDataConverter.RegisterModDataHandler("SyncStashExtend", (jsonText) =>
+        public Task OnLoadAsync(CancellationToken cancellationToken)
         {
-            return jsonUtil.Deserialize<ProfileStashSyncRequestData>(jsonText);
-        });
+            foreach (var patch in patches)
+                patch.Enable();
+            return Task.CompletedTask;
+        }
+    }
 
-        //var traderBase = modHelper.GetJsonDataFromFile<TraderBase>(pathToMod, "db/base.json");
-        //VulcanUtil.DoAsyncWork(logger);
-        // VulcanLog.Access("test", logger);
-
-        var context = new LoadModContext
+    // We want to load after PreSptModLoader is complete, so we set our type priority to that, plus 1.
+    [Injectable(TypePriority = OnLoadOrder.Preload + 1)]
+    public class EternalCycle(
+        CustomItemService customItemService,
+        ModHelper modHelper,
+        ItemHelper itemHelper,
+        JsonUtil jsonUtil,
+        ICloner cloner,
+        ConfigServer configServer,
+        ImageRouter imageRouter,
+        PresetHelper presetHelper,
+        RagfairOfferService ragfairOfferService,
+        RagfairController ragfairController,
+        TemplateTable templateTable,
+        LocaleTable localeTable,
+        GlobalTable globalTable,
+        TradersTable tradersTable,
+        HideoutTable hideoutTable,
+        LocationTable locationTable,
+        HandbookHelper handbookHelper
+        ) // We inject a logger for use inside our class, it must have the class inside the diamond <> brackets
+        : IOnLoad // Implement the IOnLoad interface so that this mod can do something on server load
+    {
+        public string modPath = modHelper.GetAbsolutePathToModFolder(Assembly.GetExecutingAssembly());
+        public async Task OnLoadAsync(CancellationToken cancellationToken)
         {
-            DB = databaseService,
-            JsonUtil = jsonUtil,
-            ConfigServer = configServer,
-            ModHelper = modHelper,
-            Logger = Utils.commonLogger,
-            ImageRouter = imageRouter,
-            ItemHelper = itemHelper,
-            PresetHelper = presetHelper,
-            Cloner = cloner
-        };
-        //火神之心兼容层
+            //var traderBase = modHelper.GetJsonDataFromFile<TraderBase>(pathToMod, "db/base.json");
+            //VulcanUtil.DoAsyncWork(logger);
+            // VulcanLog.Access("test", logger);
+
+            DatabaseService databaseService = new DatabaseService(templateTable, localeTable, globalTable, tradersTable, hideoutTable, locationTable);
+            var context = new LoadModContext
+            {
+                DB = databaseService,
+                JsonUtil = jsonUtil,
+                ConfigServer = configServer,
+                ModHelper = modHelper,
+                Logger = Utils.commonLogger,
+                ImageRouter = imageRouter,
+                ItemHelper = itemHelper,
+                PresetHelper = presetHelper,
+                Cloner = cloner
+            };
+            //火神之心兼容层
             ImageUtils.RegisterFolderImageRoute("/files/icon/", System.IO.Path.Combine(modPath, "res/"), imageRouter);
             var dim = ERagfairTagsType.次元博物;
             var special = ERagfairTagsType.特殊物品;
@@ -201,8 +191,7 @@ public class EternalCycle(
                     Order = "17"
                 });
             }
-
-            databaseService.GetLocales().Global["ch"].AddTransformer(delegate (Dictionary<string, string> lang)
+            databaseService.GetLocales().Global["ch"].AddTransformer(delegate (GlobalLocaleDictionary lang)
             {
                 lang[dim] = "次元博物";
                 lang[special] = "特殊物品";
@@ -257,320 +246,264 @@ public class EternalCycle(
                     }
                 }
             }
-        //LootUtils.GenerateStaticLootMap(databaseService, logger);
-        //ItemUtils.GetItem("5e42c81886f7742a01529f57", databaseService).Properties.MaximumNumberOfUsage = 0; //完全可以
-        //databaseService.GetTraders().Values[IEnumerable<Trader>.]
-        var config = ConfigManager.GetConfig();
-        if (config.UseOldRagfairPrice)
-        {
-            //new ReplaceFleaBasePricesPatch().Enable();
-        }
-        new OpenRandomLootContainerPatch().Enable();
-
-        //new StartupLogPatch().Enable();
-        //new RemoveExpiredItemsFromMessagePatch().Enable();
-        new RagfairLoadPatch().Enable();
-        new ProfileHelperPatch().Enable();
-        //new PresetHelperPatch().Enable();   
-        //new BotGeneratorPatch.BotGeneratorPatch_GenerateBot().Enable();
-        void testmethod(LoadModContext prlc)
-        {
-            var item = prlc.DB.GetItems();
-            prlc.Logger.Warn(item.FirstOrDefault().Value.Id.ToString());
-            prlc.Logger.Info("Mod加载完成后市场初始化前");
-        }
-        void testmethod2(LoadModContext prlc)
-        {
-            prlc.Logger.Error("市场初始化后游戏启动前");
-        }
-        void testmethod3(LoadModContext prlc)
-        {
-            prlc.Logger.Error("Mod加载完成后");
-        }
-        void testmethod4(BotBase bot, BotType botJsonTemplate, BotGenerationDetails botGenerationDetails, LoadModContext prlc)
-        {
-            prlc.Logger.Error("Test");
-        }
-
-        EventManager.OnBeforeRagfairLoadedEvent += testmethod;
-
-        string pubkey = "-----BEGIN PUBLIC KEY-----MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEApwO5ENxGmgxJLCld9mdzziVmeOvmBeno9vMxJDZ1hZqszSwmJnGx/QZDBefd5swguXvRBVjYcrM5CQ7ZDmr0JsBlOpFizrLKdM91l10rxnPkWGVYU1no6usVagoTlyZx8NyERSrOLsM05s49MbOSwdc5v4X5NPbU3ZSfAK7EOTEJUsikMLZL4ZpVWiYqiIZdix61Sq5W2Dj1mXHHAkNTfAAgjIWN4iil/Y9VGfG4j8A/XSOkHS29kp4KT+BuF+gz8/hf9w6jFmQ4lBFOZeBi1ewp8c/yWsMnMPntFeHeEmhryD8O1h8WPEaFWZ3e85aYElclvYkUY2WMDIstV8neT+OXfcmBqg7Nz3kNA9uMj64k/cYft5WjZGEHb+qK0ED/ofzAJ9Bd4EoV1rJIeZKU0bvoCy2nXJMcCJOqPBQUwHCdqaDHsSqFm1T1c7GUXa2sVXIUQWgDeUXval2DQ19j3TC3YeKAJUUZ5PWnULVusR1prpVhsdiAVPHVD5roKPSA7ywk0UZc7FJMlRPdFoCYMduUmbrdeRu2R2z+UARrQKrsBzDxzueXXJ8rKer+9FN6GT2VxLTNcgo4MZM2FVDctha4n+lij/ZEWRKorQ43CQQn1iuE1CQhlgRg7teo0xDUz5OEANlFIQYo2FubAsrLUqzbmYWOHz/IKFsUuS+Tp9MCAwEAAQ==-----END PUBLIC KEY-----";
-
-        EventManager.DataLoadEvent.LoadItemEvent += (context) =>
-        {
-            try
+            //LootUtils.GenerateStaticLootMap(databaseService, logger);
+            //ItemUtils.GetItem("5e42c81886f7742a01529f57", databaseService).Properties.MaximumNumberOfUsage = 0; //完全可以
+            //databaseService.GetTraders().Values[IEnumerable<Trader>.]
+            var config = ConfigManager.GetConfig();
+            if (config.UseOldRagfairPrice)
             {
-                var item = Utils.ConvertItemData(FileDecodeUtils.DecodeToRawJson(modPath, "永恒之环.ecf", "永恒之环.sig", "eternalcycle.sig", pubkey, "201633e196f836f185ef4c1ded38ea5181064a08d946099df4b4d4362d370cb8", "da91b793b230778064740ea9a953cbce"), context.JsonUtil);
-                ItemUtils.InitItem(item, "<color=#5BCEFA>永恒<color=#F5A9B8>时序</color></color>", "<color=#5BCEFA>永恒<color=#F5A9B8>时序</color></color>", context);
+                //new ReplaceFleaBasePricesPatch().Enable();
             }
-            catch (Exception ex)
+            //new OpenRandomLootContainerPatch().Enable();
+
+            //new StartupLogPatch().Enable();
+            //new RemoveExpiredItemsFromMessagePatch().Enable();
+            //new RagfairLoadPatch().Enable();
+            //new ProfileHelperPatch().Enable();
+            //new PresetHelperPatch().Enable();   
+            //new BotGeneratorPatch.BotGeneratorPatch_GenerateBot().Enable();
+            Utils.commonLogger.Success("你要是把我的事件链搞炸了我就操死你妈");
+            void testmethod(LoadModContext prlc)
             {
+                var item = prlc.DB.GetItems();
+                prlc.Logger.Warn(item.FirstOrDefault().Value.Id.ToString());
+                prlc.Logger.Info("Mod加载完成后市场初始化前");
             }
-        }; 
-        EventManager.DataLoadEvent.FixItemCompatibleEvent += (context) =>
-        {
-            try
+            void testmethod2(LoadModContext prlc)
             {
-                var 永恒之环 = "永恒之环".ConvertHashID();
-                var items = context.DB.GetItems();
-                items["55d7217a4bdc2d86028b456d"]
-                    .Properties.Slots
-                    .First(x => x.Name == "ArmBand")
-                    .Properties.Filters
-                    .First()
-                    .Filter
-                    .Add(永恒之环);
-                foreach (var item in items.Values)
+                prlc.Logger.Error("市场初始化后游戏启动前");
+            }
+            void testmethod3(LoadModContext prlc)
+            {
+                prlc.Logger.Error("Mod加载完成后");
+            }
+            void testmethod4(BotBase bot, BotType botJsonTemplate, BotGenerationDetails botGenerationDetails, LoadModContext prlc)
+            {
+                prlc.Logger.Error("Test");
+            }
+
+            EventManager.OnBeforeRagfairLoadedEvent += testmethod;
+
+            string pubkey = "-----BEGIN PUBLIC KEY-----MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEApwO5ENxGmgxJLCld9mdzziVmeOvmBeno9vMxJDZ1hZqszSwmJnGx/QZDBefd5swguXvRBVjYcrM5CQ7ZDmr0JsBlOpFizrLKdM91l10rxnPkWGVYU1no6usVagoTlyZx8NyERSrOLsM05s49MbOSwdc5v4X5NPbU3ZSfAK7EOTEJUsikMLZL4ZpVWiYqiIZdix61Sq5W2Dj1mXHHAkNTfAAgjIWN4iil/Y9VGfG4j8A/XSOkHS29kp4KT+BuF+gz8/hf9w6jFmQ4lBFOZeBi1ewp8c/yWsMnMPntFeHeEmhryD8O1h8WPEaFWZ3e85aYElclvYkUY2WMDIstV8neT+OXfcmBqg7Nz3kNA9uMj64k/cYft5WjZGEHb+qK0ED/ofzAJ9Bd4EoV1rJIeZKU0bvoCy2nXJMcCJOqPBQUwHCdqaDHsSqFm1T1c7GUXa2sVXIUQWgDeUXval2DQ19j3TC3YeKAJUUZ5PWnULVusR1prpVhsdiAVPHVD5roKPSA7ywk0UZc7FJMlRPdFoCYMduUmbrdeRu2R2z+UARrQKrsBzDxzueXXJ8rKer+9FN6GT2VxLTNcgo4MZM2FVDctha4n+lij/ZEWRKorQ43CQQn1iuE1CQhlgRg7teo0xDUz5OEANlFIQYo2FubAsrLUqzbmYWOHz/IKFsUuS+Tp9MCAwEAAQ==-----END PUBLIC KEY-----";
+
+            EventManager.DataLoadEvent.LoadItemEvent += (context) =>
+            {
+                try
                 {
-                    if (item.Id == 永恒之环) continue;
-                    foreach (var filter in item.Properties?.Grids?
-                         .SelectMany(x => x.Properties.Filters ?? Enumerable.Empty<GridFilter>())
-                         ?? Enumerable.Empty<GridFilter>())
+                    var item = Utils.ConvertItemData(FileDecodeUtils.DecodeToRawJson(modPath, "永恒之环.ecf", "永恒之环.sig", "eternalcycle.sig", pubkey, "201633e196f836f185ef4c1ded38ea5181064a08d946099df4b4d4362d370cb8", "da91b793b230778064740ea9a953cbce"), context.JsonUtil);
+                    ItemUtils.InitItem(item, "<color=#5BCEFA>永恒<color=#F5A9B8>时序</color></color>", "<color=#5BCEFA>永恒<color=#F5A9B8>时序</color></color>", context);
+                }
+                catch (Exception ex)
+                {
+                }
+            };
+            EventManager.DataLoadEvent.FixItemCompatibleEvent += (context) =>
+            {
+                try
+                {
+                    var 永恒之环 = "永恒之环".ConvertHashID();
+                    var items = context.DB.GetItems();
+                    items["55d7217a4bdc2d86028b456d"]
+                        .Properties.Slots
+                        .First(x => x.Name == "ArmBand")
+                        .Properties.Filters
+                        .First()
+                        .Filter
+                        .Add(永恒之环);
+                    foreach (var item in items.Values)
                     {
-                        filter?.ExcludedFilter?.Add(永恒之环);
+                        if (item.Id == 永恒之环) continue;
+                        foreach (var filter in item.Properties?.Grids?
+                             .SelectMany(x => x.Properties.Filters ?? Enumerable.Empty<GridFilter>())
+                             ?? Enumerable.Empty<GridFilter>())
+                        {
+                            filter?.ExcludedFilter?.Add(永恒之环);
+                        }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-            }
-        };
-
-
-        //EventManager.OnAfterRagfairLoadedEvent += testmethod2;
-        //EventManager.OnAfterModLoadedEvent += testmethod3;
-        //EventManager.OnPreBotGenerateEvent += testmethod4;
-        /*
-        ItemUtils.RegisterItem(modPath, "items_normal.json", "<color=#8FFF00>永恒时序-调试物品加载</color>", "<color=#FFFF80>永恒时序</color>");
-        ItemUtils.RegisterItem(modPath, "gunfight.json", "<color=#8FFF00>永恒时序-物品加载器</color>", "<color=#FFFF80>枪械武术</color>");
-        QuestUtils.RegisterQuest(modPath, "init.json", "res/questimage/");
-        TraderUtils.RegisterTrader(modPath, "base.json", "res/avatar/", "<color=#8FFF00>永恒时序-调试商人加载</color>", "<color=#FFFF80>永恒时序</color>");
-        AchievementUtils.RegisterAchievement(modPath, "achievement.json", "res/icon/");
-        AssortUtils.RegisterAssort(modPath, "assort_mod.json");
-        QuestUtils.RegisterQuestRewards(modPath, "rewards_vanilla.json");
-        QuestUtils.RegisterQuestLogicTree(modPath, "logic.json");
-        RecipeUtils.RegisterRecipe(modPath, "recipe.json");
-        RecipeUtils.RegisterScavCaseRecipe(modPath, "scavcase.json");
-        RecipeUtils.RegisterCultistCircleRecipe(modPath, "circle.json");
-        PresetUtils.RegisterPreset(modPath, "preset.json");
-        SuitUtils.RegisterSuit(modPath, "suits.json");
-        CustomizationUtils.RegisterHideoutCustomization(modPath, "hideoutcustom.json");
-        LocaleUtils.RegisterQuestLocale(modPath, "quest/", "<color=#8FFF00>永恒时序-调试任务加载</color>", "<color=#FFFF80>永恒时序</color>");
-        ItemUtils.RegisterDrawPool(modPath, "newdrawpool.json");
-        ResourceUtils.RegisterRigLayoutResource(modPath, "clientres/");
-        ResourceUtils.RegisterSlotIconResource(modPath, "sloticon/");
-        CustomizationUtils.RegisterCustomization(modPath, "custom.json", "deco/");
-        GiftCodeUtils.RegisterGiftCode(modPath, "giftcode.json");
-        ItemTagUtils.RegisterItemTag(modPath, "itemtag.json");
-        BotGeneratorUtils.RegisterAlterBotData(modPath, "sanitar.json");
-        BotGeneratorUtils.RegisterAlterBotData(modPath, "gluhar.json");
-        */
-
-        //ItemUtils.InitItem(System.IO.Path.Combine(modPath, "items/"), "<color=#8FFF00>永恒时序-物品加载器</color>", "<color=#FFFF80>永恒时序</color>", databaseService, jsonutil, configServer, cloner);
-        return Task.CompletedTask;
-    }
-
-    public record EternalCycleCloneRequestData : BaseInteractionRequestData
-    {
-        [JsonPropertyName("itemData")]
-        public Item[] StashData { get; set; }
-    }
-    public record ProfileStashSyncRequestData : BaseInteractionRequestData
-    {
-        [JsonPropertyName("stashData")]
-        public Item[] StashData { get; set; }
-    }
-
-    //Weird, sometimes item from gift box will missing and sometimes will duplicate, profile broken risk, tried to fix it.
-    [Injectable]
-    public class ProfileStashSyncExtendEventRouter : ItemEventRouterDefinition
-    {
-        protected override List<HandledRoute> GetHandledRoutes()
-        {
-            return new List<HandledRoute>
-            {
-                new HandledRoute("SyncStashExtend", false)
+                catch (Exception ex)
+                {
+                }
             };
+
+            return;
         }
 
-        protected override ValueTask<ItemEventRouterResponse> HandleItemEventInternal(
-            string url,
-            PmcData pmcData,
-            BaseInteractionRequestData body,
-            MongoId sessionID,
-            ItemEventRouterResponse output)
+        public record ProfileStashSyncRequestData : BaseInteractionRequestData
         {
-            if (url == "SyncStashExtend" && body is ProfileStashSyncRequestData requestBody)
-            {
-                if (requestBody.StashData != null && requestBody.StashData.Length > 0)
-                {
-                    var request = new ProfileStashDataContext
-                    {
-                        StashDataContext = [requestBody.StashData.ToList()],
-                        StrictJsonFormat = false,
-                        Callback = null,
-                        DiscardOverflowItem = false
-                    };
-
-                    //Forced sync missing item after open a gift
-                    SyncProfileStashExtend(
-                        sessionID,
-                        request,
-                        pmcData,
-                        output);
-                }
-                else
-                {
-                    //Console.WriteLine("数据为空！");
-                }
-            }
-
-            return new ValueTask<ItemEventRouterResponse>(output);
+            [JsonPropertyName("stashData")]
+            public Item[] StashData { get; set; }
         }
-
-        public void SyncProfileStashExtend(MongoId sessionId, ProfileStashDataContext request, PmcData pmcData, ItemEventRouterResponse output)
+        public record ProfileStashData
         {
-            var inventoryHelper = ServiceLocator.ServiceProvider.GetService<InventoryHelper>();
-            var httpResponseUtil = ServiceLocator.ServiceProvider.GetService<HttpResponseUtil>();
-            var serverLocalisationService = ServiceLocator.ServiceProvider.GetService<ServerLocalisationService>();
-
-            if (!inventoryHelper.CanPlaceItemsInInventory(sessionId, request.StashDataContext))
+            public virtual List<Item>? StashData { get; set; }
+            public virtual bool? StrictJsonFormat { get; set; }
+            public virtual Action<int>? Callback { get; set; }
+            public virtual bool? DiscardOverflowItem { get; set; }
+        }
+        public record ProfileStashDataContext
+        {
+            public virtual IEnumerable<List<Item>>? StashDataContext { get; set; }
+            public virtual bool? StrictJsonFormat { get; set; }
+            public virtual Action<int>? Callback { get; set; }
+            public virtual bool? DiscardOverflowItem { get; set; }
+        }
+        //操死傻逼白皮的血妈，他妈逼你妈小时候生你是不是也得先喊一声本宫要生了实例化了才能继续啊
+        //死妈东西
+        [Injectable]
+        public class ProfileStashSyncService
+        {
+            private readonly InventoryHelper _inventoryHelper;
+            private readonly HttpResponseUtil _httpResponseUtil;
+            private readonly ServerLocalisationService _serverLocalisationService;
+            private readonly ICloner _cloner;
+            private readonly ItemHelper _itemHelper;
+            public ProfileStashSyncService(
+                InventoryHelper inventoryHelper,
+                HttpResponseUtil httpResponseUtil,
+                ServerLocalisationService serverLocalisationService,
+                ICloner cloner,
+                ItemHelper itemHelper)
             {
-                httpResponseUtil.AppendErrorToOutput(
-                    output,
-                    serverLocalisationService.GetText("inventory-no_stash_space"),
-                    BackendErrorCodes.NotEnoughSpace
-                );
-
-                return;
+                _inventoryHelper = inventoryHelper;
+                _httpResponseUtil = httpResponseUtil;
+                _serverLocalisationService = serverLocalisationService;
+                _cloner = cloner;
+                _itemHelper = itemHelper;
             }
-
-            var checkItemRequest = new ProfileStashData
+            public async ValueTask<ItemEventRouterResponse> HandleSyncStashExtendAsync(
+                string url,
+                PmcData pmcData,
+                ProfileStashSyncRequestData body,
+                MongoId sessionID,
+                ItemEventRouterResponse output,
+                CancellationToken cancellationToken)
             {
-                StrictJsonFormat = request.StrictJsonFormat,
-                DiscardOverflowItem = request.DiscardOverflowItem,
-                Callback = request.Callback,
-            };
-            foreach (var stashData in request.StashDataContext)
-            {
-                checkItemRequest.StashData = stashData;
-
-                SyncStashExtend(sessionId, checkItemRequest, pmcData, output);
-                if (output.Warnings?.Count > 0)
+                if (body.StashData == null || body.StashData.Length == 0)
+                    return output;
+                var request = new ProfileStashDataContext
                 {
+                    StashDataContext = new[] { body.StashData.ToList() },
+                    StrictJsonFormat = false,
+                    Callback = null,
+                    DiscardOverflowItem = false
+                };
+                SyncProfileStashExtend(sessionID, request, pmcData, output);
+                return output;
+            }
+            private void SyncProfileStashExtend(
+                MongoId sessionId,
+                ProfileStashDataContext request,
+                PmcData pmcData,
+                ItemEventRouterResponse output)
+            {
+                if (!_inventoryHelper.CanPlaceItemsInInventory(sessionId, request.StashDataContext))
+                {
+                    _httpResponseUtil.AppendErrorToOutput(
+                        output,
+                        _serverLocalisationService.GetText("inventory-no_stash_space"),
+                        BackendErrorCodes.NotEnoughSpace);
                     return;
                 }
+                var checkItemRequest = new ProfileStashData
+                {
+                    StrictJsonFormat = request.StrictJsonFormat,
+                    DiscardOverflowItem = request.DiscardOverflowItem,
+                    Callback = request.Callback,
+                };
+                foreach (var stashData in request.StashDataContext)
+                {
+                    checkItemRequest.StashData = stashData;
+                    SyncStashExtend(sessionId, checkItemRequest, pmcData, output);
+                    if (output.Warnings?.Count > 0)
+                        return;
+                }
+            }
+            private void SyncStashExtend(
+                MongoId sessionId,
+                ProfileStashData request,
+                PmcData pmcData,
+                ItemEventRouterResponse output)
+            {
+                var itemSnapshot = _cloner.Clone(request.StashData);
+                var allMethods = AccessTools.GetDeclaredMethods(typeof(InventoryHelper));
+                var stashFS2D = (int[,])AccessTools.Method(typeof(InventoryHelper), "GetStashSlotMap")
+                    .Invoke(_inventoryHelper, new object[] { pmcData });
+                if (stashFS2D == null)
+                    return;
+                var sortingTableFS2D = AccessTools.Method(typeof(InventoryHelper), "GetSortingTableSlotMap")
+                    .Invoke(_inventoryHelper, new object[] { pmcData });
+                var syncMethod = allMethods.FirstOrDefault(m =>
+                    m.Name.Contains("Inventory") &&
+                    m.GetParameters().Length == 6 &&
+                    m.GetParameters()[0].ParameterType == typeof(int[,]) &&
+                    m.GetParameters()[1].ParameterType == typeof(int[,]));
+                syncMethod?.Invoke(_inventoryHelper, new object[]
+                {
+            stashFS2D,
+            sortingTableFS2D,
+            itemSnapshot,
+            pmcData.Inventory,
+            !request.DiscardOverflowItem.GetValueOrDefault(true),
+            output
+                });
+                if (output.Warnings?.Count > 0)
+                    return;
+                ResetItemState(itemSnapshot);
+                AccessTools.Method(typeof(InventoryHelper), "RemoveTraderRagfairRelatedUpdProperties")
+                    .Invoke(_inventoryHelper, new object[] { itemSnapshot[0].Upd });
+                try
+                {
+                    request.Callback?.Invoke((int)(itemSnapshot[0].Upd.StackObjectsCount ?? 0));
+                }
+                catch (Exception ex)
+                {
+                    _httpResponseUtil.AppendErrorToOutput(output, ex.Message);
+                    return;
+                }
+                output.ProfileChanges[sessionId].Items.NewItems.AddRange(itemSnapshot);
+                pmcData.Inventory.Items.AddRange(itemSnapshot);
+            }
+            private void ResetItemState(IEnumerable<Item> itemList)
+            {
+                foreach (var item in itemList)
+                {
+                    item.AddUpd();
+                    item.Upd.SpawnedInSession = _itemHelper.IsOfBaseclass(item.Template, BaseClasses.AMMO)
+                        ? null
+                        : item.Upd.SpawnedInSession ?? false;
+                }
             }
         }
 
-        public void SyncStashExtend(MongoId sessionId, ProfileStashData request, PmcData pmcData, ItemEventRouterResponse output)
+        //Weird, sometimes item from gift box will missing and sometimes will duplicate, profile broken risk, tried to fix it.
+        [Injectable(TypePriority = OnLoadOrder.Routers + 1)]
+        public class ProfileStashSyncExtendEventRouter : ItemEventRouter
         {
-            var inventoryHelper = ServiceLocator.ServiceProvider.GetService<InventoryHelper>();
-            var httpResponseUtil = ServiceLocator.ServiceProvider.GetService<HttpResponseUtil>();
-            var cloner = ServiceLocator.ServiceProvider.GetService<ICloner>();
-            var itemSnapshot = cloner.Clone(request.StashData);
-
-            //Reflection search
-            var allMethods = AccessTools.GetDeclaredMethods(typeof(InventoryHelper));
-
-            //Generate 2D Grid Map
-            var stashFS2D = (int[,])AccessTools.Method(typeof(InventoryHelper), "GetStashSlotMap")
-                        .Invoke(inventoryHelper, new object[] { pmcData });
-            if (stashFS2D is null)
-            {
-
-                return;
-            }
-
-            //Generate 2D Grid Map
-            var sortingTableFS2D = AccessTools.Method(typeof(InventoryHelper), "GetSortingTableSlotMap")
-                        .Invoke(inventoryHelper, new object[] { pmcData });
-
-            //Sync missing item
-            allMethods.FirstOrDefault(m =>
-                m.Name.Contains("Inventory") &&
-                m.GetParameters().Length == 6 && 
-                m.GetParameters()[0].ParameterType == typeof(int[,]) &&
-                m.GetParameters()[1].ParameterType == typeof(int[,]))
-                ?.Invoke(inventoryHelper, new object[] { 
-                        stashFS2D,
-                        sortingTableFS2D,
-                        itemSnapshot,
-                        pmcData.Inventory,
-                        !request.DiscardOverflowItem.GetValueOrDefault(true),
-                        output });
-
-            if (output.Warnings?.Count > 0)
-
-            {
-                return;
-            }
-            
-            //Sync item fir from client
-            ResetItemState(itemSnapshot);
-
-            AccessTools.Method(typeof(InventoryHelper), "RemoveTraderRagfairRelatedUpdProperties")
-                        .Invoke(inventoryHelper, new object[] { itemSnapshot[0].Upd });
-
-            try
-            {
-                request.Callback?.Invoke((int)(itemSnapshot[0].Upd.StackObjectsCount ?? 0));
-            }
-            catch (Exception ex)
-            {
-                var message = ex.Message;
-                httpResponseUtil.AppendErrorToOutput(output, message);
-
-                return;
-            }
-
-            //Sync data into profile and callback
-            output.ProfileChanges[sessionId].Items.NewItems.AddRange(itemSnapshot);
-            pmcData.Inventory.Items.AddRange(itemSnapshot);
+            public ProfileStashSyncExtendEventRouter(ProfileStashSyncService syncService)
+                : base(new ItemRouteAction[]
+                {
+            new ItemRouteAction<ProfileStashSyncRequestData>(
+                "SyncStashExtend",
+                async (url, pmcData, body, sessionID, output, cancellationToken) =>
+                    await syncService.HandleSyncStashExtendAsync(url, pmcData, body, sessionID, output, cancellationToken)
+            )
+                })
+            { }
         }
-        
-        protected virtual void ResetItemState(IEnumerable<Item> ItenList)
-        {
-            var itemHelper = ServiceLocator.ServiceProvider.GetService<ItemHelper>();
-            foreach (Item item in ItenList)
-            {
-                item.AddUpd();
-                item.Upd.SpawnedInSession = (itemHelper.IsOfBaseclass(item.Template, BaseClasses.AMMO) ? null : item.Upd.SpawnedInSession ?? false);
-            }
-        }
-    }
 
-    public record ProfileStashData
-    {
-        public virtual List<Item>? StashData { get; set; }
-        public virtual bool? StrictJsonFormat { get; set; }
-        public virtual Action<int>? Callback { get; set; }
-        public virtual bool? DiscardOverflowItem { get; set; }
-    }
-
-    public record ProfileStashDataContext
-    {
-        public virtual IEnumerable<List<Item>>? StashDataContext { get; set; }
-        public virtual bool? StrictJsonFormat { get; set; }
-        public virtual Action<int>? Callback { get; set; }
-        public virtual bool? DiscardOverflowItem { get; set; }
-    }
-
-    [Injectable]
-    // 1. 使用主构造函数，将所有需要的服务（包括之前用 ServiceLocator 获取的）全部在此声明
-    public class VulcanCoreAwakeRouter(
-     JsonUtil jsonUtil,
-     HttpResponseUtil httpResponseUtil,
-     DatabaseService databaseService,
-     RagfairController ragfairController,
-     RagfairOfferService ragfairOfferService,
-     ItemHelper itemHelper,
-     ISptLogger<EternalCycle> logger,
-     ICloner cloner,
-     EternalCycle vulcanCore,
-     LocaleService localeService,   // <- 从内部提取到这里的注入
-     ProfileHelper profileHelper    // <- 从内部提取到这里的注入
-    ) : StaticRouter(jsonUtil, [
+        [Injectable]
+        // 1. 使用主构造函数，将所有需要的服务（包括之前用 ServiceLocator 获取的）全部在此声明
+        public class EternalCycleAwakeRouter(
+         JsonUtil jsonUtil,
+         HttpResponseUtil httpResponseUtil,
+         RagfairController ragfairController,
+         ItemHelper itemHelper,
+         ICloner cloner,
+         EternalCycle vulcanCore,
+         LocaleService localeService,   // <- 从内部提取到这里的注入
+         ProfileHelper profileHelper    // <- 从内部提取到这里的注入
+        ) : StaticRouter(jsonUtil, [
 
         /* 这俩删了, 备份后面单独写
     // 2. 直接在基类构造时传入路由数组，使用 Lambda 表达式内联逻辑
@@ -600,9 +533,9 @@ public class EternalCycle(
         }
     ),
         */
-    new RouteAction(
+        new RouteAction(
         "/eternalcycle/callprofilebackup",
-        (_, _, sessionId, _) => // 这里需要用到 sessionId
+        (_, _, sessionId, _, _) => // 这里需要用到 sessionId
         {
             // 直接使用构造函数注入的 vulcanCore 和 profileHelper
             var backupPath = System.IO.Path.Combine(vulcanCore.modPath, "Backup");
@@ -631,7 +564,7 @@ public class EternalCycle(
 
         new RouteAction<SyncResourceRequest>(
             "/eternalcycle/loadriglayout",
-            (_, info, sessionId, _) =>
+            (_, info, sessionId, _, _) =>
             {
                 var clientReq = info ?? new SyncResourceRequest();
                 var response = new SyncResourceResponse();
@@ -659,7 +592,7 @@ public class EternalCycle(
 
         new RouteAction<SyncResourceRequest>(
             "/eternalcycle/loadsloticon",
-            (_, info, sessionId, _) =>
+            (_, info, sessionId, _, _) =>
             {
                 var clientReq = info ?? new SyncResourceRequest();
                 var response = new SyncResourceResponse();
@@ -687,7 +620,7 @@ public class EternalCycle(
 
         new RouteAction<SyncResourceRequest>(
             "/eternalcycle/loaddecoicon",
-            (_, info, sessionId, _) =>
+            (_, info, sessionId, _, _) =>
             {
                 var clientReq = info ?? new SyncResourceRequest();
                 var response = new SyncResourceResponse();
@@ -715,7 +648,7 @@ public class EternalCycle(
 
         new RouteAction<SyncResourceRequest>(
             "/eternalcycle/loadtarget",
-            (_, info, sessionId, _) =>
+            (_, info, sessionId, _, _) =>
             {
                 var clientReq = info ?? new SyncResourceRequest();
                 var response = new SyncResourceResponse();
@@ -743,14 +676,14 @@ public class EternalCycle(
 
         new RouteAction(
             "/eternalcycle/loadvoice",
-            (_, _, _, _) =>
+            (_, _, _, _, _) =>
             {
 
                 var jsonResponse = jsonUtil.Serialize(new VoiceResourceRequest{ VoicePath = ResourceUtils.VoicePath});
                 return ValueTask.FromResult<object>(jsonResponse);
             }
         )
- ]);
+     ]);
+    }
+
 }
-
-

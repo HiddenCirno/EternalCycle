@@ -1,13 +1,18 @@
 using HarmonyLib;
 using Microsoft.AspNetCore.Razor.TagHelpers;
+using SPTarkov.DI.Annotations;
 using SPTarkov.Reflection.Patching;
 using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.Generators;
+using SPTarkov.Server.Core.Generators.Bot;
 using SPTarkov.Server.Core.Helpers;
+using SPTarkov.Server.Core.Helpers.Items;
+using SPTarkov.Server.Core.Helpers.Server;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Spt.Bots;
 using SPTarkov.Server.Core.Models.Spt.Config;
+using SPTarkov.Server.Core.Models.Spt.Tables;
 using SPTarkov.Server.Core.Models.Utils;
 using SPTarkov.Server.Core.Routers;
 using SPTarkov.Server.Core.Servers;
@@ -16,6 +21,7 @@ using SPTarkov.Server.Core.Utils;
 using SPTarkov.Server.Core.Utils.Cloners;
 using System.Reflection;
 using System.Text;
+using static EternalCycleServer.ContextManager;
 
 namespace EternalCycleServer
 {
@@ -67,8 +73,54 @@ namespace EternalCycleServer
         }
 
         //rework
+        [Injectable]
+
         public class BotGeneratorPatch_GenerateBot : AbstractPatch
         {
+            private static TemplateTable _templateTable = default!;
+            private static LocaleTable _localeTable = default!;
+            private static GlobalTable _globalTable = default!;
+            private static TradersTable _tradersTable = default!;
+            private static HideoutTable _hideoutTable = default!;
+            private static LocationTable _locationTable = default!;
+            private static JsonUtil _jsonUtil = default!;
+            private static ConfigServer _configServer = default!;
+            private static ModHelper _modHelper = default!;
+            private static ItemHelper _itemHelper = default!;
+            private static ICloner _cloner = default!;
+            private static PresetHelper _presetHelper = default!;
+            private static ImageRouter _imageRouter = default!;
+            private static ECLogger _logger = default!;
+            public BotGeneratorPatch_GenerateBot(
+        TemplateTable templateTable,
+        LocaleTable localeTable,
+        GlobalTable globalTable,
+        TradersTable tradersTable,
+        HideoutTable hideoutTable,
+        LocationTable locationTable,
+        JsonUtil jsonUtil,
+        ConfigServer configServer,
+        ModHelper modHelper,
+        ItemHelper itemHelper,
+        ICloner cloner,
+        PresetHelper presetHelper,
+        ImageRouter imageRouter)
+            {
+                _templateTable = templateTable;
+                _localeTable = localeTable;
+                _globalTable = globalTable;
+                _tradersTable = tradersTable;
+                _hideoutTable = hideoutTable;
+                _locationTable = locationTable;
+                _jsonUtil = jsonUtil;
+                _configServer = configServer;
+                _modHelper = modHelper;
+                _itemHelper = itemHelper;
+                _cloner = cloner;
+                _presetHelper = presetHelper;
+                _imageRouter = imageRouter;
+                _logger = new ECLogger("BotGenerator", true);
+            }
             protected override MethodBase GetTargetMethod()
             {
                 return typeof(BotGenerator).GetMethod("GenerateBot", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
@@ -77,28 +129,18 @@ namespace EternalCycleServer
             public static bool Prefix(BotGenerator __instance, MongoId sessionId, BotBase bot, ref BotType botJsonTemplate, BotGenerationDetails botGenerationDetails, BotBase __result)
             {
 
-                var jsonUtil = ServiceLocator.ServiceProvider.GetService<JsonUtil>();
-                var databaseService = ServiceLocator.ServiceProvider.GetService<DatabaseService>();
-                var configServer = ServiceLocator.ServiceProvider.GetService<ConfigServer>();
-                var modHelper = ServiceLocator.ServiceProvider.GetService<ModHelper>();
-                var itemHelper = ServiceLocator.ServiceProvider.GetService<ItemHelper>();
-                var cloner = ServiceLocator.ServiceProvider.GetService<ICloner>();
-                var localeService = ServiceLocator.ServiceProvider.GetService<LocaleService>();
-                var presetHelper = ServiceLocator.ServiceProvider.GetService<PresetHelper>();
-                var imageRouter = ServiceLocator.ServiceProvider.GetService<ImageRouter>();
-
                 var logger = new ECLogger("Generator", true);
-                var context = new ContextManager.LoadModContext
+                var context = new LoadModContext
                 {
-                    DB = databaseService,
-                    JsonUtil = jsonUtil,
-                    ConfigServer = configServer,
-                    ModHelper = modHelper,
+                    DB = new DatabaseService(_templateTable, _localeTable, _globalTable, _tradersTable, _hideoutTable, _locationTable),
+                    JsonUtil = _jsonUtil,
+                    ConfigServer = _configServer,
+                    ModHelper = _modHelper,
                     Logger = Utils.commonLogger,
-                    PresetHelper = presetHelper,
-                    ImageRouter = imageRouter,
-                    ItemHelper = itemHelper,
-                    Cloner = cloner
+                    PresetHelper = _presetHelper,
+                    ImageRouter = _imageRouter,
+                    ItemHelper = _itemHelper,
+                    Cloner = _cloner
                 };
 
                 var botRoleLowercase = botGenerationDetails.Role.ToLowerInvariant();
@@ -203,28 +245,17 @@ namespace EternalCycleServer
             public static void Postfix(BotGenerator __instance, MongoId sessionId, BotBase bot, BotType botJsonTemplate, BotGenerationDetails botGenerationDetails, ref BotBase __result)
             {
 
-                var jsonUtil = ServiceLocator.ServiceProvider.GetService<JsonUtil>();
-                var databaseService = ServiceLocator.ServiceProvider.GetService<DatabaseService>();
-                var configServer = ServiceLocator.ServiceProvider.GetService<ConfigServer>();
-                var modHelper = ServiceLocator.ServiceProvider.GetService<ModHelper>();
-                var itemHelper = ServiceLocator.ServiceProvider.GetService<ItemHelper>();
-                var presetHelper = ServiceLocator.ServiceProvider.GetService<PresetHelper>();
-                var cloner = ServiceLocator.ServiceProvider.GetService<ICloner>();
-                var localeService = ServiceLocator.ServiceProvider.GetService<LocaleService>();
-                var imageRouter = ServiceLocator.ServiceProvider.GetService<ImageRouter>();
-
-                var logger = new ECLogger("Generator", true);
-                var context = new ContextManager.LoadModContext
+                var context = new LoadModContext
                 {
-                    DB = databaseService,
-                    JsonUtil = jsonUtil,
-                    ConfigServer = configServer,
-                    ModHelper = modHelper,
+                    DB = new DatabaseService(_templateTable, _localeTable, _globalTable, _tradersTable, _hideoutTable, _locationTable),
+                    JsonUtil = _jsonUtil,
+                    ConfigServer = _configServer,
+                    ModHelper = _modHelper,
                     Logger = Utils.commonLogger,
-                    ImageRouter = imageRouter,
-                    PresetHelper = presetHelper,
-                    ItemHelper = itemHelper,
-                    Cloner = cloner
+                    PresetHelper = _presetHelper,
+                    ImageRouter = _imageRouter,
+                    ItemHelper = _itemHelper,
+                    Cloner = _cloner
                 };
 
                 EventManager.OnPreBotGenerateEvent?.Invoke(__result, botJsonTemplate, botGenerationDetails, context);

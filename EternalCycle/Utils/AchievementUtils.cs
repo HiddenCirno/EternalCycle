@@ -118,9 +118,8 @@ namespace EternalCycleServer
             var achievementid = achievementData.Id;
             achievementPattern.Id = achievementid;
             achievementPattern.ImageUrl = achievementData.ImagePath;
-            var imageRouter = ServiceLocator.ServiceProvider.GetService<ImageRouter>();
             var resourcepath = System.IO.Path.Combine(modpath, respath);
-            ImageUtils.RegisterAchievementRoute(achievementPattern.ImageUrl, resourcepath, imageRouter);
+            ImageUtils.RegisterAchievementRoute(achievementPattern.ImageUrl, resourcepath, context.ImageRouter);
             achievementPattern.Conditions = new AchievementQuestConditionTypes
             {
                 AvailableForFinish = new List<QuestCondition>(),

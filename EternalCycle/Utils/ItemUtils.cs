@@ -3,6 +3,7 @@ using SPTarkov.Server.Core.Models.Eft.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Models.Spt.Config;
+using SPTarkov.Server.Core.Models.Spt.Tables;
 using SPTarkov.Server.Core.Services;
 using System.Reflection;
 using static EternalCycleServer.ContextManager;
@@ -425,7 +426,7 @@ namespace EternalCycleServer
         /// <returns>自定义物品对象</returns>
         public static CustomItemTemplate AddBuffItemData(this CustomItemTemplate template, LoadModContext context)
         {
-            Globals globals = context.DB.GetGlobals();
+            GlobalTable globals = context.DB.GetGlobals();
             if (template.CustomProps is BuffItemProps itemProps && template.Props.StimulatorBuffs != null)
             {
                 globals.Configuration.Health.Effects.Stimulator.Buffs[template.Props.StimulatorBuffs] = itemProps.BuffValue;
@@ -591,7 +592,7 @@ namespace EternalCycleServer
         /// <param name="context">上下文实例</param>
         public static void FixWeaponMastering(CustomItemTemplate template, WeaponItemProps itemProps, LoadModContext context)
         {
-            Globals globals = context.DB.GetGlobals();
+            GlobalTable globals = context.DB.GetGlobals();
             var itemId = template.Id.ConvertHashID();
             //确定修复目标
             string targetToFind = itemProps.CustomMasteringTarget ?? template.TargetId;
@@ -620,7 +621,7 @@ namespace EternalCycleServer
         {
             if (itemProps.Mastering == null) return;
 
-            Globals globals = context.DB.GetGlobals();
+            GlobalTable globals = context.DB.GetGlobals();
             int existingIndex = Array.FindIndex(globals.Configuration.Mastering, m => m.Name == itemProps.Mastering.Name);
             if (existingIndex >= 0)
             {

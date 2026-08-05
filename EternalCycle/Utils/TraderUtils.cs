@@ -1,4 +1,5 @@
 using SPTarkov.Server.Core.Helpers;
+using SPTarkov.Server.Core.Helpers.Server;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Enums;
@@ -9,6 +10,7 @@ using SPTarkov.Server.Core.Services;
 using SPTarkov.Server.Core.Utils;
 using SPTarkov.Server.Core.Utils.Cloners;
 using System.IO;
+using static EternalCycleServer.ContextManager;
 using Path = System.IO.Path;
 
 namespace EternalCycleServer
@@ -172,7 +174,7 @@ namespace EternalCycleServer
             {
                 ragfairConfig.Traders.TryAdd(traderId, true);
             }
-            databaseService.GetTables().Traders[traderBase.Id] = traderPattern;
+            databaseService.GetTraders()[traderBase.Id] = traderPattern;
         }
     }
 }

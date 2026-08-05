@@ -1,6 +1,5 @@
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
-using SPTarkov.Server.Core.Models.Logging;
 using SPTarkov.Server.Core.Models.Spt.Mod;
 using SPTarkov.Server.Core.Models.Utils;
 using SPTarkov.Server.Core.Services;
@@ -20,7 +19,7 @@ public record TraderBaseWithDesc : TraderBase
 {
     [JsonPropertyName("_id")]
     [JsonConverter(typeof(MongoIdConverter))]
-    public override required MongoId Id { get; set; }
+    public new required MongoId Id { get; set; }
     [JsonPropertyName("description")]
     public string Description { get; set; }
     [JsonPropertyName("insurance_locale")]
