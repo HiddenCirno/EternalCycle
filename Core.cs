@@ -66,6 +66,8 @@ namespace EternalCycleServer
                     //我去你妈的傻逼白皮, 会写代码吗
                     new FuckMongoIdPatch().Enable();
                     new FuckMongoIdPatch2().Enable();
+                    new FuckMongoIdPatch3().Enable();
+                    new FuckMongoIdPatch4().Enable();
                     new FuckParentIdPatch().Enable();
                 }
                 catch (Exception ex)
