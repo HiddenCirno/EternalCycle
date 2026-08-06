@@ -1,5 +1,3 @@
-using HarmonyLib.Tools;
-using Microsoft.Extensions.DependencyInjection;
 using SPTarkov.Common.Extensions;
 using SPTarkov.Server.Core.Helpers.Items;
 using SPTarkov.Server.Core.Helpers.Server;
@@ -9,10 +7,8 @@ using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Spt.Config;
 using SPTarkov.Server.Core.Models.Spt.Tables;
 using SPTarkov.Server.Core.Routers;
-using SPTarkov.Server.Core.Services.Locales;
 using SPTarkov.Server.Core.Utils;
 using SPTarkov.Server.Core.Utils.Cloners;
-using System.ComponentModel;
 
 namespace EternalCycleServer
 {
@@ -26,8 +22,9 @@ namespace EternalCycleServer
             private readonly TradersTable _traders;
             private readonly HideoutTable _hiedouts;
             private readonly LocationTable _locations;
+            private readonly BotTable _bots;
 
-            public DatabaseService(TemplateTable templates, LocaleTable locales, GlobalTable globals, TradersTable traders, HideoutTable hideouts, LocationTable locations)
+            public DatabaseService(TemplateTable templates, LocaleTable locales, GlobalTable globals, TradersTable traders, HideoutTable hideouts, LocationTable locations, BotTable bots)
             {
                 _templates = templates;
                 _locales = locales;
@@ -35,6 +32,7 @@ namespace EternalCycleServer
                 _traders = traders;
                 _hiedouts = hideouts;
                 _locations = locations;
+                _bots = bots;
             }
 
             public Dictionary<MongoId, TemplateItem> GetItems() => _templates.Items;
@@ -49,6 +47,7 @@ namespace EternalCycleServer
             public Dictionary<MongoId, CustomizationItem> GetCustomization() => _templates.Customization;
             public HideoutTable GetHideout() => _hiedouts;
             public LocationTable GetLocations() => _locations;
+            public BotTable GetBots() => _bots;
 
             public Trader GetTrader(MongoId traderid) => _traders.GetTrader(traderid);
 

@@ -117,6 +117,7 @@ namespace EternalCycleServer
         TradersTable tradersTable,
         HideoutTable hideoutTable,
         LocationTable locationTable,
+        BotTable botTable,
         HandbookHelper handbookHelper
         ) // We inject a logger for use inside our class, it must have the class inside the diamond <> brackets
         : IOnLoad // Implement the IOnLoad interface so that this mod can do something on server load
@@ -128,7 +129,7 @@ namespace EternalCycleServer
             //VulcanUtil.DoAsyncWork(logger);
             // VulcanLog.Access("test", logger);
 
-            DatabaseService databaseService = new DatabaseService(templateTable, localeTable, globalTable, tradersTable, hideoutTable, locationTable);
+            DatabaseService databaseService = new DatabaseService(templateTable, localeTable, globalTable, tradersTable, hideoutTable, locationTable, botTable);
             var context = new LoadModContext
             {
                 DB = databaseService,

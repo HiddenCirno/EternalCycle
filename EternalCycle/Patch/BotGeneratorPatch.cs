@@ -83,6 +83,7 @@ namespace EternalCycleServer
             private static TradersTable _tradersTable = default!;
             private static HideoutTable _hideoutTable = default!;
             private static LocationTable _locationTable = default!;
+            private static BotTable _botTable = default!;
             private static JsonUtil _jsonUtil = default!;
             private static ConfigServer _configServer = default!;
             private static ModHelper _modHelper = default!;
@@ -98,6 +99,7 @@ namespace EternalCycleServer
         TradersTable tradersTable,
         HideoutTable hideoutTable,
         LocationTable locationTable,
+        BotTable botTable,
         JsonUtil jsonUtil,
         ConfigServer configServer,
         ModHelper modHelper,
@@ -112,6 +114,7 @@ namespace EternalCycleServer
                 _tradersTable = tradersTable;
                 _hideoutTable = hideoutTable;
                 _locationTable = locationTable;
+                _botTable = botTable;
                 _jsonUtil = jsonUtil;
                 _configServer = configServer;
                 _modHelper = modHelper;
@@ -132,7 +135,7 @@ namespace EternalCycleServer
                 var logger = new ECLogger("Generator", true);
                 var context = new LoadModContext
                 {
-                    DB = new DatabaseService(_templateTable, _localeTable, _globalTable, _tradersTable, _hideoutTable, _locationTable),
+                    DB = new DatabaseService(_templateTable, _localeTable, _globalTable, _tradersTable, _hideoutTable, _locationTable, _botTable),
                     JsonUtil = _jsonUtil,
                     ConfigServer = _configServer,
                     ModHelper = _modHelper,
@@ -247,7 +250,7 @@ namespace EternalCycleServer
 
                 var context = new LoadModContext
                 {
-                    DB = new DatabaseService(_templateTable, _localeTable, _globalTable, _tradersTable, _hideoutTable, _locationTable),
+                    DB = new DatabaseService(_templateTable, _localeTable, _globalTable, _tradersTable, _hideoutTable, _locationTable, _botTable),
                     JsonUtil = _jsonUtil,
                     ConfigServer = _configServer,
                     ModHelper = _modHelper,
