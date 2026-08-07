@@ -94,6 +94,8 @@ namespace EternalCycleServer
         public MongoId ItemId { get; set; }
         [JsonPropertyName("count")]
         public int Count { get; set; }
+        [JsonPropertyName("dogtaglevel")]
+        public int? DogTagLevel { get; set; }
         [JsonPropertyName("autolocale")]
         public bool? AutoLocale { get; set; }
     }
@@ -105,6 +107,8 @@ namespace EternalCycleServer
         public List<string> Items { get; set; }
         [JsonPropertyName("count")]
         public int Count { get; set; }
+        [JsonPropertyName("dogtaglevel")]
+        public int? DogTagLevel { get; set; }
         [JsonPropertyName("tags")]
         public ItemTag? UseTag { get; set; }
     }
@@ -117,6 +121,8 @@ namespace EternalCycleServer
         public MongoId ItemId { get; set; }
         [JsonPropertyName("count")]
         public int Count { get; set; }
+        [JsonPropertyName("dogtaglevel")]
+        public int? DogTagLevel { get; set; }
         [JsonPropertyName("autolocale")]
         public bool? AutoLocale { get; set; }
     }
@@ -128,6 +134,8 @@ namespace EternalCycleServer
         public List<string> Items { get; set; }
         [JsonPropertyName("count")]
         public int Count { get; set; }
+        [JsonPropertyName("dogtaglevel")]
+        public int? DogTagLevel { get; set; }
         [JsonPropertyName("tags")]
         public ItemTag? UseTag { get; set; }
     }

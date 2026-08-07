@@ -442,6 +442,10 @@ namespace EternalCycleServer
             copycondition.Target.List.Add(findItemData.ItemId);
             //尼基塔小时候从外面捡到3.1415926瓶矿泉水
             copycondition.Value = (double)findItemData.Count;
+            if (findItemData.DogTagLevel != null)
+            {
+                copycondition.DogtagLevel = findItemData.DogTagLevel;
+            }
             //加入
             conditions.Add(copycondition);
             //自动本地化
@@ -474,6 +478,10 @@ namespace EternalCycleServer
                 copycondition.Target.List.Add(target.ConvertHashID());
             }
             copycondition.Value = (double)findItemData.Count;
+            if (findItemData.DogTagLevel != null)
+            {
+                copycondition.DogtagLevel = findItemData.DogTagLevel;
+            }
             conditions.Add(copycondition);
         }
 
@@ -494,6 +502,10 @@ namespace EternalCycleServer
             copycondition.Target.List.Clear();
             copycondition.Target.List.Add(handItemData.ItemId);
             copycondition.Value = (double)handItemData.Count;
+            if (handItemData.DogTagLevel != null)
+            {
+                copycondition.DogtagLevel = handItemData.DogTagLevel;
+            }
             conditions.Add(copycondition);
             if (handItemData.AutoLocale != null && handItemData.AutoLocale == true)
             {
@@ -524,6 +536,10 @@ namespace EternalCycleServer
                 copycondition.Target.List.Add(target.ConvertHashID());
             }
             copycondition.Value = (double)handItemData.Count;
+            if (handItemData.DogTagLevel != null)
+            {
+                copycondition.DogtagLevel = handItemData.DogTagLevel;
+            }
             conditions.Add(copycondition);
         }
 
