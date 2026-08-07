@@ -3,3 +3,4 @@ bin/
 # VSCode
 .vs/
 obj/
+.claude/
