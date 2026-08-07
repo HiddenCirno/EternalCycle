@@ -69,7 +69,6 @@ namespace EternalCycleServer
         public class ConfigServer
         {
             private readonly Dictionary<Type, object> _configs = new();
-            // 直接注入 IServiceProvider
             public ConfigServer(IServiceProvider serviceProvider)
             {
                 var configAssembly = typeof(BaseConfig).Assembly;
@@ -92,7 +91,6 @@ namespace EternalCycleServer
                 throw new KeyNotFoundException($"Configuration {typeof(T).Name} not found.");
             }
 
-            // 保留手动注册，留给你的自定义配置
             public void Register<T>(T config) where T : class
             {
                 _configs[typeof(T)] = config;

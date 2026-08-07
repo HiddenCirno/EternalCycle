@@ -35,7 +35,7 @@ namespace EternalCycleServer
         public  string Name { get; init; } = "永恒时序";
         public  string Author { get; init; } = "HiddenHiragi";
         public  List<string>? Contributors { get; init; }
-        public  SemanticVersioning.Version Version { get; init; } = new("1.2.0");
+        public  SemanticVersioning.Version Version { get; init; } = new("1.3.0");
         public  SemanticVersioning.Range SptVersion { get; init; } = new("~4.1.0");
         public  List<string>? Incompatibilities { get; init; }
         public  Dictionary<string, SemanticVersioning.Range>? ModDependencies { get; init; }
@@ -81,7 +81,6 @@ namespace EternalCycleServer
     {
         public static async Task OnDIConstructAsync(IServiceCollection serviceCollection, CancellationToken cancellationToken)
         {
-            // 将 ConfigServer 注册为全局单例
             serviceCollection.AddSingleton<ConfigServer>();
             await Task.CompletedTask;
         }
@@ -265,7 +264,7 @@ namespace EternalCycleServer
             //new ProfileHelperPatch().Enable();
             //new PresetHelperPatch().Enable();   
             //new BotGeneratorPatch.BotGeneratorPatch_GenerateBot().Enable();
-            Utils.commonLogger.Success("你要是把我的事件链搞炸了我就操死你妈");
+            Utils.commonLogger.Success("正在同步……");
             void testmethod(LoadModContext prlc)
             {
                 var item = prlc.DB.GetItems();
@@ -684,6 +683,16 @@ namespace EternalCycleServer
 
                 var jsonResponse = jsonUtil.Serialize(new VoiceResourceRequest{ VoicePath = ResourceUtils.VoicePath});
                 return ValueTask.FromResult<object>(jsonResponse);
+            }
+        ),
+
+        new RouteAction(
+            "/eternalcycle/loadquestzone",
+            (_, _, _, _, _) =>
+            {
+
+                var zones = QuestZoneUtils.GetZones(cloner);
+                return ValueTask.FromResult<object>(jsonUtil.Serialize(zones));
             }
         )
      ]);
