@@ -61,6 +61,7 @@ namespace EternalCycleServer
     [JsonDerivedType(typeof(CompleteQuestData), "quest")]
     [JsonDerivedType(typeof(CustomizationBlockData), "block")]
     [JsonDerivedType(typeof(ReachPrestigeLevelData), "prestige")]
+    [JsonDerivedType(typeof(WeaponBuildData), "weaponbuild")]
 
     public class CustomQuestData
     {
@@ -279,6 +280,61 @@ namespace EternalCycleServer
     {
 
     }
+
+    public class WeaponBuildData : CustomQuestData
+    {
+        [JsonPropertyName("target")]
+        public MongoId Target { get; set; }
+        [JsonPropertyName("accuracy")]
+        public double? BaseAccuracy { get; set; }
+        [JsonPropertyName("accuracytype")]
+        public int? BaseAccuracyCompareType { get; set; }
+        [JsonPropertyName("durability")]
+        public double? Durability { get; set; }
+        [JsonPropertyName("durabilitytype")]
+        public int? DurabilityCompareType { get; set; }
+        [JsonPropertyName("ergonomic")]
+        public double? Ergonomic { get; set; }
+        [JsonPropertyName("ergonomictype")]
+        public int? ErgonomicsCompareType { get; set; }
+        [JsonPropertyName("recoil")]
+        public double? Recoil { get; set; }
+        [JsonPropertyName("recoiltype")]
+        public int? RecoilCompareType { get; set; }
+        [JsonPropertyName("weight")]
+        public double? Weight { get; set; }
+        [JsonPropertyName("weighttype")]
+        public int? WeightCompareType { get; set; }
+        [JsonPropertyName("shootingrange")]
+        public double? EffectiveDistance { get; set; }
+        [JsonPropertyName("shootingrangetype")]
+        public int? EffectiveDistanceCompareType { get; set; }
+        [JsonPropertyName("magcapital")]
+        public int? MagazineCapacity { get; set; }
+        [JsonPropertyName("magcapitaltype")]
+        public int? MagazineCapacityCompareType { get; set; }
+        [JsonPropertyName("muzzlespeed")]
+        public double? MuzzleVelocity { get; set; }
+        [JsonPropertyName("muzzlespeedtype")]
+        public int? MuzzleVelocityCompareType { get; set; }
+        [JsonPropertyName("height")]
+        public double? Height { get; set; }
+        [JsonPropertyName("heighttype")]
+        public int? HeightCompareType { get; set; }
+        [JsonPropertyName("width")]
+        public double? Width { get; set; }
+        [JsonPropertyName("widthtype")]
+        public int? WidthCompareType { get; set; }
+        [JsonPropertyName("emptytacslot")]
+        public int? EmptyTacticalSlot { get; set; }
+        [JsonPropertyName("emptytacslottype")]
+        public int? EmptyTacticalSlotCompareType { get; set; }
+        [JsonPropertyName("gearlist")]
+        public List<MongoId> ContainsItems { get; set; }
+        [JsonPropertyName("geartypelist")]
+        public List<MongoId> HasItemFromCategory { get; set; }
+    }
+
     [JsonDerivedType(typeof(CustomQuestRewardData), "base")]
     [JsonDerivedType(typeof(CustomItemRewardData), "item")]
     [JsonDerivedType(typeof(CustomAssortUnlockRewardData), "assort")]

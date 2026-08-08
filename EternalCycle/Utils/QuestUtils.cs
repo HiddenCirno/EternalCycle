@@ -263,6 +263,9 @@ namespace EternalCycleServer
                             InitCustomizationBlockDataConditions(conditions, customizationblockdata, context);
                         }
                         break;
+                    case WeaponBuildData weaponBuild:
+                        InitWeaponAssemblyDataConditions(conditions, weaponBuild, context);
+                        break;
                     default:
                         {
                             //VulcanLog.Warn($"发现未处理的任务属性({data.Id})! ", logger);
@@ -946,6 +949,68 @@ namespace EternalCycleServer
             }
             if (condition == null) return;
             var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(customizationBlockData, context);
+            copycondition.Index = conditions.Count;
+            conditions.Add(copycondition);
+        }
+
+        public static void InitWeaponAssemblyDataConditions(List<QuestCondition> conditions, WeaponBuildData weaponBuildData, LoadModContext context)
+        {
+            // 获取原版 WeaponAssembly 的条件模板（从 SPT 数据库中抓）
+            var condition = context.DB.GetQuests()
+                .SelectMany(q => q.Value.Conditions.AvailableForFinish)
+                .FirstOrDefault(c => c.ConditionType == "WeaponAssembly"); // 请确认原版字符串
+
+            if (condition == null) return;
+
+            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(weaponBuildData, context); // 复用已有的 ID、Visible 等设置
+            copycondition.Target = new ListOrT<string>(new List<string>() { weaponBuildData.Target.ToString() }, null);
+            
+            copycondition.Value = 1;
+
+            //中间工具方法
+            void SetValueCompare(ValueCompare? field, double? value, int? compareType,
+                                 string defaultCompare = ">=", double defaultValue = 0)
+            {
+                if (value.HasValue)
+                {
+                    field = new ValueCompare
+                    {
+                        CompareMethod = compareType.HasValue
+                            ? EnumUtils.GetCompareType(compareType.Value)
+                            : defaultCompare,
+                        Value = value.Value
+                    };
+                }
+            }
+
+            //处理改枪数据
+            SetValueCompare(copycondition.BaseAccuracy, weaponBuildData.BaseAccuracy, weaponBuildData.BaseAccuracyCompareType);
+            SetValueCompare(copycondition.Durability, weaponBuildData.Durability, weaponBuildData.DurabilityCompareType);
+            SetValueCompare(copycondition.Ergonomics, weaponBuildData.Ergonomic, weaponBuildData.ErgonomicsCompareType);
+            SetValueCompare(copycondition.Recoil, weaponBuildData.Recoil, weaponBuildData.RecoilCompareType);
+            SetValueCompare(copycondition.Weight, weaponBuildData.Weight, weaponBuildData.WeightCompareType);
+            SetValueCompare(copycondition.EffectiveDistance, weaponBuildData.EffectiveDistance, weaponBuildData.EffectiveDistanceCompareType);
+            SetValueCompare(copycondition.MagazineCapacity, weaponBuildData.MagazineCapacity, weaponBuildData.MagazineCapacityCompareType);
+            SetValueCompare(copycondition.MuzzleVelocity, weaponBuildData.MuzzleVelocity, weaponBuildData.MuzzleVelocityCompareType);
+            SetValueCompare(copycondition.Height, weaponBuildData.Height, weaponBuildData.HeightCompareType);
+            SetValueCompare(copycondition.Width, weaponBuildData.Width, weaponBuildData.WidthCompareType);
+            SetValueCompare(copycondition.EmptyTacticalSlot, weaponBuildData.EmptyTacticalSlot, weaponBuildData.EmptyTacticalSlotCompareType);
+
+            //处理配件表
+            if (weaponBuildData.ContainsItems != null && weaponBuildData.ContainsItems.Count > 0)
+            {
+                copycondition.ContainsItems = weaponBuildData.ContainsItems
+                    .Select(m => m.ToString())
+                    .ToList();
+            }
+
+            if (weaponBuildData.HasItemFromCategory != null && weaponBuildData.HasItemFromCategory.Count > 0)
+            {
+                copycondition.HasItemFromCategory = weaponBuildData.HasItemFromCategory
+                    .Select(m => m.ToString())
+                    .ToList();
+            }
+
             copycondition.Index = conditions.Count;
             conditions.Add(copycondition);
         }
