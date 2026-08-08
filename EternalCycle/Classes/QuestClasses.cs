@@ -1,4 +1,5 @@
 using SPTarkov.Server.Core.Models.Common;
+using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using System.Text.Json.Serialization;
 using static EternalCycleServer.Utils;
 
@@ -62,6 +63,10 @@ namespace EternalCycleServer
     [JsonDerivedType(typeof(CustomizationBlockData), "block")]
     [JsonDerivedType(typeof(ReachPrestigeLevelData), "prestige")]
     [JsonDerivedType(typeof(WeaponBuildData), "weaponbuild")]
+    [JsonDerivedType(typeof(UseItemData), "useitem")]
+    [JsonDerivedType(typeof(ShotsTargetData), "shot")]
+    [JsonDerivedType(typeof(LaunchFlareData), "flare")]
+    [JsonDerivedType(typeof(SellItemData), "sell")]
 
     public class CustomQuestData
     {
@@ -113,6 +118,7 @@ namespace EternalCycleServer
         [JsonPropertyName("tags")]
         public ItemTag? UseTag { get; set; }
     }
+
     public class HandoverItemData : CustomQuestData
     {
         [JsonPropertyName("inraid")]
@@ -127,6 +133,7 @@ namespace EternalCycleServer
         [JsonPropertyName("autolocale")]
         public bool? AutoLocale { get; set; }
     }
+
     public class HandoverItemGroupData : CustomQuestData
     {
         [JsonPropertyName("inraid")]
@@ -140,6 +147,7 @@ namespace EternalCycleServer
         [JsonPropertyName("tags")]
         public ItemTag? UseTag { get; set; }
     }
+
     public class KillTargetData : CustomQuestData
     {
         //TODO 
@@ -174,13 +182,19 @@ namespace EternalCycleServer
         public List<List<string>> EnemyEquipmentList { get; set; }
         [JsonPropertyName("tags")]
         public ItemTag? UseTag { get; set; }
+        [JsonPropertyName("healtheffect")]
+        public HealthEffectData? HealthEffect { get; set; }
+        [JsonPropertyName("buffeffect")]
+        public BuffEffectData? BuffEffect { get; set; }
 
     }
+
     public class ReachLevelData : CustomQuestData
     {
         [JsonPropertyName("count")]
         public int Count { get; set; }
     }
+
     public class ReachPrestigeLevelData : CustomQuestData
     {
         [JsonPropertyName("type")]
@@ -195,7 +209,12 @@ namespace EternalCycleServer
         public bool CompleteInOneRaid { get; set; }
         [JsonPropertyName("zoneid")]
         public string ZoneId { get; set; }
+        [JsonPropertyName("healtheffect")]
+        public HealthEffectData? HealthEffect { get; set; }
+        [JsonPropertyName("buffeffect")]
+        public BuffEffectData? BuffEffect { get; set; }
     }
+
     public class PlaceItemData : CustomQuestData
     {
         [JsonPropertyName("time")]
@@ -208,6 +227,7 @@ namespace EternalCycleServer
         [JsonPropertyName("count")]
         public int Count { get; set; }
     }
+
     public class PlaceItemGroupData : CustomQuestData
     {
         [JsonPropertyName("time")]
@@ -221,6 +241,7 @@ namespace EternalCycleServer
         [JsonPropertyName("tags")]
         public ItemTag? UseTag { get; set; }
     }
+
     public class ExitLocationData : CustomQuestData
     {
         [JsonPropertyName("oneraid")]
@@ -235,6 +256,10 @@ namespace EternalCycleServer
         public bool ChooseExitPoint { get; set; }
         [JsonPropertyName("exitpoint")]
         public string ExitPoint { get; set; }
+        [JsonPropertyName("healtheffect")]
+        public HealthEffectData? HealthEffect { get; set; }
+        [JsonPropertyName("buffeffect")]
+        public BuffEffectData? BuffEffect { get; set; }
 
     }
 
@@ -245,6 +270,7 @@ namespace EternalCycleServer
         [JsonPropertyName("level")]
         public int Level { get; set; }
     }
+
     public class ReachTraderTrustLevelData : CustomQuestData
     {
         [JsonPropertyName("traderid")]
@@ -253,6 +279,7 @@ namespace EternalCycleServer
         [JsonPropertyName("level")]
         public int TrustLevel { get; set; }
     }
+
     public class ReachTraderStandingData : CustomQuestData
     {
         [JsonPropertyName("traderid")]
@@ -261,6 +288,7 @@ namespace EternalCycleServer
         [JsonPropertyName("standing")]
         public double TrustStanding { get; set; }
     }
+
     public class CompleteQuestData : CustomQuestData
     {
         [JsonPropertyName("questid")]
@@ -276,6 +304,7 @@ namespace EternalCycleServer
         [JsonPropertyName("cdtimemax")]
         public int? AvailableAfterTimeRandomExtra { get; set; }
     }
+
     public class CustomizationBlockData : CustomQuestData
     {
 
@@ -335,6 +364,88 @@ namespace EternalCycleServer
         public List<MongoId> HasItemFromCategory { get; set; }
     }
 
+    public class UseItemData : CustomQuestData
+    {
+        [JsonPropertyName("oneraid")]
+        public bool CompleteInOneRaid { get; set; }
+        [JsonPropertyName("itemgroup")]
+        public List<string> Items { get; set; } 
+        [JsonPropertyName("count")]
+        public int Count { get; set; }
+        [JsonPropertyName("location")]
+        public int Location { get; set; }
+        [JsonPropertyName("tags")]
+        public ItemTag? UseTag { get; set; }
+        [JsonPropertyName("healtheffect")]
+        public HealthEffectData? HealthEffect { get; set; }
+        [JsonPropertyName("buffeffect")]
+        public BuffEffectData? BuffEffect { get; set; }
+    }
+
+    public class ShotsTargetData : KillTargetData
+    {
+    }
+
+    public class HealthEffectData
+    {
+        [JsonPropertyName("bodyparteffects")]
+        public List<BodyPartEffectData>? BodyPartsWithEffects { get; set; }
+
+        [JsonPropertyName("energy")]
+        public int? Energy { get; set; }
+        [JsonPropertyName("energytype")]
+        public int? EnergyCompareType { get; set; }
+
+        [JsonPropertyName("hydration")]
+        public int? Hydration { get; set; }
+
+        [JsonPropertyName("hydrationtype")]
+        public int? HydrationCompareType { get; set; }
+
+        [JsonPropertyName("time")]
+        public int? Time { get; set; }
+    }
+
+    public class BodyPartEffectData
+    {
+        [JsonPropertyName("bodypart")]
+        public int BodyPart { get; set; }
+        [JsonPropertyName("effects")]
+        public List<string> Effects { get; set; }
+    }
+
+    public class BuffEffectData
+    {
+        [JsonPropertyName("buffs")]
+        public List<string> Buffs;
+    }
+
+    public class LaunchFlareData : CustomQuestData
+    {
+        [JsonPropertyName("oneraid")]
+        public bool CompleteInOneRaid { get; set; }
+        [JsonPropertyName("zoneid")]
+        public string ZoneId { get; set; }
+        [JsonPropertyName("healtheffect")]
+        public HealthEffectData? HealthEffect { get; set; }
+        [JsonPropertyName("buffeffect")]
+        public BuffEffectData? BuffEffect { get; set; }
+    }
+
+    public class SellItemData : CustomQuestData
+    {
+        [JsonPropertyName("itemgroup")]
+        public List<string> Items { get; set; }
+        [JsonPropertyName("count")]
+        public int Count { get; set; }
+        [JsonPropertyName("traderid")]
+        public MongoId? TraderId { get; set; }
+        [JsonPropertyName("dogtaglevel")]
+        public int? DogTagLevel { get; set; }
+        [JsonPropertyName("tags")]
+        public ItemTag? UseTag { get; set; }
+    }
+
     [JsonDerivedType(typeof(CustomQuestRewardData), "base")]
     [JsonDerivedType(typeof(CustomItemRewardData), "item")]
     [JsonDerivedType(typeof(CustomAssortUnlockRewardData), "assort")]
@@ -380,10 +491,12 @@ namespace EternalCycleServer
         [JsonPropertyName("FindInRaid")]
         public bool FindInRaid { get; set; }
     }
+
     public class CustomAssortUnlockRewardData : CustomQuestRewardData
     {
         public CustomLockedAssortData AssortData { get; set; }
     }
+
     public class CustomRecipeUnlockRewardData : CustomQuestRewardData
     {
         public CustomLockedRecipeData RecipeData { get; set; }
@@ -394,6 +507,7 @@ namespace EternalCycleServer
         [JsonPropertyName("Count")]
         public int Count { get; set; }
     }
+
     public class CustomSkillExperienceRewardData : CustomQuestRewardData
     {
         [JsonPropertyName("Skill")]
@@ -401,6 +515,7 @@ namespace EternalCycleServer
         [JsonPropertyName("Count")]
         public int Count { get; set; }
     }
+
     public class CustomTraderStandingRewardData : CustomQuestRewardData
     {
         [JsonPropertyName("TraderID")]
@@ -416,24 +531,34 @@ namespace EternalCycleServer
         [JsonConverter(typeof(MongoIdConverter))]
         public MongoId TraderId { get; set; }
     }
+
     public class CustomCustomizationRewardData : CustomQuestRewardData
     {
         [JsonPropertyName("Target")]
         [JsonConverter(typeof(MongoIdConverter))]
         public MongoId TargetId { get; set; }
     }
+
     public class CustomAchievementRewardData : CustomQuestRewardData
     {
         [JsonPropertyName("Target")]
         [JsonConverter(typeof(MongoIdConverter))]
         public MongoId TargetId { get; set; }
     }
+
     public class CustomPocketRewardData : CustomQuestRewardData
     {
         [JsonPropertyName("Target")]
         [JsonConverter(typeof(MongoIdConverter))]
         public MongoId TargetId { get; set; }
     }
+
+    public class CustomStashRowsRewardData : CustomQuestRewardData
+    {
+        [JsonPropertyName("Count")]
+        public int Count { get; set; }
+    }
+
     public class QuestLogicTree
     {
         [JsonPropertyName("id")]

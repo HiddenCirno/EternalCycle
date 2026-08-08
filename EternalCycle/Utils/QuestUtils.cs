@@ -5,6 +5,7 @@ using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Routers;
 using SPTarkov.Server.Core.Utils.Json;
+using System.Diagnostics.Metrics;
 using System.IO;
 using static EternalCycleServer.ContextManager;
 using Path = System.IO.Path;
@@ -32,6 +33,7 @@ namespace EternalCycleServer
             Quest,
             Elimination,
             Completion,
+            SellItemToTrader,
             Block
         }
 
@@ -43,6 +45,11 @@ namespace EternalCycleServer
             Equipment,
             VisitPlace,
             Kills,
+            Shots,
+            UseItem,
+            HealthEffect,
+            HealthBuff,
+            LaunchFlare,
             InZone
         }
 
@@ -203,6 +210,11 @@ namespace EternalCycleServer
                             InitHandoverItemGroupDataConditions(conditions, handitemgroupdata, context);
                         }
                         break;
+                    case ShotsTargetData shotstargetdata:
+                        {
+                            InitKillTargetDataConditions(conditions, shotstargetdata, context, false);
+                        }
+                        break;
                     case KillTargetData killtargetdata:
                         {
                             InitKillTargetDataConditions(conditions, killtargetdata, context);
@@ -264,7 +276,24 @@ namespace EternalCycleServer
                         }
                         break;
                     case WeaponBuildData weaponBuild:
-                        InitWeaponAssemblyDataConditions(conditions, weaponBuild, context);
+                        {
+                            InitWeaponAssemblyDataConditions(conditions, weaponBuild, context);
+                        }
+                        break;
+                    case UseItemData useitemdata:
+                        {
+                            InitUseItemDataConditions(conditions, useitemdata, context);
+                        }
+                        break;
+                    case LaunchFlareData launchflaredata:
+                        {
+                            InitLaunchFlareDataConditions(conditions, launchflaredata, context);
+                        }
+                        break;
+                    case SellItemData sellitemdata:
+                        {
+                            InitSellItemDataConditions(conditions, sellitemdata, context);
+                        }
                         break;
                     default:
                         {
@@ -555,7 +584,7 @@ namespace EternalCycleServer
         /// <param name="conditions">目标列表</param>
         /// <param name="killTargetData">自定义任务数据</param>
         /// <param name="context">上下文实例</param>
-        public static void InitKillTargetDataConditions(List<QuestCondition> conditions, KillTargetData killTargetData, LoadModContext context)
+        public static void InitKillTargetDataConditions(List<QuestCondition> conditions, KillTargetData killTargetData, LoadModContext context, bool isKill = true)
         {
             //多了一层所以不适用方法
             cacheConditions.TryGetValue(EQuestConditionsTypeCache.Elimination, out var condition);
@@ -573,7 +602,7 @@ namespace EternalCycleServer
             copycondition.OneSessionOnly = killTargetData.CompleteInOneRaid;
             copycondition.Value = (double)killTargetData.Count;
             copycondition.Index = conditions.Count;
-            var killtargets = GetCounterConditionTemplate(EQuestCountersCacheType.Kills, "Kills", context);
+            var killtargets = isKill ? GetCounterConditionTemplate(EQuestCountersCacheType.Kills, "Kills", context) : GetCounterConditionTemplate(EQuestCountersCacheType.Shots, "Shots", context);
             var locationtargets = GetCounterConditionTemplate(EQuestCountersCacheType.Location, "Location", context);
             var equiptargets = GetCounterConditionTemplate(EQuestCountersCacheType.Equipment, "Equipment", context);
             var zonetargets = GetCounterConditionTemplate(EQuestCountersCacheType.InZone, "InZone", context);
@@ -672,6 +701,8 @@ namespace EternalCycleServer
                 }
                 copycondition.Counter.Conditions.Add(copytargets);
             }
+            AddHealthEffectToCounter(copycondition.Counter, killTargetData.HealthEffect, $"{killTargetData.Id}", context);
+            AddHealthBuffToCounter(copycondition.Counter, killTargetData.BuffEffect, $"{killTargetData.Id}", context);
             conditions.Add(copycondition);
         }
 
@@ -747,6 +778,8 @@ namespace EternalCycleServer
             copytargets.Id = $"{visitPlaceData.Id}_VisitCounter".ConvertHashID();
             copytargets.Target = new ListOrT<string>(null, visitPlaceData.ZoneId);
             copycondition.Counter.Conditions.Add(copytargets);
+            AddHealthEffectToCounter(copycondition.Counter, visitPlaceData.HealthEffect, $"{visitPlaceData.Id}", context);
+            AddHealthBuffToCounter(copycondition.Counter, visitPlaceData.BuffEffect, $"{visitPlaceData.Id}", context);
             conditions.Add(copycondition);
         }
 
@@ -851,6 +884,8 @@ namespace EternalCycleServer
                     copycondition.Counter.Conditions.Add(copytargets);
                 }
             }
+            AddHealthEffectToCounter(copycondition.Counter, exitLocationData.HealthEffect, $"{exitLocationData.Id}", context);
+            AddHealthBuffToCounter(copycondition.Counter, exitLocationData.BuffEffect, $"{exitLocationData.Id}", context);
             conditions.Add(copycondition);
         }
 
@@ -955,6 +990,12 @@ namespace EternalCycleServer
             conditions.Add(copycondition);
         }
 
+        /// <summary>
+        /// 处理武器组装条件的工具方法
+        /// </summary>
+        /// <param name="conditions"></param>
+        /// <param name="weaponBuildData"></param>
+        /// <param name="context"></param>
         public static void InitWeaponAssemblyDataConditions(List<QuestCondition> conditions, WeaponBuildData weaponBuildData, LoadModContext context)
         {
             // 获取原版 WeaponAssembly 的条件模板（从 SPT 数据库中抓）
@@ -975,13 +1016,15 @@ namespace EternalCycleServer
             {
                 if (value.HasValue)
                 {
-                    field = new ValueCompare
+                    var cache = new ValueCompare
                     {
                         CompareMethod = compareType.HasValue
                             ? EnumUtils.GetCompareType(compareType.Value)
                             : defaultCompare,
                         Value = value.Value
                     };
+                    field.CompareMethod = cache.CompareMethod; 
+                    field.Value = value.Value;
                 }
             }
 
@@ -1014,6 +1057,189 @@ namespace EternalCycleServer
             }
 
             copycondition.Index = conditions.Count;
+            conditions.Add(copycondition);
+        }
+
+        /// <summary>
+        /// 处理使用物品条件的工具方法
+        /// </summary>
+        /// <param name="conditions"></param>
+        /// <param name="useItemData"></param>
+        /// <param name="context"></param>
+        public static void InitUseItemDataConditions(List<QuestCondition> conditions, UseItemData useItemData, LoadModContext context)
+        {
+            // 复用 Completion 模板（和 visit/exit 完全一致）
+            cacheConditions.TryGetValue(EQuestConditionsTypeCache.Completion, out var condition);
+            if (condition == null)
+            {
+                condition = context.DB.GetQuests()
+                    .SelectMany(q => q.Value.Conditions.AvailableForFinish)
+                    .FirstOrDefault(c => c.ConditionType == "CounterCreator" && c.Type == "Completion");
+                cacheConditions[EQuestConditionsTypeCache.Completion] = condition;
+            }
+            if (condition == null) return;
+
+            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(useItemData, context);
+            copycondition.Counter.Id = $"{useItemData.Id}_Counter".ConvertHashID();
+            copycondition.Counter.Conditions.Clear();
+            copycondition.OneSessionOnly = useItemData.CompleteInOneRaid;
+            copycondition.Value = (double)useItemData.Count;
+            copycondition.Index = conditions.Count;
+
+            // --- 子条件1：UseItem ---
+            var useItemTemplate = GetCounterConditionTemplate(EQuestCountersCacheType.UseItem, "UseItem", context);
+            if (useItemTemplate != null)
+            {
+                var useItemCopy = context.Cloner.Clone(useItemTemplate);
+                useItemCopy.Id = $"{useItemData.Id}_UseItemCounter".ConvertHashID();
+                useItemCopy.Target = new ListOrT<string>(new List<string>(), null);
+                // 从 tag 和直接列表扩充目标物品
+                useItemCopy.Target.List.GenerateFromTag(useItemData.Items, useItemData.UseTag, context);
+                useItemCopy.Value = (double)useItemData.Count;
+                copycondition.Counter.Conditions.Add(useItemCopy);
+            }
+
+            // --- 子条件2：Location（如果指定了地图限制）---
+            if (useItemData.Location > 0)
+            {
+                var locationTemplate = GetCounterConditionTemplate(EQuestCountersCacheType.Location, "Location", context);
+                if (locationTemplate != null)
+                {
+                    var locationCopy = context.Cloner.Clone(locationTemplate);
+                    locationCopy.Id = $"{useItemData.Id}_LocationCounter".ConvertHashID();
+                    var locations = BitMapUtils.GetLocationCode(useItemData.Location);
+                    locationCopy.Target = new ListOrT<string>(new List<string>(), null);
+                    foreach (string loc in locations)
+                        locationCopy.Target.List.Add(loc);
+                    copycondition.Counter.Conditions.Add(locationCopy);
+                }
+            }
+
+            conditions.Add(copycondition);
+        }
+
+        /// <summary>
+        /// 处理健康效果条件的工具方法
+        /// </summary>
+        /// <param name="conditionalCounter"></param>
+        /// <param name="healthEffectData"></param>
+        /// <param name="parentId"></param>
+        /// <param name="context"></param>
+        public static void AddHealthEffectToCounter(QuestConditionCounter conditionalCounter, HealthEffectData healthEffectData, string parentId, LoadModContext context)
+        {
+            if (healthEffectData == null) return;
+            var template = GetCounterConditionTemplate(EQuestCountersCacheType.HealthEffect, "HealthEffect", context);
+            if (template == null) return;
+            var clone = context.Cloner.Clone(template);
+            clone.Id = $"{parentId}_HealthEffectCounter".ConvertHashID();
+            // 填充身体部位效果
+            clone.BodyPartsWithEffects = new List<EnemyHealthEffect>();
+            if (healthEffectData.BodyPartsWithEffects != null && healthEffectData.BodyPartsWithEffects.Count > 0)
+            {
+                foreach (var bp in healthEffectData.BodyPartsWithEffects)
+                {
+                    clone.BodyPartsWithEffects.Add(new EnemyHealthEffect
+                    {
+                        BodyParts = BitMapUtils.GetBodyPartCode(bp.BodyPart),
+                        Effects = bp.Effects
+                    });
+                }
+            }
+            // 填充能量/水分/时间比较
+            clone.Energy = new ValueCompare()
+            {
+                CompareMethod = EnumUtils.GetCompareType(healthEffectData.EnergyCompareType ?? 3),
+                Value = (double)(healthEffectData.Energy ?? 0)
+            };
+            clone.Hydration = new ValueCompare()
+            {
+                CompareMethod = EnumUtils.GetCompareType(healthEffectData.HydrationCompareType ?? 3),
+                Value = (double)(healthEffectData.Hydration ?? 0)
+            };
+            clone.Time = new ValueCompare()
+            {
+                CompareMethod = EnumUtils.GetCompareType(3),
+                Value = (double)(healthEffectData.Time ?? 0)
+            };
+            conditionalCounter.Conditions.Add(clone);
+        }
+
+        /// <summary>
+        /// 处理健康增益条件的工具方法
+        /// </summary>
+        /// <param name="conditionalCounter"></param>
+        /// <param name="buffEffectData"></param>
+        /// <param name="parentId"></param>
+        /// <param name="context"></param>
+        public static void AddHealthBuffToCounter(QuestConditionCounter conditionalCounter, BuffEffectData buffEffectData, string parentId, LoadModContext context)
+        {
+            if (buffEffectData == null) return;
+            var template = GetCounterConditionTemplate(EQuestCountersCacheType.HealthBuff, "HealthBuff", context);
+            if (template == null) return;
+            var clone = context.Cloner.Clone(template);
+            clone.Id = $"{parentId}_HealthBuffCounter".ConvertHashID();
+            // 填充身体部位效果
+            clone.Target = new ListOrT<string>(buffEffectData.Buffs, null);
+            conditionalCounter.Conditions.Add(clone);
+        }
+
+        /// <summary>
+        /// 处理发射信号弹条件的工具方法
+        /// </summary>
+        /// <param name="conditions"></param>
+        /// <param name="launchFlare"></param>
+        /// <param name="context"></param>
+        public static void InitLaunchFlareDataConditions(List<QuestCondition> conditions, LaunchFlareData launchFlare, LoadModContext context)
+        {
+            cacheConditions.TryGetValue(EQuestConditionsTypeCache.Completion, out var condition);
+            if (condition == null)
+            {
+                condition = context.DB.GetQuests()
+                .SelectMany(q => q.Value.Conditions.AvailableForFinish)
+                .FirstOrDefault(c => c.ConditionType == "CounterCreator" && c.Type == "Completion");
+                cacheConditions[EQuestConditionsTypeCache.Completion] = condition;
+            }
+            if (condition == null) return;
+            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(launchFlare, context);
+            copycondition.Counter.Id = $"{launchFlare.Id}_Counter".ConvertHashID();
+            copycondition.Counter.Conditions.Clear();
+            copycondition.OneSessionOnly = launchFlare.CompleteInOneRaid;
+            copycondition.Value = (double)1;
+            copycondition.Index = conditions.Count;
+            var visittargets = GetCounterConditionTemplate(EQuestCountersCacheType.LaunchFlare, "LaunchFlare", context);
+            if (visittargets == null) return;
+            var copytargets = context.Cloner.Clone(visittargets);
+            copytargets.Id = $"{launchFlare.Id}_LaunchFlareCounter".ConvertHashID();
+            copytargets.Target = new ListOrT<string>(null, launchFlare.ZoneId);
+            copycondition.Counter.Conditions.Add(copytargets);
+            AddHealthEffectToCounter(copycondition.Counter, launchFlare.HealthEffect, $"{launchFlare.Id}", context);
+            AddHealthBuffToCounter(copycondition.Counter, launchFlare.BuffEffect, $"{launchFlare.Id}", context);
+            conditions.Add(copycondition);
+        }
+
+        /// <summary>
+        /// 处理向指定商人出售物品条件的工具方法
+        /// </summary>
+        /// <param name="conditions"></param>
+        /// <param name="findItemData"></param>
+        /// <param name="context"></param>
+        public static void InitSellItemDataConditions(List<QuestCondition> conditions, SellItemData findItemData, LoadModContext context)
+        {
+            var condition = GetConditionTemplate(EQuestConditionsTypeCache.SellItemToTrader, "SellItemToTrader", context);
+            if (condition == null) return;
+            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(findItemData, context);
+            copycondition.Index = conditions.Count;
+            copycondition.Target.List.GenerateFromTag(findItemData.Items, findItemData.UseTag, context);
+            foreach (string target in findItemData.Items)
+            {
+                copycondition.Target.List.Add(target.ConvertHashID());
+            }
+            copycondition.Value = (double)findItemData.Count;
+            if (findItemData.DogTagLevel != null)
+            {
+                copycondition.DogtagLevel = findItemData.DogTagLevel;
+            }
+            copycondition.TraderId = findItemData.TraderId;
             conditions.Add(copycondition);
         }
 
@@ -1154,6 +1380,11 @@ namespace EternalCycleServer
                     case CustomPocketRewardData pocketreward:
                         {
                             InitPocketRewards(pocketreward, context);
+                        }
+                        break;
+                    case CustomStashRowsRewardData stashrowsreward:
+                        {
+                            InitStashRowsRewards(stashrowsreward, context);
                         }
                         break;
                     default:
@@ -1409,6 +1640,26 @@ namespace EternalCycleServer
                 {
                     var copyreward = InitCopiedReward(rewardtarget, target[queststage], customPocketRewardData, context);
                     copyreward.Target = customPocketRewardData.TargetId;
+                    target[queststage].Add(copyreward);
+                }
+            }
+        }
+
+        public static void InitStashRowsRewards(CustomStashRowsRewardData customStashRowsRewardData, LoadModContext context)
+        {
+            var queststage = EnumUtils.GetQuestStageType(customStashRowsRewardData.QuestStage);
+            var rewardtarget = context.DB.GetQuests()
+                .SelectMany(q => q.Value.Rewards[queststage])
+                .FirstOrDefault(r => r.Type == RewardType.Pockets);
+            var target = GetQuest(customStashRowsRewardData.QuestId, context).Rewards;
+            if (target.Count > 0)
+            {
+                if (rewardtarget != null)
+                {
+                    var copyreward = InitCopiedReward(rewardtarget, target[queststage], customStashRowsRewardData, context);
+                    copyreward.Target = null;
+                    copyreward.Value = (double)customStashRowsRewardData.Count;
+                    copyreward.Type = RewardType.StashRows;
                     target[queststage].Add(copyreward);
                 }
             }
