@@ -456,6 +456,7 @@ namespace EternalCycleServer
     [JsonDerivedType(typeof(CustomCustomizationRewardData), "customization")]
     [JsonDerivedType(typeof(CustomAchievementRewardData), "achievement")]
     [JsonDerivedType(typeof(CustomPocketRewardData), "pocket")]
+    [JsonDerivedType(typeof(CustomStashRowsRewardData), "stash")]
 
     public class CustomQuestRewardData
     {
