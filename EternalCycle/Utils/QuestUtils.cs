@@ -399,18 +399,16 @@ namespace EternalCycleServer
                 foreach (var visible in questData.ParentVisible)
                 {
                     var visibleid = visible.ConvertHashID();
-                    if(!conditon.VisibilityConditions.Any(x=>x.Target == visibleid))
+                    if (!conditon.VisibilityConditions.Any(x => x.Target == visibleid))
                     {
-
+                        conditon.VisibilityConditions.Add(
+                            new VisibilityCondition()
+                            {
+                                ConditionType = "CompleteCondition",
+                                Id = $"{questData.Id}_{visibleid}_VisibleConditions".ConvertHashID(),
+                                Target = visibleid
+                            });
                     }
-                    conditon.VisibilityConditions.Add(
-                        new VisibilityCondition()
-                        {
-                            ConditionType = "CompleteCondition",
-                            Id = $"{questData.Id}_{visibleid}_VisibleConditions".ConvertHashID(),
-                            Target = visibleid
-                        })
-                    ;
                 }
             }
             if (questData.ParentConditionsId != null)
