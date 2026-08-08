@@ -1115,6 +1115,8 @@ namespace EternalCycleServer
                 }
             }
 
+            AddHealthEffectToCounter(copycondition.Counter, useItemData.HealthEffect, $"{useItemData.Id}", context);
+            AddHealthBuffToCounter(copycondition.Counter, useItemData.BuffEffect, $"{useItemData.Id}", context);
             conditions.Add(copycondition);
         }
 

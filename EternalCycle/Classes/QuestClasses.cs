@@ -417,7 +417,7 @@ namespace EternalCycleServer
     public class BuffEffectData
     {
         [JsonPropertyName("buffs")]
-        public List<string> Buffs;
+        public List<string> Buffs { get; set; }
     }
 
     public class LaunchFlareData : CustomQuestData
