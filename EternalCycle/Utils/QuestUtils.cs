@@ -395,18 +395,22 @@ namespace EternalCycleServer
                 //这玩意儿难道还支持拓展??
                 //我chovy, 真支持
                 //rnm
-                foreach(var visible in questData.ParentVisible)
+                conditon.VisibilityConditions = new List<VisibilityCondition>();
+                foreach (var visible in questData.ParentVisible)
                 {
                     var visibleid = visible.ConvertHashID();
-                    conditon.VisibilityConditions = new List<VisibilityCondition>()
+                    if(!conditon.VisibilityConditions.Any(x=>x.Target == visibleid))
                     {
+
+                    }
+                    conditon.VisibilityConditions.Add(
                         new VisibilityCondition()
                         {
                             ConditionType = "CompleteCondition",
                             Id = $"{questData.Id}_{visibleid}_VisibleConditions".ConvertHashID(),
                             Target = visibleid
-                        }
-                    };
+                        })
+                    ;
                 }
             }
             if (questData.ParentConditionsId != null)
