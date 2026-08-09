@@ -451,6 +451,7 @@ namespace EternalCycleServer
     {
         [JsonPropertyName("time")]
         public int Time { get; set; }
+        [JsonConverter(typeof(MongoIdConverter))]
         [JsonPropertyName("itemid")]
         public MongoId? ItemId { get; set; }
         [JsonPropertyName("zoneid")]
