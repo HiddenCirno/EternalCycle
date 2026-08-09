@@ -34,6 +34,7 @@ namespace EternalCycleServer
             Elimination,
             Completion,
             SellItemToTrader,
+            PlaceBeacon,
             Block
         }
 
@@ -293,6 +294,11 @@ namespace EternalCycleServer
                     case SellItemData sellitemdata:
                         {
                             InitSellItemDataConditions(conditions, sellitemdata, context);
+                        }
+                        break;
+                    case PlaceBeaconData placeBeaconData:
+                        {
+                            InitPlaceBeaconDataConditions(conditions, placeBeaconData, context);
                         }
                         break;
                     default:
@@ -1242,6 +1248,33 @@ namespace EternalCycleServer
                 copycondition.DogtagLevel = findItemData.DogTagLevel;
             }
             copycondition.TraderId = findItemData.TraderId;
+            conditions.Add(copycondition);
+        }
+
+        /// <summary>
+        /// 处理在指定地点安放信标条件的工具方法
+        /// </summary>
+        /// <param name="conditions"></param>
+        /// <param name="placeBeaconData"></param>
+        /// <param name="context"></param>
+        public static void InitPlaceBeaconDataConditions(List<QuestCondition> conditions, PlaceBeaconData placeBeaconData, LoadModContext context)
+        {
+            var condition = GetConditionTemplate(EQuestConditionsTypeCache.PlaceBeacon, "PlaceBeacon", context);
+            if (condition == null) return;
+            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(placeBeaconData, context);
+            copycondition.Index = conditions.Count;
+            copycondition.Target = new ListOrT<string>(new List<string>(), null);
+            if (placeBeaconData.ItemId != null)
+            {
+                copycondition.Target.List.Add(placeBeaconData.ItemId);
+            }
+            else
+            {
+                copycondition.Target.List.Add(ItemTpl.SPECITEM_MS2000_MARKER);
+            }
+            copycondition.Value = 1;
+            copycondition.PlantTime = (double)placeBeaconData.Time;
+            copycondition.ZoneId = placeBeaconData.ZoneId;
             conditions.Add(copycondition);
         }
 

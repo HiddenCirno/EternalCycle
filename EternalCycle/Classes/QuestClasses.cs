@@ -67,6 +67,7 @@ namespace EternalCycleServer
     [JsonDerivedType(typeof(ShotsTargetData), "shot")]
     [JsonDerivedType(typeof(LaunchFlareData), "flare")]
     [JsonDerivedType(typeof(SellItemData), "sell")]
+    [JsonDerivedType(typeof(PlaceBeaconData), "mark")]
 
     public class CustomQuestData
     {
@@ -444,6 +445,16 @@ namespace EternalCycleServer
         public int? DogTagLevel { get; set; }
         [JsonPropertyName("tags")]
         public ItemTag? UseTag { get; set; }
+    }
+
+    public class PlaceBeaconData : CustomQuestData
+    {
+        [JsonPropertyName("time")]
+        public int Time { get; set; }
+        [JsonPropertyName("itemid")]
+        public MongoId? ItemId { get; set; }
+        [JsonPropertyName("zoneid")]
+        public string ZoneId { get; set; }
     }
 
     [JsonDerivedType(typeof(CustomQuestRewardData), "base")]
