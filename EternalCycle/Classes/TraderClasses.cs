@@ -17,9 +17,6 @@ namespace EternalCycleServer;
 
 public record TraderBaseWithDesc : TraderBase
 {
-    [JsonPropertyName("_id")]
-    [JsonConverter(typeof(MongoIdConverter))]
-    public new required MongoId Id { get; set; }
     [JsonPropertyName("description")]
     public string Description { get; set; }
     [JsonPropertyName("insurance_locale")]

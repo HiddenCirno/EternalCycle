@@ -31,27 +31,6 @@ public record CustomCustomizationItem
 }
 public class CustomCustomizationProperties : CustomizationProperties
 {
-
-    [JsonPropertyName("Body")]
-    [JsonConverter(typeof(MongoIdConverter))]
-    public new MongoId? Body { get; set; }
-
-    [JsonPropertyName("Feet")]
-    [JsonConverter(typeof(MongoIdConverter))]
-    public new MongoId? Feet { get; set; }
-
-    [JsonPropertyName("Hands")]
-    [JsonConverter(typeof(MongoIdConverter))]
-    public new MongoId? Hands { get; set; }
-
-    [JsonPropertyName("BearTemplateId")]
-    [JsonConverter(typeof(MongoIdConverter))]
-    public new MongoId? BearTemplateId { get; set; }
-
-    [JsonPropertyName("UsecTemplateId")]
-    [JsonConverter(typeof(MongoIdConverter))]
-    public new MongoId? UsecTemplateId { get; set; }
-
     [JsonPropertyName("IsVoice")]
     public bool? IsVoice { get; set; }
 
