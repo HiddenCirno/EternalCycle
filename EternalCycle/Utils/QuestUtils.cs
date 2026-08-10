@@ -144,6 +144,7 @@ namespace EternalCycleServer
             questPattern.TraderId = customQuest.QuestTraderId;
             questPattern.TemplateId = questid;
             questPattern.Location = customQuest.Location;
+            questPattern.DialogueId = customQuest.QuestDialogueId ?? questPattern.DialogueId;
             questPattern.Restartable = customQuest.IsRestartableQuest;
             //InitQuestConditions(questPattern.Conditions.AvailableForFinish, customQuest.QuestConditions.QuestFinishData, context);
             //InitQuestConditions(questPattern.Conditions.Fail, customQuest.QuestConditions.QuestFailedData, context);

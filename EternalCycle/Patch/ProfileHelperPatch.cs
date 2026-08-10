@@ -137,6 +137,7 @@ namespace EternalCycleServer
             EventManager.InitLoadSuitEvent(context);
             EventManager.InitLoadHideoutCustomizationEvent(context);
             EventManager.InitLoadQuestZoneEvent(context);
+            EventManager.InitLoadDialogueEvent(context);
             EventManager.InitLoadResourceEventEvent(context);
 
             EventManager.InitPostDataLoadEvent(context);

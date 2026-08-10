@@ -63,6 +63,7 @@ namespace EternalCycleServer
             public static Action<LoadModContext> LoadItemTagEvent;
             public static Action<LoadModContext> LoadDrawPoolEvent;
             public static Action<LoadModContext> LoadQuestZoneEvent;
+            public static Action<LoadModContext> LoadDialogueEvent;
             public static Action<LoadModContext> FixItemCompatibleEvent;
             public static Action<LoadModContext> LoadResourceEvent;
             //tbc
@@ -214,6 +215,11 @@ namespace EternalCycleServer
         public static void InitLoadQuestZoneEvent(LoadModContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadQuestZoneEvent, context);
+        }
+
+        public static void InitLoadDialogueEvent(LoadModContext context)
+        {
+            InitRagfairEvent(DataLoadEvent.LoadDialogueEvent, context);
         }
 
         public static void InitFixItemCompatibleEventEvent(LoadModContext context)

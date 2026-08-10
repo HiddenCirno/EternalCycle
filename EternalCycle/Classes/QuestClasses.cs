@@ -27,6 +27,9 @@ namespace EternalCycleServer
 
         [JsonPropertyName("Location")]
         public string Location { get; set; }
+        [JsonPropertyName("DialogueID")]
+        [JsonConverter(typeof(MongoIdConverter))]
+        public MongoId? QuestDialogueId { get; set; }
 
 
         [JsonPropertyName("QuestData")]
