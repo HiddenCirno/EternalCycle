@@ -9208,7 +9208,8 @@ namespace EternalCycleServer
         public HealthEffectData? HealthEffect { get; set; }
         [JsonPropertyName("buffeffect")]
         public BuffEffectData? BuffEffect { get; set; }
-
+        [JsonPropertyName("onesession")]
+        public bool CompleteInOneSession { get; set; }
     }
 
     public class ReachLevelData : CustomQuestData
@@ -12133,7 +12134,6 @@ namespace EternalCycleServer
             VisitPlace,
             Kills,
             Shots,
-            UseItem,
             HealthEffect,
             HealthBuff,
             LaunchFlare,
@@ -12714,6 +12714,7 @@ namespace EternalCycleServer
                     From = killTargetData.DayTime[0],
                     To = killTargetData.DayTime[1]
                 };
+                copytargets.ResetOnSessionEnd = killTargetData.CompleteInOneSession;
                 copytargets.Distance = new CounterConditionDistance
                 {
                     CompareMethod = EnumUtils.GetCompareType(killTargetData.DistanceType),
@@ -13186,13 +13187,14 @@ namespace EternalCycleServer
             copycondition.Index = conditions.Count;
 
             // --- 子条件1：UseItem ---
-            var useItemTemplate = GetCounterConditionTemplate(EQuestCountersCacheType.UseItem, "UseItem", context);
+            var useItemTemplate = GetCounterConditionTemplate(EQuestCountersCacheType.HealthBuff, "HealthBuff", context);
             if (useItemTemplate != null)
             {
                 var useItemCopy = context.Cloner.Clone(useItemTemplate);
                 useItemCopy.Id = $"{useItemData.Id}_UseItemCounter".ConvertHashID();
                 useItemCopy.Target = new ListOrT<string>(new List<string>(), null);
                 // 从 tag 和直接列表扩充目标物品
+                useItemCopy.CompareMethod = ">=";
                 useItemCopy.Target.List.GenerateFromTag(useItemData.Items, useItemData.UseTag, context);
                 useItemCopy.Value = (double)useItemData.Count;
                 copycondition.Counter.Conditions.Add(useItemCopy);
@@ -14063,8 +14065,8 @@ namespace EternalCycleServer
         public  string Name { get; init; } = "永恒时序";
         public  string Author { get; init; } = "HiddenHiragi";
         public  List<string>? Contributors { get; init; }
-        public  SemanticVersioning.Version Version { get; init; } = new("1.4.4");
-        public  SemanticVersioning.Range SptVersion { get; init; } = new("~4.1.0");
+        public  SemanticVersioning.Version Version { get; init; } = new("1.4.5");
+        public  SemanticVersioning.Range SptVersion { get; init; } = new("~4.1.1");
         public  List<string>? Incompatibilities { get; init; }
         public  Dictionary<string, SemanticVersioning.Range>? ModDependencies { get; init; }
         public  string? Url { get; init; } = "https://github.com/sp-tarkov/server-mod-examples";

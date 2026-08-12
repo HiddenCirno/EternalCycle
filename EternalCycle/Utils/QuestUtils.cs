@@ -1106,6 +1106,7 @@ namespace EternalCycleServer
                 var useItemCopy = context.Cloner.Clone(useItemTemplate);
                 useItemCopy.Id = $"{useItemData.Id}_UseItemCounter".ConvertHashID();
                 useItemCopy.Target = new ListOrT<string>(new List<string>(), null);
+                useItemCopy.ConditionType = "UseItem";
                 // 从 tag 和直接列表扩充目标物品
                 useItemCopy.CompareMethod = ">=";
                 useItemCopy.Target.List.GenerateFromTag(useItemData.Items, useItemData.UseTag, context);
