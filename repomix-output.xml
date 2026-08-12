@@ -133,109 +133,6 @@ README.md
 <files>
 This section contains the contents of the repository's files.
 
-<file path="EternalCycle/Utils/DialogueUtils.cs">
-using SPTarkov.Server.Core.Models.Eft.Common.Tables;
-using static EternalCycleServer.ContextManager;
-using Path = System.IO.Path;
-
-namespace EternalCycleServer
-{
-    public static class DialogueUtils
-    {
-        /// <summary>
-        /// 注册对话树
-        /// 支持文件夹/单文件两种模式
-        /// 元素将追加到全局对话树表 GetTemplates().Dialogue.Elements
-        /// (即 /client/dialogue 返回的表)
-        /// </summary>
-        public static void RegisterDialogue(string modpath, string path)
-        {
-            var correctpath = Path.Combine(modpath, path);
-
-            // 文件夹加载模式
-            if (Directory.Exists(correctpath))
-            {
-                EventManager.DataLoadEvent.LoadDialogueEvent += (context) =>
-                {
-                    try
-                    {
-                        InitDialogueData(modpath, path, context);
-                    }
-                    catch (Exception ex)
-                    {
-                        EventManager.EventLogger.Error($"注册对话树时发生异常，指定的文件夹 {correctpath} 存在问题", ex);
-                    }
-                };
-            }
-            // 单文件加载模式
-            else if (File.Exists(correctpath))
-            {
-                EventManager.DataLoadEvent.LoadDialogueEvent += (context) =>
-                {
-                    try
-                    {
-                        var elements = context.JsonUtil.Deserialize<List<TraderDialogElement>>(File.ReadAllText(correctpath));
-                        if (elements != null)
-                        {
-                            InitDialogueData(elements, context);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        EventManager.EventLogger.Error($"注册对话树时发生异常，指定的文件 {correctpath} 存在问题", ex);
-                    }
-                };
-            }
-            else
-            {
-                EventManager.EventLogger.Warn($"注册对话树时发生异常，找不到指定的文件或文件夹 {correctpath}");
-            }
-        }
-
-        /// <summary>
-        /// 文件夹模式: 逐个文件加载
-        /// </summary>
-        public static void InitDialogueData(string modpath, string folderpath, LoadModContext context)
-        {
-            var correctpath = Path.Combine(modpath, folderpath);
-
-            List<string> files = Directory.GetFiles(correctpath).ToList();
-            if (files.Count > 0)
-            {
-                foreach (var file in files)
-                {
-                    string fileName = Path.GetFileName(file);
-                    var elements = context.ModHelper.GetJsonDataFromFile<List<TraderDialogElement>>(correctpath, fileName);
-                    if (elements != null)
-                    {
-                        InitDialogueData(elements, context);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// 核心: 追加元素到全局对话树表, Id 去重
-        /// </summary>
-        public static void InitDialogueData(List<TraderDialogElement> elements, LoadModContext context)
-        {
-            var target = context.DB.GetTemplates().Dialogue.Elements;
-
-            foreach (var element in elements)
-            {
-                // Id 去重: 已存在则跳过(避免与 vanilla 或其他 mod 冲突)
-                if (target.Any(x => x.Id == element.Id))
-                {
-                    EventManager.EventLogger.Warn($"对话树元素 Id 重复, 已跳过: {element.Id}");
-                    continue;
-                }
-                target.Add(element);
-            }
-        }
-    }
-}
-</file>
-
 <file path="items/示例物品.jsonc">
 {
         "_id": "示例物品",
@@ -663,6 +560,109 @@ namespace EternalCycleServer
             //context.Logger.Success($"成功注册{customAlterBot.BotRole}");
 
 
+        }
+    }
+}
+</file>
+
+<file path="EternalCycle/Utils/DialogueUtils.cs">
+using SPTarkov.Server.Core.Models.Eft.Common.Tables;
+using static EternalCycleServer.ContextManager;
+using Path = System.IO.Path;
+
+namespace EternalCycleServer
+{
+    public static class DialogueUtils
+    {
+        /// <summary>
+        /// 注册对话树
+        /// 支持文件夹/单文件两种模式
+        /// 元素将追加到全局对话树表 GetTemplates().Dialogue.Elements
+        /// (即 /client/dialogue 返回的表)
+        /// </summary>
+        public static void RegisterDialogue(string modpath, string path)
+        {
+            var correctpath = Path.Combine(modpath, path);
+
+            // 文件夹加载模式
+            if (Directory.Exists(correctpath))
+            {
+                EventManager.DataLoadEvent.LoadDialogueEvent += (context) =>
+                {
+                    try
+                    {
+                        InitDialogueData(modpath, path, context);
+                    }
+                    catch (Exception ex)
+                    {
+                        EventManager.EventLogger.Error($"注册对话树时发生异常，指定的文件夹 {correctpath} 存在问题", ex);
+                    }
+                };
+            }
+            // 单文件加载模式
+            else if (File.Exists(correctpath))
+            {
+                EventManager.DataLoadEvent.LoadDialogueEvent += (context) =>
+                {
+                    try
+                    {
+                        var elements = context.JsonUtil.Deserialize<List<TraderDialogElement>>(File.ReadAllText(correctpath));
+                        if (elements != null)
+                        {
+                            InitDialogueData(elements, context);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        EventManager.EventLogger.Error($"注册对话树时发生异常，指定的文件 {correctpath} 存在问题", ex);
+                    }
+                };
+            }
+            else
+            {
+                EventManager.EventLogger.Warn($"注册对话树时发生异常，找不到指定的文件或文件夹 {correctpath}");
+            }
+        }
+
+        /// <summary>
+        /// 文件夹模式: 逐个文件加载
+        /// </summary>
+        public static void InitDialogueData(string modpath, string folderpath, LoadModContext context)
+        {
+            var correctpath = Path.Combine(modpath, folderpath);
+
+            List<string> files = Directory.GetFiles(correctpath).ToList();
+            if (files.Count > 0)
+            {
+                foreach (var file in files)
+                {
+                    string fileName = Path.GetFileName(file);
+                    var elements = context.ModHelper.GetJsonDataFromFile<List<TraderDialogElement>>(correctpath, fileName);
+                    if (elements != null)
+                    {
+                        InitDialogueData(elements, context);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 核心: 追加元素到全局对话树表, Id 去重
+        /// </summary>
+        public static void InitDialogueData(List<TraderDialogElement> elements, LoadModContext context)
+        {
+            var target = context.DB.GetTemplates().Dialogue.Elements;
+
+            foreach (var element in elements)
+            {
+                // Id 去重: 已存在则跳过(避免与 vanilla 或其他 mod 冲突)
+                if (target.Any(x => x.Id == element.Id))
+                {
+                    EventManager.EventLogger.Warn($"对话树元素 Id 重复, 已跳过: {element.Id}");
+                    continue;
+                }
+                target.Add(element);
+            }
         }
     }
 }
@@ -3340,172 +3340,6 @@ namespace EternalCycleServer
 }
 </file>
 
-<file path="EternalCycle/Patch/ProfileHelperPatch.cs">
-using HarmonyLib;
-using JetBrains.Annotations;
-using Microsoft.AspNetCore.Http.HttpResults;
-using SPTarkov.DI.Annotations;
-using SPTarkov.Reflection.Patching;
-using SPTarkov.Server.Core.Constants;
-using SPTarkov.Server.Core.DI;
-using SPTarkov.Server.Core.Generators;
-using SPTarkov.Server.Core.Helpers;
-using SPTarkov.Server.Core.Helpers.Items;
-using SPTarkov.Server.Core.Helpers.Server;
-using SPTarkov.Server.Core.Models.Common;
-using SPTarkov.Server.Core.Models.Eft.Bot;
-using SPTarkov.Server.Core.Models.Eft.Common;
-using SPTarkov.Server.Core.Models.Eft.Common.Tables;
-using SPTarkov.Server.Core.Models.Spt.Config;
-using SPTarkov.Server.Core.Models.Spt.Launcher;
-using SPTarkov.Server.Core.Models.Spt.Mod;
-using SPTarkov.Server.Core.Models.Spt.Presets;
-using SPTarkov.Server.Core.Models.Spt.Tables;
-using SPTarkov.Server.Core.Models.Utils;
-using SPTarkov.Server.Core.Routers;
-using SPTarkov.Server.Core.Servers;
-using SPTarkov.Server.Core.Services.Locales;
-using SPTarkov.Server.Core.Utils;
-using SPTarkov.Server.Core.Utils.Cloners;
-using System;
-using System.Net;
-using System.Reflection;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Runtime.Intrinsics.Arm;
-using System.Text;
-using System.Text.Json;
-using static EternalCycleServer.ContextManager;
-
-namespace EternalCycleServer
-{
-
-    [Injectable]
-    public class ProfileHelperPatch : AbstractPatch
-    {
-        private static TemplateTable _templateTable = default!;
-        private static LocaleTable _localeTable = default!;
-        private static GlobalTable _globalTable = default!;
-        private static TradersTable _tradersTable = default!;
-        private static HideoutTable _hideoutTable = default!;
-        private static LocationTable _locationTable = default!;
-        private static BotTable _botTable = default!;
-        private static JsonUtil _jsonUtil = default!;
-        private static ConfigServer _configServer = default!;
-        private static ModHelper _modHelper = default!;
-        private static ItemHelper _itemHelper = default!;
-        private static LocaleService _localeService = default!;
-        private static ICloner _cloner = default!;
-        private static PresetHelper _presetHelper = default!;
-        private static ImageRouter _imageRouter = default!;
-        private static ECLogger _logger = default!;
-        public ProfileHelperPatch(
-        TemplateTable templateTable,
-        LocaleTable localeTable,
-        GlobalTable globalTable,
-        TradersTable tradersTable,
-        HideoutTable hideoutTable,
-        LocationTable locationTable,
-        BotTable botTable,
-        JsonUtil jsonUtil,
-        ConfigServer configServer,
-        ModHelper modHelper,
-        ItemHelper itemHelper,
-        LocaleService localeService,
-        ICloner cloner,
-        PresetHelper presetHelper,
-        ImageRouter imageRouter)
-        {
-            _templateTable = templateTable;
-            _localeTable = localeTable;
-            _globalTable = globalTable;
-            _tradersTable = tradersTable;
-            _hideoutTable = hideoutTable;
-            _locationTable = locationTable;
-            _botTable = botTable;
-            _jsonUtil = jsonUtil;
-            _configServer = configServer;
-            _modHelper = modHelper;
-            _itemHelper = itemHelper;
-            _localeService = localeService;
-            _cloner = cloner;
-            _presetHelper = presetHelper;
-            _imageRouter = imageRouter;
-            _logger = new ECLogger("RagfairServer", true);
-        }
-        protected override MethodBase GetTargetMethod()
-        {
-            return typeof(SaveServer).GetMethod("LoadAsync", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-        }
-
-        [PatchPrefix]
-        public static bool Prefix(SaveServer __instance)
-        {
-            var context = new LoadModContext
-            {
-                DB = new DatabaseService(_templateTable, _localeTable, _globalTable, _tradersTable, _hideoutTable, _locationTable, _botTable),
-                JsonUtil = _jsonUtil,
-                ConfigServer = _configServer,
-                ModHelper = _modHelper,
-                Logger = Utils.commonLogger,
-                PresetHelper = _presetHelper,
-                ImageRouter = _imageRouter,
-                ItemHelper = _itemHelper,
-                Cloner = _cloner
-            };
-
-            EventManager.InitPreDataLoadEvent(context);
-
-            EventManager.InitLoadItemEvent(context);
-            EventManager.InitLoadTraderBaseEvent(context);
-            EventManager.InitLoadQuestEvent(context);
-            EventManager.InitLoadAchievementEvent(context);
-            EventManager.InitLoadRecipeEvent(context);
-            EventManager.InitLoadScavCaseRecipeEvent(context);
-            EventManager.InitLoadCultistCircleRecipeEvent(context);
-            EventManager.InitLoadGiftCodeEvent(context);
-            EventManager.InitLoadAlterBotEvent(context);
-            EventManager.InitLoadtemTagEvent(context);
-            EventManager.InitLoadDrawPoolEventEvent(context);
-            EventManager.InitLoadTraderAssortEvent(context);
-            EventManager.InitLoadQuestDataEvent(context);
-            EventManager.InitLoadQuestRewardEvent(context);
-            EventManager.InitLoadLockedTraderAssortEvent(context);
-            EventManager.InitLoadLockedRecipeEvent(context);
-            EventManager.InitLoadQuestLogicEvent(context);
-            EventManager.InitLoadQuestLocaleEvent(context);
-            EventManager.InitLoadLocaleEvent(context);
-            EventManager.InitLoadPresetEvent(context);
-            EventManager.InitLoadCustomizationEvent(context);
-            EventManager.InitLoadSuitEvent(context);
-            EventManager.InitLoadHideoutCustomizationEvent(context);
-            EventManager.InitLoadQuestZoneEvent(context);
-            EventManager.InitLoadDialogueEvent(context);
-            EventManager.InitLoadResourceEventEvent(context);
-
-            EventManager.InitPostDataLoadEvent(context);
-
-            //调试代码
-            var items = context.DB.GetItems();
-            foreach (var item in items)
-            {
-                if (item.Value == null || item.Value.Properties == null) continue;
-                //item.Value.Properties.ExaminedByDefault = true;
-            }
-            ItemUtils.RegisterFixItem();
-            EventManager.InitFixItemCompatibleEventEvent(context);
-            EventManager.InitAfterModLoadedEvent(context);
-            EventManager.InitPreRagfairLoadEvent(context);
-            LocaleUtils.InitGiftBoxLocale(context.DB, _localeService);
-            //试试游戏启动抓到的语言是不是MiniHUD的版本
-            //是的话还得改过去(不会出问题吧)
-            //看看迷宫的机关怎么回事
-            return true;
-        }
-    }
-    }
-</file>
-
 <file path="EternalCycle/API/ConfigManager.cs">
 using Microsoft.Extensions.Logging;
 using SPTarkov.DI.Annotations;
@@ -3750,6 +3584,172 @@ public class CustomPresetData
     [JsonPropertyName("Preset")]
     public List<CustomItem> PresetData { get; set; }
 }
+</file>
+
+<file path="EternalCycle/Patch/ProfileHelperPatch.cs">
+using HarmonyLib;
+using JetBrains.Annotations;
+using Microsoft.AspNetCore.Http.HttpResults;
+using SPTarkov.DI.Annotations;
+using SPTarkov.Reflection.Patching;
+using SPTarkov.Server.Core.Constants;
+using SPTarkov.Server.Core.DI;
+using SPTarkov.Server.Core.Generators;
+using SPTarkov.Server.Core.Helpers;
+using SPTarkov.Server.Core.Helpers.Items;
+using SPTarkov.Server.Core.Helpers.Server;
+using SPTarkov.Server.Core.Models.Common;
+using SPTarkov.Server.Core.Models.Eft.Bot;
+using SPTarkov.Server.Core.Models.Eft.Common;
+using SPTarkov.Server.Core.Models.Eft.Common.Tables;
+using SPTarkov.Server.Core.Models.Spt.Config;
+using SPTarkov.Server.Core.Models.Spt.Launcher;
+using SPTarkov.Server.Core.Models.Spt.Mod;
+using SPTarkov.Server.Core.Models.Spt.Presets;
+using SPTarkov.Server.Core.Models.Spt.Tables;
+using SPTarkov.Server.Core.Models.Utils;
+using SPTarkov.Server.Core.Routers;
+using SPTarkov.Server.Core.Servers;
+using SPTarkov.Server.Core.Services.Locales;
+using SPTarkov.Server.Core.Utils;
+using SPTarkov.Server.Core.Utils.Cloners;
+using System;
+using System.Net;
+using System.Reflection;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics.Arm;
+using System.Text;
+using System.Text.Json;
+using static EternalCycleServer.ContextManager;
+
+namespace EternalCycleServer
+{
+
+    [Injectable]
+    public class ProfileHelperPatch : AbstractPatch
+    {
+        private static TemplateTable _templateTable = default!;
+        private static LocaleTable _localeTable = default!;
+        private static GlobalTable _globalTable = default!;
+        private static TradersTable _tradersTable = default!;
+        private static HideoutTable _hideoutTable = default!;
+        private static LocationTable _locationTable = default!;
+        private static BotTable _botTable = default!;
+        private static JsonUtil _jsonUtil = default!;
+        private static ConfigServer _configServer = default!;
+        private static ModHelper _modHelper = default!;
+        private static ItemHelper _itemHelper = default!;
+        private static LocaleService _localeService = default!;
+        private static ICloner _cloner = default!;
+        private static PresetHelper _presetHelper = default!;
+        private static ImageRouter _imageRouter = default!;
+        private static ECLogger _logger = default!;
+        public ProfileHelperPatch(
+        TemplateTable templateTable,
+        LocaleTable localeTable,
+        GlobalTable globalTable,
+        TradersTable tradersTable,
+        HideoutTable hideoutTable,
+        LocationTable locationTable,
+        BotTable botTable,
+        JsonUtil jsonUtil,
+        ConfigServer configServer,
+        ModHelper modHelper,
+        ItemHelper itemHelper,
+        LocaleService localeService,
+        ICloner cloner,
+        PresetHelper presetHelper,
+        ImageRouter imageRouter)
+        {
+            _templateTable = templateTable;
+            _localeTable = localeTable;
+            _globalTable = globalTable;
+            _tradersTable = tradersTable;
+            _hideoutTable = hideoutTable;
+            _locationTable = locationTable;
+            _botTable = botTable;
+            _jsonUtil = jsonUtil;
+            _configServer = configServer;
+            _modHelper = modHelper;
+            _itemHelper = itemHelper;
+            _localeService = localeService;
+            _cloner = cloner;
+            _presetHelper = presetHelper;
+            _imageRouter = imageRouter;
+            _logger = new ECLogger("RagfairServer", true);
+        }
+        protected override MethodBase GetTargetMethod()
+        {
+            return typeof(SaveServer).GetMethod("LoadAsync", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+        }
+
+        [PatchPrefix]
+        public static bool Prefix(SaveServer __instance)
+        {
+            var context = new LoadModContext
+            {
+                DB = new DatabaseService(_templateTable, _localeTable, _globalTable, _tradersTable, _hideoutTable, _locationTable, _botTable),
+                JsonUtil = _jsonUtil,
+                ConfigServer = _configServer,
+                ModHelper = _modHelper,
+                Logger = Utils.commonLogger,
+                PresetHelper = _presetHelper,
+                ImageRouter = _imageRouter,
+                ItemHelper = _itemHelper,
+                Cloner = _cloner
+            };
+
+            EventManager.InitPreDataLoadEvent(context);
+
+            EventManager.InitLoadItemEvent(context);
+            EventManager.InitLoadTraderBaseEvent(context);
+            EventManager.InitLoadQuestEvent(context);
+            EventManager.InitLoadAchievementEvent(context);
+            EventManager.InitLoadRecipeEvent(context);
+            EventManager.InitLoadScavCaseRecipeEvent(context);
+            EventManager.InitLoadCultistCircleRecipeEvent(context);
+            EventManager.InitLoadGiftCodeEvent(context);
+            EventManager.InitLoadAlterBotEvent(context);
+            EventManager.InitLoadtemTagEvent(context);
+            EventManager.InitLoadDrawPoolEventEvent(context);
+            EventManager.InitLoadTraderAssortEvent(context);
+            EventManager.InitLoadQuestDataEvent(context);
+            EventManager.InitLoadQuestRewardEvent(context);
+            EventManager.InitLoadLockedTraderAssortEvent(context);
+            EventManager.InitLoadLockedRecipeEvent(context);
+            EventManager.InitLoadQuestLogicEvent(context);
+            EventManager.InitLoadQuestLocaleEvent(context);
+            EventManager.InitLoadLocaleEvent(context);
+            EventManager.InitLoadPresetEvent(context);
+            EventManager.InitLoadCustomizationEvent(context);
+            EventManager.InitLoadSuitEvent(context);
+            EventManager.InitLoadHideoutCustomizationEvent(context);
+            EventManager.InitLoadQuestZoneEvent(context);
+            EventManager.InitLoadDialogueEvent(context);
+            EventManager.InitLoadResourceEventEvent(context);
+
+            EventManager.InitPostDataLoadEvent(context);
+
+            //调试代码
+            var items = context.DB.GetItems();
+            foreach (var item in items)
+            {
+                if (item.Value == null || item.Value.Properties == null) continue;
+                //item.Value.Properties.ExaminedByDefault = true;
+            }
+            ItemUtils.RegisterFixItem();
+            EventManager.InitFixItemCompatibleEventEvent(context);
+            EventManager.InitAfterModLoadedEvent(context);
+            EventManager.InitPreRagfairLoadEvent(context);
+            LocaleUtils.InitGiftBoxLocale(context.DB, _localeService);
+            //试试游戏启动抓到的语言是不是MiniHUD的版本
+            //是的话还得改过去(不会出问题吧)
+            //看看迷宫的机关怎么回事
+            return true;
+        }
+    }
+    }
 </file>
 
 <file path="EternalCycle/Patch/StartupLogPatch.cs">
@@ -4312,44 +4312,6 @@ namespace EternalCycleServer
         [JsonPropertyName("repeatable")]
         public bool Repeatable { get; set; }
     }
-}
-</file>
-
-<file path="EternalCycle/Classes/TraderClasses.cs">
-using SPTarkov.DI.Annotations;
-using SPTarkov.Server.Core.DI;
-using SPTarkov.Server.Core.Models.Spt.Mod;
-using SPTarkov.Server.Core.Models.Utils;
-using SPTarkov.Server.Core.Services;
-using SPTarkov.Server.Core.Models.Eft.Common.Tables;
-using System.Text.Json;
-using SPTarkov.Server.Core.Models.Common;
-using SPTarkov.Server.Core.Models.Eft.Common;
-using Microsoft.AspNetCore.Mvc.ViewFeatures.Buffers;
-using System.Text.Json.Serialization;
-using static EternalCycleServer.Utils;
-
-namespace EternalCycleServer;
-
-
-
-public record TraderBaseWithDesc : TraderBase
-{
-    [JsonPropertyName("_id")]
-    [JsonConverter(typeof(MongoIdConverter))]
-    public new required MongoId Id { get; set; }
-    [JsonPropertyName("description")]
-    public string Description { get; set; }
-    [JsonPropertyName("insurance_locale")]
-    public Dictionary<string, List<string>?>? Dialogue { get; init; }
-    [JsonPropertyName("insuranceChance")]
-    public int? InsuranceChance { get; set; }
-    [JsonPropertyName("minReflashTime")]
-    public int? ReflashMinTime {  get; set; }
-    [JsonPropertyName("maxReflashTime")]
-    public int? ReflashMaxTime { get; set; }
-    [JsonPropertyName("showInRagfair")]
-    public bool? ShowInRagfair { get; set; }
 }
 </file>
 
@@ -5003,7 +4965,7 @@ namespace EternalCycleServer
 }
 </file>
 
-<file path="EternalCycle/Classes/CustomizationClasses.cs">
+<file path="EternalCycle/Classes/TraderClasses.cs">
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.Models.Spt.Mod;
@@ -5019,77 +4981,22 @@ using static EternalCycleServer.Utils;
 
 namespace EternalCycleServer;
 
-public record CustomCustomizationItem
+
+
+public record TraderBaseWithDesc : TraderBase
 {
-    [JsonPropertyName("_id")]
-    [JsonConverter(typeof(MongoIdConverter))]
-    public MongoId Id { get; set; }
-    [JsonPropertyName("_name")]
-    public string Name { get; set; }
-    [JsonPropertyName("_parent")]
-    public string ParentId { get; set; }
-    [JsonPropertyName("_type")]
-    public string Type { get; set; }
-    [JsonPropertyName("_props")]
-    public CustomCustomizationProperties Properties { get; set; }
-    [JsonPropertyName("_proto")]
-    public string Proto { get; set; }
-}
-public class CustomCustomizationProperties : CustomizationProperties
-{
-
-    [JsonPropertyName("Body")]
-    [JsonConverter(typeof(MongoIdConverter))]
-    public new MongoId? Body { get; set; }
-
-    [JsonPropertyName("Feet")]
-    [JsonConverter(typeof(MongoIdConverter))]
-    public new MongoId? Feet { get; set; }
-
-    [JsonPropertyName("Hands")]
-    [JsonConverter(typeof(MongoIdConverter))]
-    public new MongoId? Hands { get; set; }
-
-    [JsonPropertyName("BearTemplateId")]
-    [JsonConverter(typeof(MongoIdConverter))]
-    public new MongoId? BearTemplateId { get; set; }
-
-    [JsonPropertyName("UsecTemplateId")]
-    [JsonConverter(typeof(MongoIdConverter))]
-    public new MongoId? UsecTemplateId { get; set; }
-
-    [JsonPropertyName("IsVoice")]
-    public bool? IsVoice { get; set; }
-
-    [JsonPropertyName("VoicePath")]
-    public string? VoicePath { get; set; }
-
-    [JsonPropertyName("IsDeco")]
-    public bool? IsDeco { get; set; }
-
-    [JsonPropertyName("IsTarget")]
-    public bool? IsTarget { get; set; }
-}
-public class CustomHideoutCustomization
-{
-    [JsonPropertyName("id")]
-    [JsonConverter(typeof(MongoIdConverter))]
-    public MongoId Id { get; set; }
-    [JsonPropertyName("conditions")]
-    public List<CustomQuestData> Conditions { get; set; }
-    [JsonPropertyName("type")]
-    public string Type { get; set; }
-    [JsonPropertyName("name")]
-    public string Name { get; set; }
-    [JsonPropertyName("shortname")]
-    public string ShortName { get; set; }
     [JsonPropertyName("description")]
     public string Description { get; set; }
-    [JsonPropertyName("enbale")]
-    public bool IsEnable { get; set; }
-    [JsonPropertyName("target")]
-    [JsonConverter(typeof(MongoIdConverter))]
-    public MongoId Target {  get; set; }
+    [JsonPropertyName("insurance_locale")]
+    public Dictionary<string, List<string>?>? Dialogue { get; init; }
+    [JsonPropertyName("insuranceChance")]
+    public int? InsuranceChance { get; set; }
+    [JsonPropertyName("minReflashTime")]
+    public int? ReflashMinTime {  get; set; }
+    [JsonPropertyName("maxReflashTime")]
+    public int? ReflashMaxTime { get; set; }
+    [JsonPropertyName("showInRagfair")]
+    public bool? ShowInRagfair { get; set; }
 }
 </file>
 
@@ -5378,6 +5285,75 @@ namespace EternalCycleServer
             }
         }
     }
+}
+</file>
+
+<file path="EternalCycle/Classes/CustomizationClasses.cs">
+using SPTarkov.DI.Annotations;
+using SPTarkov.Server.Core.DI;
+using SPTarkov.Server.Core.Models.Spt.Mod;
+using SPTarkov.Server.Core.Models.Utils;
+using SPTarkov.Server.Core.Services;
+using SPTarkov.Server.Core.Models.Eft.Common.Tables;
+using System.Text.Json;
+using SPTarkov.Server.Core.Models.Common;
+using SPTarkov.Server.Core.Models.Eft.Common;
+using Microsoft.AspNetCore.Mvc.ViewFeatures.Buffers;
+using System.Text.Json.Serialization;
+using static EternalCycleServer.Utils;
+
+namespace EternalCycleServer;
+
+public record CustomCustomizationItem
+{
+    [JsonPropertyName("_id")]
+    [JsonConverter(typeof(MongoIdConverter))]
+    public MongoId Id { get; set; }
+    [JsonPropertyName("_name")]
+    public string Name { get; set; }
+    [JsonPropertyName("_parent")]
+    public string ParentId { get; set; }
+    [JsonPropertyName("_type")]
+    public string Type { get; set; }
+    [JsonPropertyName("_props")]
+    public CustomCustomizationProperties Properties { get; set; }
+    [JsonPropertyName("_proto")]
+    public string Proto { get; set; }
+}
+public class CustomCustomizationProperties : CustomizationProperties
+{
+    [JsonPropertyName("IsVoice")]
+    public bool? IsVoice { get; set; }
+
+    [JsonPropertyName("VoicePath")]
+    public string? VoicePath { get; set; }
+
+    [JsonPropertyName("IsDeco")]
+    public bool? IsDeco { get; set; }
+
+    [JsonPropertyName("IsTarget")]
+    public bool? IsTarget { get; set; }
+}
+public class CustomHideoutCustomization
+{
+    [JsonPropertyName("id")]
+    [JsonConverter(typeof(MongoIdConverter))]
+    public MongoId Id { get; set; }
+    [JsonPropertyName("conditions")]
+    public List<CustomQuestData> Conditions { get; set; }
+    [JsonPropertyName("type")]
+    public string Type { get; set; }
+    [JsonPropertyName("name")]
+    public string Name { get; set; }
+    [JsonPropertyName("shortname")]
+    public string ShortName { get; set; }
+    [JsonPropertyName("description")]
+    public string Description { get; set; }
+    [JsonPropertyName("enbale")]
+    public bool IsEnable { get; set; }
+    [JsonPropertyName("target")]
+    [JsonConverter(typeof(MongoIdConverter))]
+    public MongoId Target {  get; set; }
 }
 </file>
 
@@ -9142,6 +9118,8 @@ namespace EternalCycleServer
         public int? DogTagLevel { get; set; }
         [JsonPropertyName("autolocale")]
         public bool? AutoLocale { get; set; }
+        [JsonPropertyName("durability")]
+        public int[]? ItemDurability { get; set; } = new int[2];
     }
     public class FindItemGroupData : CustomQuestData
     {
@@ -9155,6 +9133,8 @@ namespace EternalCycleServer
         public int? DogTagLevel { get; set; }
         [JsonPropertyName("tags")]
         public ItemTag? UseTag { get; set; }
+        [JsonPropertyName("durability")]
+        public int[]? ItemDurability { get; set; } = new int[2];
     }
 
     public class HandoverItemData : CustomQuestData
@@ -9170,6 +9150,8 @@ namespace EternalCycleServer
         public int? DogTagLevel { get; set; }
         [JsonPropertyName("autolocale")]
         public bool? AutoLocale { get; set; }
+        [JsonPropertyName("durability")]
+        public int[]? ItemDurability { get; set; } = new int[2];
     }
 
     public class HandoverItemGroupData : CustomQuestData
@@ -9184,6 +9166,8 @@ namespace EternalCycleServer
         public int? DogTagLevel { get; set; }
         [JsonPropertyName("tags")]
         public ItemTag? UseTag { get; set; }
+        [JsonPropertyName("durability")]
+        public int[]? ItemDurability { get; set; } = new int[2];
     }
 
     public class KillTargetData : CustomQuestData
@@ -9264,6 +9248,8 @@ namespace EternalCycleServer
         public string ZoneId { get; set; }
         [JsonPropertyName("count")]
         public int Count { get; set; }
+        [JsonPropertyName("durability")]
+        public int[]? ItemDurability { get; set; } = new int[2];
     }
 
     public class PlaceItemGroupData : CustomQuestData
@@ -9278,6 +9264,8 @@ namespace EternalCycleServer
         public int Count { get; set; }
         [JsonPropertyName("tags")]
         public ItemTag? UseTag { get; set; }
+        [JsonPropertyName("durability")]
+        public int[]? ItemDurability { get; set; } = new int[2];
     }
 
     public class ExitLocationData : CustomQuestData
@@ -11835,6 +11823,266 @@ namespace EternalCycleServer
 }
 </file>
 
+<file path="EternalCycle/Patch/RagfairLoadPatch.cs">
+using HarmonyLib;
+using JetBrains.Annotations;
+using Microsoft.AspNetCore.Http.HttpResults;
+using SPTarkov.DI.Annotations;
+using SPTarkov.Reflection.Patching;
+using SPTarkov.Server.Core.Constants;
+using SPTarkov.Server.Core.DI;
+using SPTarkov.Server.Core.Generators;
+using SPTarkov.Server.Core.Helpers;
+using SPTarkov.Server.Core.Helpers.Items;
+using SPTarkov.Server.Core.Helpers.Server;
+using SPTarkov.Server.Core.Models.Common;
+using SPTarkov.Server.Core.Models.Eft.Bot;
+using SPTarkov.Server.Core.Models.Eft.Common;
+using SPTarkov.Server.Core.Models.Eft.Common.Tables;
+using SPTarkov.Server.Core.Models.Spt.Config;
+using SPTarkov.Server.Core.Models.Spt.Launcher;
+using SPTarkov.Server.Core.Models.Spt.Mod;
+using SPTarkov.Server.Core.Models.Spt.Presets;
+using SPTarkov.Server.Core.Models.Spt.Tables;
+using SPTarkov.Server.Core.Models.Utils;
+using SPTarkov.Server.Core.Routers;
+using SPTarkov.Server.Core.Servers;
+using SPTarkov.Server.Core.Services.Locales;
+using SPTarkov.Server.Core.Utils;
+using SPTarkov.Server.Core.Utils.Cloners;
+using System;
+using System.Net;
+using System.Reflection;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics.Arm;
+using System.Text;
+using System.Text.Json;
+using static EternalCycleServer.ContextManager;
+
+namespace EternalCycleServer
+{
+    [Injectable]
+    public class RagfairLoadPatch : AbstractPatch
+    {
+        private static TemplateTable _templateTable = default!;
+        private static LocaleTable _localeTable = default!;
+        private static GlobalTable _globalTable = default!;
+        private static TradersTable _tradersTable = default!;
+        private static HideoutTable _hideoutTable = default!;
+        private static LocationTable _locationTable = default!;
+        private static BotTable _botTable = default!;
+        private static JsonUtil _jsonUtil = default!;
+        private static ConfigServer _configServer = default!;
+        private static ModHelper _modHelper = default!;
+        private static ItemHelper _itemHelper = default!;
+        private static LocaleService _localeService = default!;
+        private static ICloner _cloner = default!;
+        private static PresetHelper _presetHelper = default!;
+        private static ImageRouter _imageRouter = default!;
+        private static ECLogger _logger = default!;
+        public RagfairLoadPatch(
+        TemplateTable templateTable,
+        LocaleTable localeTable,
+        GlobalTable globalTable,
+        TradersTable tradersTable,
+        HideoutTable hideoutTable,
+        LocationTable locationTable,
+        BotTable botTable,
+        JsonUtil jsonUtil,
+        ConfigServer configServer,
+        ModHelper modHelper,
+        ItemHelper itemHelper,
+        LocaleService localeService,
+        ICloner cloner,
+        PresetHelper presetHelper,
+        ImageRouter imageRouter)
+        {
+            _templateTable = templateTable;
+            _localeTable = localeTable;
+            _globalTable = globalTable;
+            _tradersTable = tradersTable;
+            _hideoutTable = hideoutTable;
+            _locationTable = locationTable;
+            _botTable = botTable;
+            _jsonUtil = jsonUtil;
+            _configServer = configServer;
+            _modHelper = modHelper;
+            _itemHelper = itemHelper;
+            _localeService = localeService;
+            _cloner = cloner;
+            _presetHelper = presetHelper;
+            _imageRouter = imageRouter;
+            _logger = new ECLogger("RagfairServer", true);
+        }
+        protected override MethodBase GetTargetMethod()
+        {
+            return typeof(RagfairServer).GetMethod("Load", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+        }
+
+        [PatchPrefix]
+        public static bool Prefix(RagfairServer __instance)
+        {
+            var context = new LoadModContext
+            {
+                DB = new DatabaseService(_templateTable, _localeTable, _globalTable, _tradersTable, _hideoutTable, _locationTable, _botTable),
+                JsonUtil = _jsonUtil,
+                ConfigServer = _configServer,
+                ModHelper = _modHelper,
+                Logger = Utils.commonLogger,
+                PresetHelper = _presetHelper,
+                ImageRouter = _imageRouter,
+                ItemHelper = _itemHelper,
+                Cloner = _cloner
+            };
+            //干他妈的预设缓存
+            var itemPresets = context.DB.GetGlobals().ItemPresets;
+            var presetHelperInstance = context.PresetHelper;
+            Traverse.Create(context.PresetHelper).Field("DefaultWeaponPresets").SetValue(null);
+            Traverse.Create(context.PresetHelper).Field("DefaultEquipmentPresets").SetValue(null);
+            var newPresetCache = new Dictionary<MongoId, PresetCacheDetails>();
+
+            foreach (var kvp in itemPresets)
+            {
+                var presetId = kvp.Key;
+                var preset = kvp.Value;
+
+                // 找到这个预设的根物品 (武器本体/防弹衣本体)
+                var rootItem = preset.Items.FirstOrDefault(x => x.Id == preset.Parent);
+                if (rootItem == null) continue;
+
+                var tpl = rootItem.Template;
+
+                // 如果字典里还没这个 Tpl，建个档案
+                if (!newPresetCache.ContainsKey(tpl))
+                {
+                    newPresetCache[tpl] = new PresetCacheDetails
+                    {
+                        PresetIds = new HashSet<MongoId>()
+                    };
+                }
+
+                // 把当前的预设 ID 加进列表
+                newPresetCache[tpl].PresetIds.Add(presetId);
+
+                // 如果这个预设是官方出厂配置 (带有 Encyclopedia)，把它设为默认
+                if (preset.Encyclopedia != null)
+                {
+                    newPresetCache[tpl].DefaultId = presetId;
+                }
+            }
+
+            // ==========================================
+            // 3. 将最新、最全的缓存注入回单例中！
+            // ==========================================
+            // HydratePresetStore 是 public 的，直接调用，完美覆盖！
+            context.PresetHelper.HydratePresetStore(newPresetCache);
+            //内置tag
+            var taglist = new ItemTagDictionary();
+
+            // 1. 建立武器专用的“白名单映射字典”
+            // 这里只放你明确需要生成的武器类型，彻底隔绝建筑材料、医疗用品等垃圾数据
+            var targetWeapons = new Dictionary<string, string>
+                {
+                    { "突击卡宾枪", ERagfairTagsType.突击卡宾枪 },
+                    { "突击步枪", ERagfairTagsType.突击步枪 },
+                    { "精确射手步枪", ERagfairTagsType.精确射手步枪 },
+                    { "手枪", ERagfairTagsType.手枪 },
+                    { "霰弹枪", ERagfairTagsType.霰弹枪 },
+                    { "冲锋枪", ERagfairTagsType.冲锋枪 },
+                    { "栓动式步枪", ERagfairTagsType.栓动式步枪 },
+                    { "机枪", ERagfairTagsType.机枪 },
+                    { "榴弹发射器", ERagfairTagsType.榴弹发射器 },
+                    { "特殊武器", ERagfairTagsType.特殊武器 },
+                    { "近战武器", ERagfairTagsType.近战武器 },
+                    { "投掷物", ERagfairTagsType.投掷物 },
+                    { "其他", ERagfairTagsType.其他 },
+                    { "医疗用品", ERagfairTagsType.医疗用品 },
+                    { "工具", ERagfairTagsType.工具 },
+                    { "建筑材料", ERagfairTagsType.建筑材料 },
+                    { "日常用品", ERagfairTagsType.日常用品 },
+                    { "易燃物品", ERagfairTagsType.易燃物品 },
+                    { "电子产品", ERagfairTagsType.电子产品 },
+                    { "能源物品", ERagfairTagsType.能源物品 },
+                    { "贵重物品", ERagfairTagsType.贵重物品 },
+                    { "耳机", ERagfairTagsType.耳机 },
+                    { "背包", ERagfairTagsType.背包 },
+                    { "防弹衣", ERagfairTagsType.防弹衣 },
+                    { "战术胸挂", ERagfairTagsType.战术胸挂 },
+                    { "子弹", ERagfairTagsType.子弹 },
+                    { "弹药包", ERagfairTagsType.弹药包 },
+                    { "食物", ERagfairTagsType.食物 },
+                    { "饮品", ERagfairTagsType.饮品 },
+                    { "创伤处理", ERagfairTagsType.创伤处理 },
+                    { "急救包", ERagfairTagsType.急救包 },
+                    { "注射器", ERagfairTagsType.注射器 },
+                    { "药品", ERagfairTagsType.药品 },
+                    { "机械钥匙", ERagfairTagsType.机械钥匙 },
+                    { "电子钥匙", ERagfairTagsType.电子钥匙 },
+                    { "情报物品", ERagfairTagsType.情报物品 },
+                    { "特殊装备", ERagfairTagsType.特殊装备 }
+                };
+
+            // 2. 精准遍历白名单
+            foreach (var kvp in targetWeapons)
+            {
+                string tagName = kvp.Key;
+                string tagValue = kvp.Value;
+
+                // 每次必须 new 一个新的对象，避免引用陷阱
+                var newTagSet = new ItemTag();
+
+                // 尝试获取该分类下的所有物品
+                var items = ItemUtils.GetItemListByRagfairTag(tagValue, context);
+
+                // 如果获取不到物品，或者集合为空，直接跳过当前分类
+                if (items == null) continue;
+
+                foreach (var item in items)
+                {
+                    newTagSet.Add(item);
+                }
+
+                // 3. 【终极防呆】只有当集合里确确实实装了东西，才允许塞进最终字典！
+                if (newTagSet.Count > 0)
+                {
+                    taglist[tagName] = newTagSet;
+                }
+            }
+            ItemTagUtils.InitItemTagData(taglist, context);
+
+            File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportidmap.json"), context.JsonUtil.Serialize(Utils.hashIdList, true));
+            File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportquest.json"), context.JsonUtil.Serialize(context.DB.GetQuests(), true));
+            File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportitem.json"), context.JsonUtil.Serialize(context.DB.GetItems(), true));
+            File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportlocale.json"), context.JsonUtil.Serialize(_localeService.GetLocaleDb("ch"), true));
+            //试试游戏启动抓到的语言是不是MiniHUD的版本
+            //是的话还得改过去(不会出问题吧)
+            //看看迷宫的机关怎么回事
+            return true;
+        }
+
+        [PatchPostfix]
+        public static void Postfix(RagfairServer __instance)
+        {
+            var context = new LoadModContext
+            {
+                DB = new DatabaseService(_templateTable, _localeTable, _globalTable, _tradersTable, _hideoutTable, _locationTable, _botTable),
+                JsonUtil = _jsonUtil,
+                ConfigServer = _configServer,
+                ModHelper = _modHelper,
+                Logger = Utils.commonLogger,
+                PresetHelper = _presetHelper,
+                ImageRouter = _imageRouter,
+                ItemHelper = _itemHelper,
+                Cloner = _cloner
+            };
+            EventManager.InitPostRagfairLoadEvent(context);
+        }
+
+    }
+}
+</file>
+
 <file path="EternalCycle/Utils/QuestUtils.cs">
 using HarmonyLib;
 using SPTarkov.Server.Core.DI;
@@ -12325,6 +12573,8 @@ namespace EternalCycleServer
             {
                 copycondition.DogtagLevel = findItemData.DogTagLevel;
             }
+            copycondition.MinDurability = findItemData.ItemDurability?[0] ?? 0;
+            copycondition.MaxDurability = findItemData.ItemDurability?[1] ?? 100;
             //加入
             conditions.Add(copycondition);
             //自动本地化
@@ -12361,6 +12611,8 @@ namespace EternalCycleServer
             {
                 copycondition.DogtagLevel = findItemData.DogTagLevel;
             }
+            copycondition.MinDurability = findItemData.ItemDurability?[0] ?? 0;
+            copycondition.MaxDurability = findItemData.ItemDurability?[1] ?? 100;
             conditions.Add(copycondition);
         }
 
@@ -12385,6 +12637,8 @@ namespace EternalCycleServer
             {
                 copycondition.DogtagLevel = handItemData.DogTagLevel;
             }
+            copycondition.MinDurability = handItemData.ItemDurability?[0] ?? 0;
+            copycondition.MaxDurability = handItemData.ItemDurability?[1] ?? 100;
             conditions.Add(copycondition);
             if (handItemData.AutoLocale != null && handItemData.AutoLocale == true)
             {
@@ -12419,6 +12673,8 @@ namespace EternalCycleServer
             {
                 copycondition.DogtagLevel = handItemData.DogTagLevel;
             }
+            copycondition.MinDurability = handItemData.ItemDurability?[0] ?? 0;
+            copycondition.MaxDurability = handItemData.ItemDurability?[1] ?? 100;
             conditions.Add(copycondition);
         }
 
@@ -12645,6 +12901,8 @@ namespace EternalCycleServer
             copycondition.Value = (double)placeItemData.Count;
             copycondition.PlantTime = (double)placeItemData.Time;
             copycondition.ZoneId = placeItemData.ZoneId;
+            copycondition.MinDurability = placeItemData.ItemDurability?[0] ?? 0;
+            copycondition.MaxDurability = placeItemData.ItemDurability?[1] ?? 100;
             conditions.Add(copycondition);
         }
 
@@ -12665,6 +12923,8 @@ namespace EternalCycleServer
             copycondition.Value = (double)placeItemGroupData.Count;
             copycondition.PlantTime = (double)placeItemGroupData.Time;
             copycondition.ZoneId = placeItemGroupData.ZoneId;
+            copycondition.MinDurability = placeItemGroupData.ItemDurability?[0] ?? 0;
+            copycondition.MaxDurability = placeItemGroupData.ItemDurability?[1] ?? 100;
             conditions.Add(copycondition);
         }
 
@@ -13774,266 +14034,6 @@ namespace EternalCycleServer
 }
 </file>
 
-<file path="EternalCycle/Patch/RagfairLoadPatch.cs">
-using HarmonyLib;
-using JetBrains.Annotations;
-using Microsoft.AspNetCore.Http.HttpResults;
-using SPTarkov.DI.Annotations;
-using SPTarkov.Reflection.Patching;
-using SPTarkov.Server.Core.Constants;
-using SPTarkov.Server.Core.DI;
-using SPTarkov.Server.Core.Generators;
-using SPTarkov.Server.Core.Helpers;
-using SPTarkov.Server.Core.Helpers.Items;
-using SPTarkov.Server.Core.Helpers.Server;
-using SPTarkov.Server.Core.Models.Common;
-using SPTarkov.Server.Core.Models.Eft.Bot;
-using SPTarkov.Server.Core.Models.Eft.Common;
-using SPTarkov.Server.Core.Models.Eft.Common.Tables;
-using SPTarkov.Server.Core.Models.Spt.Config;
-using SPTarkov.Server.Core.Models.Spt.Launcher;
-using SPTarkov.Server.Core.Models.Spt.Mod;
-using SPTarkov.Server.Core.Models.Spt.Presets;
-using SPTarkov.Server.Core.Models.Spt.Tables;
-using SPTarkov.Server.Core.Models.Utils;
-using SPTarkov.Server.Core.Routers;
-using SPTarkov.Server.Core.Servers;
-using SPTarkov.Server.Core.Services.Locales;
-using SPTarkov.Server.Core.Utils;
-using SPTarkov.Server.Core.Utils.Cloners;
-using System;
-using System.Net;
-using System.Reflection;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Runtime.Intrinsics.Arm;
-using System.Text;
-using System.Text.Json;
-using static EternalCycleServer.ContextManager;
-
-namespace EternalCycleServer
-{
-    [Injectable]
-    public class RagfairLoadPatch : AbstractPatch
-    {
-        private static TemplateTable _templateTable = default!;
-        private static LocaleTable _localeTable = default!;
-        private static GlobalTable _globalTable = default!;
-        private static TradersTable _tradersTable = default!;
-        private static HideoutTable _hideoutTable = default!;
-        private static LocationTable _locationTable = default!;
-        private static BotTable _botTable = default!;
-        private static JsonUtil _jsonUtil = default!;
-        private static ConfigServer _configServer = default!;
-        private static ModHelper _modHelper = default!;
-        private static ItemHelper _itemHelper = default!;
-        private static LocaleService _localeService = default!;
-        private static ICloner _cloner = default!;
-        private static PresetHelper _presetHelper = default!;
-        private static ImageRouter _imageRouter = default!;
-        private static ECLogger _logger = default!;
-        public RagfairLoadPatch(
-        TemplateTable templateTable,
-        LocaleTable localeTable,
-        GlobalTable globalTable,
-        TradersTable tradersTable,
-        HideoutTable hideoutTable,
-        LocationTable locationTable,
-        BotTable botTable,
-        JsonUtil jsonUtil,
-        ConfigServer configServer,
-        ModHelper modHelper,
-        ItemHelper itemHelper,
-        LocaleService localeService,
-        ICloner cloner,
-        PresetHelper presetHelper,
-        ImageRouter imageRouter)
-        {
-            _templateTable = templateTable;
-            _localeTable = localeTable;
-            _globalTable = globalTable;
-            _tradersTable = tradersTable;
-            _hideoutTable = hideoutTable;
-            _locationTable = locationTable;
-            _botTable = botTable;
-            _jsonUtil = jsonUtil;
-            _configServer = configServer;
-            _modHelper = modHelper;
-            _itemHelper = itemHelper;
-            _localeService = localeService;
-            _cloner = cloner;
-            _presetHelper = presetHelper;
-            _imageRouter = imageRouter;
-            _logger = new ECLogger("RagfairServer", true);
-        }
-        protected override MethodBase GetTargetMethod()
-        {
-            return typeof(RagfairServer).GetMethod("Load", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-        }
-
-        [PatchPrefix]
-        public static bool Prefix(RagfairServer __instance)
-        {
-            var context = new LoadModContext
-            {
-                DB = new DatabaseService(_templateTable, _localeTable, _globalTable, _tradersTable, _hideoutTable, _locationTable, _botTable),
-                JsonUtil = _jsonUtil,
-                ConfigServer = _configServer,
-                ModHelper = _modHelper,
-                Logger = Utils.commonLogger,
-                PresetHelper = _presetHelper,
-                ImageRouter = _imageRouter,
-                ItemHelper = _itemHelper,
-                Cloner = _cloner
-            };
-            //干他妈的预设缓存
-            var itemPresets = context.DB.GetGlobals().ItemPresets;
-            var presetHelperInstance = context.PresetHelper;
-            Traverse.Create(context.PresetHelper).Field("DefaultWeaponPresets").SetValue(null);
-            Traverse.Create(context.PresetHelper).Field("DefaultEquipmentPresets").SetValue(null);
-            var newPresetCache = new Dictionary<MongoId, PresetCacheDetails>();
-
-            foreach (var kvp in itemPresets)
-            {
-                var presetId = kvp.Key;
-                var preset = kvp.Value;
-
-                // 找到这个预设的根物品 (武器本体/防弹衣本体)
-                var rootItem = preset.Items.FirstOrDefault(x => x.Id == preset.Parent);
-                if (rootItem == null) continue;
-
-                var tpl = rootItem.Template;
-
-                // 如果字典里还没这个 Tpl，建个档案
-                if (!newPresetCache.ContainsKey(tpl))
-                {
-                    newPresetCache[tpl] = new PresetCacheDetails
-                    {
-                        PresetIds = new HashSet<MongoId>()
-                    };
-                }
-
-                // 把当前的预设 ID 加进列表
-                newPresetCache[tpl].PresetIds.Add(presetId);
-
-                // 如果这个预设是官方出厂配置 (带有 Encyclopedia)，把它设为默认
-                if (preset.Encyclopedia != null)
-                {
-                    newPresetCache[tpl].DefaultId = presetId;
-                }
-            }
-
-            // ==========================================
-            // 3. 将最新、最全的缓存注入回单例中！
-            // ==========================================
-            // HydratePresetStore 是 public 的，直接调用，完美覆盖！
-            context.PresetHelper.HydratePresetStore(newPresetCache);
-            //内置tag
-            var taglist = new ItemTagDictionary();
-
-            // 1. 建立武器专用的“白名单映射字典”
-            // 这里只放你明确需要生成的武器类型，彻底隔绝建筑材料、医疗用品等垃圾数据
-            var targetWeapons = new Dictionary<string, string>
-                {
-                    { "突击卡宾枪", ERagfairTagsType.突击卡宾枪 },
-                    { "突击步枪", ERagfairTagsType.突击步枪 },
-                    { "精确射手步枪", ERagfairTagsType.精确射手步枪 },
-                    { "手枪", ERagfairTagsType.手枪 },
-                    { "霰弹枪", ERagfairTagsType.霰弹枪 },
-                    { "冲锋枪", ERagfairTagsType.冲锋枪 },
-                    { "栓动式步枪", ERagfairTagsType.栓动式步枪 },
-                    { "机枪", ERagfairTagsType.机枪 },
-                    { "榴弹发射器", ERagfairTagsType.榴弹发射器 },
-                    { "特殊武器", ERagfairTagsType.特殊武器 },
-                    { "近战武器", ERagfairTagsType.近战武器 },
-                    { "投掷物", ERagfairTagsType.投掷物 },
-                    { "其他", ERagfairTagsType.其他 },
-                    { "医疗用品", ERagfairTagsType.医疗用品 },
-                    { "工具", ERagfairTagsType.工具 },
-                    { "建筑材料", ERagfairTagsType.建筑材料 },
-                    { "日常用品", ERagfairTagsType.日常用品 },
-                    { "易燃物品", ERagfairTagsType.易燃物品 },
-                    { "电子产品", ERagfairTagsType.电子产品 },
-                    { "能源物品", ERagfairTagsType.能源物品 },
-                    { "贵重物品", ERagfairTagsType.贵重物品 },
-                    { "耳机", ERagfairTagsType.耳机 },
-                    { "背包", ERagfairTagsType.背包 },
-                    { "防弹衣", ERagfairTagsType.防弹衣 },
-                    { "战术胸挂", ERagfairTagsType.战术胸挂 },
-                    { "子弹", ERagfairTagsType.子弹 },
-                    { "弹药包", ERagfairTagsType.弹药包 },
-                    { "食物", ERagfairTagsType.食物 },
-                    { "饮品", ERagfairTagsType.饮品 },
-                    { "创伤处理", ERagfairTagsType.创伤处理 },
-                    { "急救包", ERagfairTagsType.急救包 },
-                    { "注射器", ERagfairTagsType.注射器 },
-                    { "药品", ERagfairTagsType.药品 },
-                    { "机械钥匙", ERagfairTagsType.机械钥匙 },
-                    { "电子钥匙", ERagfairTagsType.电子钥匙 },
-                    { "情报物品", ERagfairTagsType.情报物品 },
-                    { "特殊装备", ERagfairTagsType.特殊装备 }
-                };
-
-            // 2. 精准遍历白名单
-            foreach (var kvp in targetWeapons)
-            {
-                string tagName = kvp.Key;
-                string tagValue = kvp.Value;
-
-                // 每次必须 new 一个新的对象，避免引用陷阱
-                var newTagSet = new ItemTag();
-
-                // 尝试获取该分类下的所有物品
-                var items = ItemUtils.GetItemListByRagfairTag(tagValue, context);
-
-                // 如果获取不到物品，或者集合为空，直接跳过当前分类
-                if (items == null) continue;
-
-                foreach (var item in items)
-                {
-                    newTagSet.Add(item);
-                }
-
-                // 3. 【终极防呆】只有当集合里确确实实装了东西，才允许塞进最终字典！
-                if (newTagSet.Count > 0)
-                {
-                    taglist[tagName] = newTagSet;
-                }
-            }
-            ItemTagUtils.InitItemTagData(taglist, context);
-
-            File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportidmap.json"), context.JsonUtil.Serialize(Utils.hashIdList, true));
-            File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportquest.json"), context.JsonUtil.Serialize(context.DB.GetQuests(), true));
-            File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportitem.json"), context.JsonUtil.Serialize(context.DB.GetItems(), true));
-            File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportlocale.json"), context.JsonUtil.Serialize(_localeService.GetLocaleDb("ch"), true));
-            //试试游戏启动抓到的语言是不是MiniHUD的版本
-            //是的话还得改过去(不会出问题吧)
-            //看看迷宫的机关怎么回事
-            return true;
-        }
-
-        [PatchPostfix]
-        public static void Postfix(RagfairServer __instance)
-        {
-            var context = new LoadModContext
-            {
-                DB = new DatabaseService(_templateTable, _localeTable, _globalTable, _tradersTable, _hideoutTable, _locationTable, _botTable),
-                JsonUtil = _jsonUtil,
-                ConfigServer = _configServer,
-                ModHelper = _modHelper,
-                Logger = Utils.commonLogger,
-                PresetHelper = _presetHelper,
-                ImageRouter = _imageRouter,
-                ItemHelper = _itemHelper,
-                Cloner = _cloner
-            };
-            EventManager.InitPostRagfairLoadEvent(context);
-        }
-
-    }
-}
-</file>
-
 <file path="Core.cs">
 using HarmonyLib;
 using SPTarkov.DI.Annotations;
@@ -14072,7 +14072,7 @@ namespace EternalCycleServer
         public  string Name { get; init; } = "永恒时序";
         public  string Author { get; init; } = "HiddenHiragi";
         public  List<string>? Contributors { get; init; }
-        public  SemanticVersioning.Version Version { get; init; } = new("1.4.2");
+        public  SemanticVersioning.Version Version { get; init; } = new("1.4.4");
         public  SemanticVersioning.Range SptVersion { get; init; } = new("~4.1.0");
         public  List<string>? Incompatibilities { get; init; }
         public  Dictionary<string, SemanticVersioning.Range>? ModDependencies { get; init; }

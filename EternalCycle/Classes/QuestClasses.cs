@@ -108,6 +108,8 @@ namespace EternalCycleServer
         public int? DogTagLevel { get; set; }
         [JsonPropertyName("autolocale")]
         public bool? AutoLocale { get; set; }
+        [JsonPropertyName("durability")]
+        public int[]? ItemDurability { get; set; } = new int[2];
     }
     public class FindItemGroupData : CustomQuestData
     {
@@ -121,6 +123,8 @@ namespace EternalCycleServer
         public int? DogTagLevel { get; set; }
         [JsonPropertyName("tags")]
         public ItemTag? UseTag { get; set; }
+        [JsonPropertyName("durability")]
+        public int[]? ItemDurability { get; set; } = new int[2];
     }
 
     public class HandoverItemData : CustomQuestData
@@ -136,6 +140,8 @@ namespace EternalCycleServer
         public int? DogTagLevel { get; set; }
         [JsonPropertyName("autolocale")]
         public bool? AutoLocale { get; set; }
+        [JsonPropertyName("durability")]
+        public int[]? ItemDurability { get; set; } = new int[2];
     }
 
     public class HandoverItemGroupData : CustomQuestData
@@ -150,6 +156,8 @@ namespace EternalCycleServer
         public int? DogTagLevel { get; set; }
         [JsonPropertyName("tags")]
         public ItemTag? UseTag { get; set; }
+        [JsonPropertyName("durability")]
+        public int[]? ItemDurability { get; set; } = new int[2];
     }
 
     public class KillTargetData : CustomQuestData
@@ -230,6 +238,8 @@ namespace EternalCycleServer
         public string ZoneId { get; set; }
         [JsonPropertyName("count")]
         public int Count { get; set; }
+        [JsonPropertyName("durability")]
+        public int[]? ItemDurability { get; set; } = new int[2];
     }
 
     public class PlaceItemGroupData : CustomQuestData
@@ -244,6 +254,8 @@ namespace EternalCycleServer
         public int Count { get; set; }
         [JsonPropertyName("tags")]
         public ItemTag? UseTag { get; set; }
+        [JsonPropertyName("durability")]
+        public int[]? ItemDurability { get; set; } = new int[2];
     }
 
     public class ExitLocationData : CustomQuestData
