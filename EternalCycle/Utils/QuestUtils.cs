@@ -515,11 +515,8 @@ namespace EternalCycleServer
             var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(findItemData, context);
             copycondition.OnlyFoundInRaid = findItemData.FindInRaid;
             copycondition.Index = conditions.Count;
+            copycondition.Target.List.Clear();
             copycondition.Target.List.GenerateFromTag(findItemData.Items, findItemData.UseTag, context);
-            foreach (string target in findItemData.Items)
-            {
-                copycondition.Target.List.Add(target.ConvertHashID());
-            }
             copycondition.Value = (double)findItemData.Count;
             if (findItemData.DogTagLevel != null)
             {
@@ -577,11 +574,8 @@ namespace EternalCycleServer
             var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(handItemData, context);
             copycondition.OnlyFoundInRaid = handItemData.FindInRaid;
             copycondition.Index = conditions.Count;
+            copycondition.Target.List.Clear();
             copycondition.Target.List.GenerateFromTag(handItemData.Items, handItemData.UseTag, context);
-            foreach (string target in handItemData.Items)
-            {
-                copycondition.Target.List.Add(target.ConvertHashID());
-            }
             copycondition.Value = (double)handItemData.Count;
             if (handItemData.DogTagLevel != null)
             {
@@ -1242,25 +1236,22 @@ namespace EternalCycleServer
         /// 处理向指定商人出售物品条件的工具方法
         /// </summary>
         /// <param name="conditions"></param>
-        /// <param name="findItemData"></param>
+        /// <param name="sellItemData"></param>
         /// <param name="context"></param>
-        public static void InitSellItemDataConditions(List<QuestCondition> conditions, SellItemData findItemData, LoadModContext context)
+        public static void InitSellItemDataConditions(List<QuestCondition> conditions, SellItemData sellItemData, LoadModContext context)
         {
             var condition = GetConditionTemplate(EQuestConditionsTypeCache.SellItemToTrader, "SellItemToTrader", context);
             if (condition == null) return;
-            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(findItemData, context);
+            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(sellItemData, context);
             copycondition.Index = conditions.Count;
-            copycondition.Target.List.GenerateFromTag(findItemData.Items, findItemData.UseTag, context);
-            foreach (string target in findItemData.Items)
+            copycondition.Target.List.Clear();
+            copycondition.Target.List.GenerateFromTag(sellItemData.Items, sellItemData.UseTag, context);
+            copycondition.Value = (double)sellItemData.Count;
+            if (sellItemData.DogTagLevel != null)
             {
-                copycondition.Target.List.Add(target.ConvertHashID());
+                copycondition.DogtagLevel = sellItemData.DogTagLevel;
             }
-            copycondition.Value = (double)findItemData.Count;
-            if (findItemData.DogTagLevel != null)
-            {
-                copycondition.DogtagLevel = findItemData.DogTagLevel;
-            }
-            copycondition.TraderId = findItemData.TraderId;
+            copycondition.TraderId = sellItemData.TraderId;
             conditions.Add(copycondition);
         }
 
