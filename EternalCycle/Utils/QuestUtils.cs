@@ -627,7 +627,7 @@ namespace EternalCycleServer
                     From = killTargetData.DayTime[0],
                     To = killTargetData.DayTime[1]
                 };
-                copytargets.ResetOnSessionEnd = killTargetData.CompleteInOneSession;
+                copytargets.ResetOnSessionEnd = killTargetData.CompleteInOneSession ?? false;
                 copytargets.Distance = new CounterConditionDistance
                 {
                     CompareMethod = EnumUtils.GetCompareType(killTargetData.DistanceType),
@@ -659,6 +659,16 @@ namespace EternalCycleServer
                     {
                         var list = killTargetData.ModList[i];
                         copytargets.WeaponModsInclusive.AddItem(list);
+                    }
+                }
+                if (killTargetData.ModBlackList.Count > 0)
+                {
+                    copytargets.WeaponModsExclusive = new List<List<string>>();
+                    var count = killTargetData.ModBlackList.Count;
+                    for (var i = 0; i < count; i++)
+                    {
+                        var list = killTargetData.ModBlackList[i];
+                        copytargets.WeaponModsExclusive.AddItem(list);
                     }
                 }
                 copytargets.SavageRole = killTargetData.BotRole;
