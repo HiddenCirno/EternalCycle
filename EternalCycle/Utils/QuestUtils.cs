@@ -47,7 +47,6 @@ namespace EternalCycleServer
             VisitPlace,
             Kills,
             Shots,
-            UseItem,
             HealthEffect,
             HealthBuff,
             LaunchFlare,
@@ -628,6 +627,7 @@ namespace EternalCycleServer
                     From = killTargetData.DayTime[0],
                     To = killTargetData.DayTime[1]
                 };
+                copytargets.ResetOnSessionEnd = killTargetData.CompleteInOneSession;
                 copytargets.Distance = new CounterConditionDistance
                 {
                     CompareMethod = EnumUtils.GetCompareType(killTargetData.DistanceType),
@@ -1100,13 +1100,14 @@ namespace EternalCycleServer
             copycondition.Index = conditions.Count;
 
             // --- 子条件1：UseItem ---
-            var useItemTemplate = GetCounterConditionTemplate(EQuestCountersCacheType.UseItem, "UseItem", context);
+            var useItemTemplate = GetCounterConditionTemplate(EQuestCountersCacheType.HealthBuff, "HealthBuff", context);
             if (useItemTemplate != null)
             {
                 var useItemCopy = context.Cloner.Clone(useItemTemplate);
                 useItemCopy.Id = $"{useItemData.Id}_UseItemCounter".ConvertHashID();
                 useItemCopy.Target = new ListOrT<string>(new List<string>(), null);
                 // 从 tag 和直接列表扩充目标物品
+                useItemCopy.CompareMethod = ">=";
                 useItemCopy.Target.List.GenerateFromTag(useItemData.Items, useItemData.UseTag, context);
                 useItemCopy.Value = (double)useItemData.Count;
                 copycondition.Counter.Conditions.Add(useItemCopy);

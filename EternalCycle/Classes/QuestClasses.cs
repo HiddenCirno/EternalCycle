@@ -198,7 +198,8 @@ namespace EternalCycleServer
         public HealthEffectData? HealthEffect { get; set; }
         [JsonPropertyName("buffeffect")]
         public BuffEffectData? BuffEffect { get; set; }
-
+        [JsonPropertyName("onesession")]
+        public bool CompleteInOneSession { get; set; }
     }
 
     public class ReachLevelData : CustomQuestData
