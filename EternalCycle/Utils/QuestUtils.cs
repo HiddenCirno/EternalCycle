@@ -661,7 +661,7 @@ namespace EternalCycleServer
                         copytargets.WeaponModsInclusive.AddItem(list);
                     }
                 }
-                if (killTargetData.ModBlackList.Count > 0)
+                if (killTargetData.ModBlackList?.Count > 0)
                 {
                     copytargets.WeaponModsExclusive = new List<List<string>>();
                     var count = killTargetData.ModBlackList.Count;

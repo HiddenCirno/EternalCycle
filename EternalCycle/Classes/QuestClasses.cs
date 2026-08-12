@@ -184,8 +184,6 @@ namespace EternalCycleServer
         public List<string> WeaponList { get; set; }
         [JsonPropertyName("mod")]
         public List<List<string>> ModList { get; set; }
-        [JsonPropertyName("modblacklist")]
-        public List<List<string>> ModBlackList { get; set; }
         [JsonPropertyName("location")]
         public int Location { get; set; }
         [JsonPropertyName("zone")]
@@ -202,6 +200,8 @@ namespace EternalCycleServer
         public BuffEffectData? BuffEffect { get; set; }
         [JsonPropertyName("onesession")]
         public bool? CompleteInOneSession { get; set; }
+        [JsonPropertyName("modblacklist")]
+        public List<List<string>>? ModBlackList { get; set; }
     }
 
     public class ReachLevelData : CustomQuestData
