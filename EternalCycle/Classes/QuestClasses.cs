@@ -544,7 +544,7 @@ namespace EternalCycleServer
         [JsonPropertyName("Skill")]
         public string SkillType { get; set; }
         [JsonPropertyName("Count")]
-        public int Count { get; set; }
+        public float Count { get; set; }
     }
 
     public class CustomTraderStandingRewardData : CustomQuestRewardData

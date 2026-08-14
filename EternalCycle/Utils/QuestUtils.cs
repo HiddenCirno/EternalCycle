@@ -1672,7 +1672,7 @@ namespace EternalCycleServer
                 {
                     var copyreward = InitCopiedReward(rewardtarget, target[queststage], skillExperienceRewardData, context);
                     copyreward.Target = (string)skillExperienceRewardData.SkillType;
-                    copyreward.Value = (double)(skillExperienceRewardData.Count * 100);
+                    copyreward.Value = (double)Math.Floor(skillExperienceRewardData.Count * 100);
                     target[queststage].Add(copyreward);
                 }
             }
