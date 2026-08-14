@@ -871,7 +871,7 @@ namespace EternalCycleServer
             copycondition.Index = conditions.Count;
             var locationtargets = GetCounterConditionTemplate(EQuestCountersCacheType.Location, "Location", context);
             var exitstatustargets = GetCounterConditionTemplate(EQuestCountersCacheType.ExitStatus, "ExitStatus", context);
-            if (locationtargets != null)
+            if (locationtargets != null && exitLocationData.Locations > 0)
             {
                 var copytargets = context.Cloner.Clone(locationtargets);
                 copytargets.Id = $"{exitLocationData.Id}_LocationCounter".ConvertHashID();
