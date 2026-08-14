@@ -48,6 +48,7 @@ EternalCycle/
   Classes/
     AchievementClasses.cs
     AssortClasses.cs
+    BannerClasses.cs
     BotGeneratorClasses.cs
     CustomizationClasses.cs
     ItemClasses.cs
@@ -90,6 +91,7 @@ EternalCycle/
   Utils/
     AchievementUtils.cs
     AssortUtils.cs
+    BannerUtils.cs
     BitMapUtils.cs
     BotGeneratorUtils.cs
     CustomizationUtils.cs
@@ -132,6 +134,30 @@ README.md
 
 <files>
 This section contains the contents of the repository's files.
+
+<file path="EternalCycle/Classes/BannerClasses.cs">
+using SPTarkov.Server.Core.Models.Common;
+using System.Text.Json.Serialization;
+using static EternalCycleServer.Utils;
+
+namespace EternalCycleServer
+{
+    public class CustomBannerData
+    {
+        [JsonPropertyName("id")]
+        [JsonConverter(typeof(MongoIdConverter))]
+        public MongoId Id { get; set; }
+        [JsonPropertyName("img")]
+        public string ImagePath { get; set; }
+        [JsonPropertyName("map")]
+        public int Map { get; set; }
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+        [JsonPropertyName("desc")]
+        public string Description { get; set; }
+    }
+}
+</file>
 
 <file path="items/示例物品.jsonc">
 {
@@ -3720,14 +3746,15 @@ namespace EternalCycleServer
             EventManager.InitLoadLockedRecipeEvent(context);
             EventManager.InitLoadQuestLogicEvent(context);
             EventManager.InitLoadQuestLocaleEvent(context);
-            EventManager.InitLoadLocaleEvent(context);
             EventManager.InitLoadPresetEvent(context);
             EventManager.InitLoadCustomizationEvent(context);
             EventManager.InitLoadSuitEvent(context);
             EventManager.InitLoadHideoutCustomizationEvent(context);
             EventManager.InitLoadQuestZoneEvent(context);
             EventManager.InitLoadDialogueEvent(context);
-            EventManager.InitLoadResourceEventEvent(context);
+            EventManager.InitLoadResourceEvent(context);
+            EventManager.InitLoadBannerEvent(context);
+            EventManager.InitLoadLocaleEvent(context);
 
             EventManager.InitPostDataLoadEvent(context);
 
@@ -3739,7 +3766,7 @@ namespace EternalCycleServer
                 //item.Value.Properties.ExaminedByDefault = true;
             }
             ItemUtils.RegisterFixItem();
-            EventManager.InitFixItemCompatibleEventEvent(context);
+            EventManager.InitFixItemCompatibleEvent(context);
             EventManager.InitAfterModLoadedEvent(context);
             EventManager.InitPreRagfairLoadEvent(context);
             LocaleUtils.InitGiftBoxLocale(context.DB, _localeService);
@@ -3893,6 +3920,46 @@ namespace EternalCycleServer
             { ELocationType.Labyrinth, "Labyrinth" }
         };
 
+        /// <summary>
+        /// 地图索引表
+        /// </summary>
+        private static readonly Dictionary<ELocationType, string> LocationBaseMap = new()
+        {
+            { ELocationType.Custom, "bigmap" },
+            { ELocationType.Woods, "woods" },
+            { ELocationType.Factory_Day, "factory4_day" },
+            { ELocationType.Factory_Night, "factory4_night" },
+            { ELocationType.Laboratory, "laboratory" },
+            { ELocationType.Shoreline, "shoreline" },
+            { ELocationType.ReserveBase, "rezervbase" },
+            { ELocationType.Interchange, "interchange" },
+            { ELocationType.Lighthouse, "lighthouse" },
+            { ELocationType.TarkovStreets, "tarkovstreets" },
+            { ELocationType.GroundZero, "sandbox" },
+            { ELocationType.GroundZero_High, "sandbox_high" },
+            { ELocationType.Labyrinth, "labyrinth" }
+        };
+
+        /// <summary>
+        /// 地图索引表
+        /// </summary>
+        private static readonly Dictionary<ELocationType, string> FUCKSPTLocationMap = new()
+        {
+            { ELocationType.Custom, "Bigmap" },
+            { ELocationType.Woods, "Woods" },
+            { ELocationType.Factory_Day, "Factory4Day" },
+            { ELocationType.Factory_Night, "Factory4Night" },
+            { ELocationType.Laboratory, "Laboratory" },
+            { ELocationType.Shoreline, "Shoreline" },
+            { ELocationType.ReserveBase, "RezervBase" },
+            { ELocationType.Interchange, "Interchange" },
+            { ELocationType.Lighthouse, "Lighthouse" },
+            { ELocationType.TarkovStreets, "TarkovStreets" },
+            { ELocationType.GroundZero, "Sandbox" },
+            { ELocationType.GroundZero_High, "SandboxHigh" },
+            { ELocationType.Labyrinth, "Labyrinth" }
+        };
+
         //用于运算的预缓存表
         private static readonly EBlackListType[] BlackListTypes = (EBlackListType[])Enum.GetValues(typeof(EBlackListType));
         private static readonly EGameVersionType[] GameVersionTypes = (EGameVersionType[])Enum.GetValues(typeof(EGameVersionType));
@@ -3989,6 +4056,48 @@ namespace EternalCycleServer
                 if (type != ELocationType.None && (bitmask & (int)type) != 0)
                 {
                     if (LocationMap.TryGetValue(type, out var locationName))
+                    {
+                        result.Add(locationName);
+                    }
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// 根据输入的位图数字计算地图
+        /// </summary>
+        /// <param name="bitmask">位图数据</param>
+        /// <returns>地图列表对象</returns>
+        public static List<string> GetLocationBaseCode(int bitmask)
+        {
+            var result = new List<string>();
+            foreach (var type in LocationTypes)
+            {
+                if (type != ELocationType.None && (bitmask & (int)type) != 0)
+                {
+                    if (LocationBaseMap.TryGetValue(type, out var locationName))
+                    {
+                        result.Add(locationName);
+                    }
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// 根据输入的位图数字计算地图
+        /// </summary>
+        /// <param name="bitmask">位图数据</param>
+        /// <returns>地图列表对象</returns>
+        public static List<string> GetFuckSptLocationCode(int bitmask)
+        {
+            var result = new List<string>();
+            foreach (var type in LocationTypes)
+            {
+                if (type != ELocationType.None && (bitmask & (int)type) != 0)
+                {
+                    if (FUCKSPTLocationMap.TryGetValue(type, out var locationName))
                     {
                         result.Add(locationName);
                     }
@@ -9194,8 +9303,6 @@ namespace EternalCycleServer
         public List<string> WeaponList { get; set; }
         [JsonPropertyName("mod")]
         public List<List<string>> ModList { get; set; }
-        [JsonPropertyName("modblacklist")]
-        public List<List<string>> ModBlackList { get; set; }
         [JsonPropertyName("location")]
         public int Location { get; set; }
         [JsonPropertyName("zone")]
@@ -9212,6 +9319,8 @@ namespace EternalCycleServer
         public BuffEffectData? BuffEffect { get; set; }
         [JsonPropertyName("onesession")]
         public bool? CompleteInOneSession { get; set; }
+        [JsonPropertyName("modblacklist")]
+        public List<List<string>>? ModBlackList { get; set; }
     }
 
     public class ReachLevelData : CustomQuestData
@@ -9707,6 +9816,7 @@ namespace EternalCycleServer
             public static Action<LoadModContext> LoadDialogueEvent;
             public static Action<LoadModContext> FixItemCompatibleEvent;
             public static Action<LoadModContext> LoadResourceEvent;
+            public static Action<LoadModContext> LoadBannerEvent;
             //tbc
         }
 
@@ -9863,14 +9973,19 @@ namespace EternalCycleServer
             InitRagfairEvent(DataLoadEvent.LoadDialogueEvent, context);
         }
 
-        public static void InitFixItemCompatibleEventEvent(LoadModContext context)
+        public static void InitFixItemCompatibleEvent(LoadModContext context)
         {
             InitRagfairEvent(DataLoadEvent.FixItemCompatibleEvent, context);
         }
 
-        public static void InitLoadResourceEventEvent(LoadModContext context)
+        public static void InitLoadResourceEvent(LoadModContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadResourceEvent, context);
+        }
+
+        public static void InitLoadBannerEvent(LoadModContext context)
+        {
+            InitRagfairEvent(DataLoadEvent.LoadBannerEvent, context);
         }
 
         public static void InitRagfairEvent (Action<LoadModContext> targetEvent, LoadModContext context)
@@ -12750,7 +12865,7 @@ namespace EternalCycleServer
                         copytargets.WeaponModsInclusive.AddItem(list);
                     }
                 }
-                if (killTargetData.ModBlackList.Count > 0)
+                if (killTargetData.ModBlackList?.Count > 0)
                 {
                     copytargets.WeaponModsExclusive = new List<List<string>>();
                     var count = killTargetData.ModBlackList.Count;
@@ -14078,7 +14193,7 @@ namespace EternalCycleServer
         public  string Name { get; init; } = "永恒时序";
         public  string Author { get; init; } = "HiddenHiragi";
         public  List<string>? Contributors { get; init; }
-        public  SemanticVersioning.Version Version { get; init; } = new("1.4.5");
+        public  SemanticVersioning.Version Version { get; init; } = new("1.5.0");
         public  SemanticVersioning.Range SptVersion { get; init; } = new("~4.1.1");
         public  List<string>? Incompatibilities { get; init; }
         public  Dictionary<string, SemanticVersioning.Range>? ModDependencies { get; init; }

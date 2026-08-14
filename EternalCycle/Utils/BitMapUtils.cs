@@ -28,6 +28,46 @@ namespace EternalCycleServer
             { ELocationType.Labyrinth, "Labyrinth" }
         };
 
+        /// <summary>
+        /// 地图索引表
+        /// </summary>
+        private static readonly Dictionary<ELocationType, string> LocationBaseMap = new()
+        {
+            { ELocationType.Custom, "bigmap" },
+            { ELocationType.Woods, "woods" },
+            { ELocationType.Factory_Day, "factory4_day" },
+            { ELocationType.Factory_Night, "factory4_night" },
+            { ELocationType.Laboratory, "laboratory" },
+            { ELocationType.Shoreline, "shoreline" },
+            { ELocationType.ReserveBase, "rezervbase" },
+            { ELocationType.Interchange, "interchange" },
+            { ELocationType.Lighthouse, "lighthouse" },
+            { ELocationType.TarkovStreets, "tarkovstreets" },
+            { ELocationType.GroundZero, "sandbox" },
+            { ELocationType.GroundZero_High, "sandbox_high" },
+            { ELocationType.Labyrinth, "labyrinth" }
+        };
+
+        /// <summary>
+        /// 地图索引表
+        /// </summary>
+        private static readonly Dictionary<ELocationType, string> FUCKSPTLocationMap = new()
+        {
+            { ELocationType.Custom, "Bigmap" },
+            { ELocationType.Woods, "Woods" },
+            { ELocationType.Factory_Day, "Factory4Day" },
+            { ELocationType.Factory_Night, "Factory4Night" },
+            { ELocationType.Laboratory, "Laboratory" },
+            { ELocationType.Shoreline, "Shoreline" },
+            { ELocationType.ReserveBase, "RezervBase" },
+            { ELocationType.Interchange, "Interchange" },
+            { ELocationType.Lighthouse, "Lighthouse" },
+            { ELocationType.TarkovStreets, "TarkovStreets" },
+            { ELocationType.GroundZero, "Sandbox" },
+            { ELocationType.GroundZero_High, "SandboxHigh" },
+            { ELocationType.Labyrinth, "Labyrinth" }
+        };
+
         //用于运算的预缓存表
         private static readonly EBlackListType[] BlackListTypes = (EBlackListType[])Enum.GetValues(typeof(EBlackListType));
         private static readonly EGameVersionType[] GameVersionTypes = (EGameVersionType[])Enum.GetValues(typeof(EGameVersionType));
@@ -124,6 +164,48 @@ namespace EternalCycleServer
                 if (type != ELocationType.None && (bitmask & (int)type) != 0)
                 {
                     if (LocationMap.TryGetValue(type, out var locationName))
+                    {
+                        result.Add(locationName);
+                    }
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// 根据输入的位图数字计算地图
+        /// </summary>
+        /// <param name="bitmask">位图数据</param>
+        /// <returns>地图列表对象</returns>
+        public static List<string> GetLocationBaseCode(int bitmask)
+        {
+            var result = new List<string>();
+            foreach (var type in LocationTypes)
+            {
+                if (type != ELocationType.None && (bitmask & (int)type) != 0)
+                {
+                    if (LocationBaseMap.TryGetValue(type, out var locationName))
+                    {
+                        result.Add(locationName);
+                    }
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// 根据输入的位图数字计算地图
+        /// </summary>
+        /// <param name="bitmask">位图数据</param>
+        /// <returns>地图列表对象</returns>
+        public static List<string> GetFuckSptLocationCode(int bitmask)
+        {
+            var result = new List<string>();
+            foreach (var type in LocationTypes)
+            {
+                if (type != ELocationType.None && (bitmask & (int)type) != 0)
+                {
+                    if (FUCKSPTLocationMap.TryGetValue(type, out var locationName))
                     {
                         result.Add(locationName);
                     }

@@ -131,14 +131,15 @@ namespace EternalCycleServer
             EventManager.InitLoadLockedRecipeEvent(context);
             EventManager.InitLoadQuestLogicEvent(context);
             EventManager.InitLoadQuestLocaleEvent(context);
-            EventManager.InitLoadLocaleEvent(context);
             EventManager.InitLoadPresetEvent(context);
             EventManager.InitLoadCustomizationEvent(context);
             EventManager.InitLoadSuitEvent(context);
             EventManager.InitLoadHideoutCustomizationEvent(context);
             EventManager.InitLoadQuestZoneEvent(context);
             EventManager.InitLoadDialogueEvent(context);
-            EventManager.InitLoadResourceEventEvent(context);
+            EventManager.InitLoadResourceEvent(context);
+            EventManager.InitLoadBannerEvent(context);
+            EventManager.InitLoadLocaleEvent(context);
 
             EventManager.InitPostDataLoadEvent(context);
 
@@ -150,7 +151,7 @@ namespace EternalCycleServer
                 //item.Value.Properties.ExaminedByDefault = true;
             }
             ItemUtils.RegisterFixItem();
-            EventManager.InitFixItemCompatibleEventEvent(context);
+            EventManager.InitFixItemCompatibleEvent(context);
             EventManager.InitAfterModLoadedEvent(context);
             EventManager.InitPreRagfairLoadEvent(context);
             LocaleUtils.InitGiftBoxLocale(context.DB, _localeService);

@@ -66,6 +66,7 @@ namespace EternalCycleServer
             public static Action<LoadModContext> LoadDialogueEvent;
             public static Action<LoadModContext> FixItemCompatibleEvent;
             public static Action<LoadModContext> LoadResourceEvent;
+            public static Action<LoadModContext> LoadBannerEvent;
             //tbc
         }
 
@@ -222,14 +223,19 @@ namespace EternalCycleServer
             InitRagfairEvent(DataLoadEvent.LoadDialogueEvent, context);
         }
 
-        public static void InitFixItemCompatibleEventEvent(LoadModContext context)
+        public static void InitFixItemCompatibleEvent(LoadModContext context)
         {
             InitRagfairEvent(DataLoadEvent.FixItemCompatibleEvent, context);
         }
 
-        public static void InitLoadResourceEventEvent(LoadModContext context)
+        public static void InitLoadResourceEvent(LoadModContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadResourceEvent, context);
+        }
+
+        public static void InitLoadBannerEvent(LoadModContext context)
+        {
+            InitRagfairEvent(DataLoadEvent.LoadBannerEvent, context);
         }
 
         public static void InitRagfairEvent (Action<LoadModContext> targetEvent, LoadModContext context)
