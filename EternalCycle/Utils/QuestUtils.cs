@@ -1030,7 +1030,8 @@ namespace EternalCycleServer
 
             var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(weaponBuildData, context); // 复用已有的 ID、Visible 等设置
             copycondition.Target = new ListOrT<string>(new List<string>() { weaponBuildData.Target.ToString() }, null);
-            
+            copycondition.ContainsItems?.Clear();
+            copycondition.HasItemFromCategory?.Clear();
             copycondition.Value = 1;
 
             //中间工具方法
