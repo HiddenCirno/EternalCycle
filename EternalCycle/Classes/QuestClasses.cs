@@ -109,7 +109,7 @@ namespace EternalCycleServer
         [JsonPropertyName("autolocale")]
         public bool? AutoLocale { get; set; }
         [JsonPropertyName("durability")]
-        public int[]? ItemDurability { get; set; } = new int[2];
+        public int[] ItemDurability { get; set; } = new int[2] { 0, 100 };
     }
     public class FindItemGroupData : CustomQuestData
     {
@@ -124,7 +124,7 @@ namespace EternalCycleServer
         [JsonPropertyName("tags")]
         public ItemTag? UseTag { get; set; }
         [JsonPropertyName("durability")]
-        public int[]? ItemDurability { get; set; } = new int[2];
+        public int[] ItemDurability { get; set; } = new int[2] { 0, 100 };
     }
 
     public class HandoverItemData : CustomQuestData
@@ -141,7 +141,7 @@ namespace EternalCycleServer
         [JsonPropertyName("autolocale")]
         public bool? AutoLocale { get; set; }
         [JsonPropertyName("durability")]
-        public int[]? ItemDurability { get; set; } = new int[2];
+        public int[] ItemDurability { get; set; } = new int[2] { 0, 100 };
     }
 
     public class HandoverItemGroupData : CustomQuestData
@@ -157,7 +157,7 @@ namespace EternalCycleServer
         [JsonPropertyName("tags")]
         public ItemTag? UseTag { get; set; }
         [JsonPropertyName("durability")]
-        public int[]? ItemDurability { get; set; } = new int[2];
+        public int[] ItemDurability { get; set; } = new int[2] { 0, 100 };
     }
 
     public class KillTargetData : CustomQuestData
@@ -242,7 +242,7 @@ namespace EternalCycleServer
         [JsonPropertyName("count")]
         public int Count { get; set; }
         [JsonPropertyName("durability")]
-        public int[]? ItemDurability { get; set; } = new int[2];
+        public int[] ItemDurability { get; set; } = new int[2] { 0, 100 };
     }
 
     public class PlaceItemGroupData : CustomQuestData
@@ -258,7 +258,7 @@ namespace EternalCycleServer
         [JsonPropertyName("tags")]
         public ItemTag? UseTag { get; set; }
         [JsonPropertyName("durability")]
-        public int[]? ItemDurability { get; set; } = new int[2];
+        public int[] ItemDurability { get; set; } = new int[2] { 0, 100 };
     }
 
     public class ExitLocationData : CustomQuestData

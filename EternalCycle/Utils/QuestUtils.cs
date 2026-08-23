@@ -486,8 +486,8 @@ namespace EternalCycleServer
             {
                 copycondition.DogtagLevel = findItemData.DogTagLevel;
             }
-            copycondition.MinDurability = findItemData.ItemDurability?[0] ?? 0;
-            copycondition.MaxDurability = findItemData.ItemDurability?[1] ?? 100;
+            copycondition.MinDurability = findItemData.ItemDurability[0];
+            copycondition.MaxDurability = findItemData.ItemDurability[1];
             //加入
             conditions.Add(copycondition);
             //自动本地化
@@ -521,8 +521,8 @@ namespace EternalCycleServer
             {
                 copycondition.DogtagLevel = findItemData.DogTagLevel;
             }
-            copycondition.MinDurability = findItemData.ItemDurability?[0] ?? 0;
-            copycondition.MaxDurability = findItemData.ItemDurability?[1] ?? 100;
+            copycondition.MinDurability = findItemData.ItemDurability[0];
+            copycondition.MaxDurability = findItemData.ItemDurability[1];
             conditions.Add(copycondition);
         }
 
@@ -547,8 +547,8 @@ namespace EternalCycleServer
             {
                 copycondition.DogtagLevel = handItemData.DogTagLevel;
             }
-            copycondition.MinDurability = handItemData.ItemDurability?[0] ?? 0;
-            copycondition.MaxDurability = handItemData.ItemDurability?[1] ?? 100;
+            copycondition.MinDurability = handItemData.ItemDurability[0];
+            copycondition.MaxDurability = handItemData.ItemDurability[1];
             conditions.Add(copycondition);
             if (handItemData.AutoLocale != null && handItemData.AutoLocale == true)
             {
@@ -580,8 +580,8 @@ namespace EternalCycleServer
             {
                 copycondition.DogtagLevel = handItemData.DogTagLevel;
             }
-            copycondition.MinDurability = handItemData.ItemDurability?[0] ?? 0;
-            copycondition.MaxDurability = handItemData.ItemDurability?[1] ?? 100;
+            copycondition.MinDurability = handItemData.ItemDurability[0];
+            copycondition.MaxDurability = handItemData.ItemDurability[1];
             conditions.Add(copycondition);
         }
 
@@ -819,8 +819,8 @@ namespace EternalCycleServer
             copycondition.Value = (double)placeItemData.Count;
             copycondition.PlantTime = (double)placeItemData.Time;
             copycondition.ZoneId = placeItemData.ZoneId;
-            copycondition.MinDurability = placeItemData.ItemDurability?[0] ?? 0;
-            copycondition.MaxDurability = placeItemData.ItemDurability?[1] ?? 100;
+            copycondition.MinDurability = placeItemData.ItemDurability[0];
+            copycondition.MaxDurability = placeItemData.ItemDurability[1];
             conditions.Add(copycondition);
         }
 
@@ -841,8 +841,8 @@ namespace EternalCycleServer
             copycondition.Value = (double)placeItemGroupData.Count;
             copycondition.PlantTime = (double)placeItemGroupData.Time;
             copycondition.ZoneId = placeItemGroupData.ZoneId;
-            copycondition.MinDurability = placeItemGroupData.ItemDurability?[0] ?? 0;
-            copycondition.MaxDurability = placeItemGroupData.ItemDurability?[1] ?? 100;
+            copycondition.MinDurability = placeItemGroupData.ItemDurability[0];
+            copycondition.MaxDurability = placeItemGroupData.ItemDurability[1];
             conditions.Add(copycondition);
         }
 

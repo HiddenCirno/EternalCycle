@@ -238,6 +238,38 @@ namespace EternalCycleServer
                     taglist[tagName] = newTagSet;
                 }
             }
+
+            //¹·ÅÆ
+            var usecDogTags = new ItemTag();
+            var bearDogTags = new ItemTag();
+            try
+            {
+                var pmcConfig = context.ConfigServer.GetConfig<PmcConfig>();
+                if (pmcConfig?.DogtagSettings != null)
+                {
+                    if (pmcConfig.DogtagSettings.TryGetValue("usec", out var usecEditions))
+                        foreach (var edition in usecEditions.Values)
+                            foreach (var id in edition.Keys)
+                                usecDogTags.Add(id);
+                    if (pmcConfig.DogtagSettings.TryGetValue("bear", out var bearEditions))
+                        foreach (var edition in bearEditions.Values)
+                            foreach (var id in edition.Keys)
+                                bearDogTags.Add(id);
+                }
+            }
+            catch (Exception ex)
+            {
+                Utils.commonLogger.Warn($"¹·ÅÆ±êÇ©Éú³ÉÊ§°Ü: {ex.Message}");
+            }
+            if (usecDogTags.Count > 0)
+            {
+                taglist["USEC¹·ÅÆ"] = usecDogTags;
+            }
+            if (bearDogTags.Count > 0)
+            {
+                taglist["BEAR¹·ÅÆ"] = bearDogTags;
+            }
+
             ItemTagUtils.InitItemTagData(taglist, context);
         }
     }
