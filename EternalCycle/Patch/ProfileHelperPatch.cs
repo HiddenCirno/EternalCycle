@@ -3,6 +3,7 @@ using JetBrains.Annotations;
 using Microsoft.AspNetCore.Http.HttpResults;
 using SPTarkov.DI.Annotations;
 using SPTarkov.Reflection.Patching;
+using SPTarkov.Server.Core.Callbacks;
 using SPTarkov.Server.Core.Constants;
 using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.Generators;
@@ -92,11 +93,11 @@ namespace EternalCycleServer
         }
         protected override MethodBase GetTargetMethod()
         {
-            return typeof(SaveServer).GetMethod("LoadAsync", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+            return typeof(SaveCallbacks).GetMethod("OnLoadAsync", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
         }
 
         [PatchPrefix]
-        public static bool Prefix(SaveServer __instance)
+        public static bool Prefix(SaveCallbacks __instance)
         {
             var context = new LoadModContext
             {
