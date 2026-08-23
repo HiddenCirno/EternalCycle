@@ -12,7 +12,7 @@ public static class QuestZoneUtils
     private static readonly Dictionary<string, string[]> VirtualLocationMap = new(StringComparer.OrdinalIgnoreCase)
     {
         { "FactoryCommon",  new[] { "factory4_day", "factory4_night" } },
-        { "SandboxCommon",  new[] { "sandbox", "sandbox_high" } },
+        { "SandboxCommon",  new[] { "Sandbox", "Sandbox_high" } },
     };
 
     // ======== 公开注册入口 ========

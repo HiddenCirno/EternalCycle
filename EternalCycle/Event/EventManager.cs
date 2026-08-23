@@ -188,7 +188,7 @@ namespace EternalCycleServer
             InitRagfairEvent(DataLoadEvent.LoadAlterBotEvent, context);
         }
         
-        public static void InitLoadtemTagEvent(LoadModContext context)
+        public static void InitLoadItemTagEvent(LoadModContext context)
         {
             InitRagfairEvent(DataLoadEvent.LoadItemTagEvent, context);
         }
