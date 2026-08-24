@@ -35,7 +35,7 @@ namespace EternalCycleServer
         public  string Name { get; init; } = "永恒时序";
         public  string Author { get; init; } = "HiddenHiragi";
         public  List<string>? Contributors { get; init; }
-        public  SemanticVersioning.Version Version { get; init; } = new("1.6.2");
+        public  SemanticVersioning.Version Version { get; init; } = new("1.6.3");
         public  SemanticVersioning.Range SptVersion { get; init; } = new("~4.1.1");
         public  List<string>? Incompatibilities { get; init; }
         public  Dictionary<string, SemanticVersioning.Range>? ModDependencies { get; init; }
@@ -202,52 +202,6 @@ namespace EternalCycleServer
                 return lang;
             });
 
-            var items = databaseService.GetItems();
-            foreach (var item in items)
-            {
-                var handbooks = databaseService.GetHandbook().Items;
-                var handbook = handbooks.FirstOrDefault(x => x.Id == item.Value.Id);
-                if (item.Value.Type != "Node" && item.Value.Properties != null)
-                {
-                    if (item.Value.Properties.Width >= 10)
-                    {
-                        item.Value.Properties.Width = 2;
-                    }
-                    if (item.Value.Properties.Height >= 10)
-                    {
-                        item.Value.Properties.Height = 2;
-                    }
-                    if ((bool)item.Value.Properties.QuestItem)
-                    {
-                        if (handbook != null)
-                        {
-                            handbook.ParentId = quest;
-                            ItemUtils.AddBlackList(item.Value.Id, 31, context);
-                        }
-                        else
-                        {
-                            handbooks.Add(new HandbookItem
-                            {
-                                Id = item.Value.Id,
-                                ParentId = quest,
-                                Price = 20000
-                            });
-                            ItemUtils.AddBlackList(item.Value.Id, 31, context);
-                        }
-                    }
-                    else if (handbook == null)
-                    {
-                        item.Value.Properties.CanSellOnRagfair = false;
-                        handbooks.Add(new HandbookItem
-                        {
-                            Id = item.Value.Id,
-                            ParentId = dev,
-                            Price = 20000
-                        });
-                        ItemUtils.AddBlackList(item.Value.Id, 64, context);
-                    }
-                }
-            }
             //LootUtils.GenerateStaticLootMap(databaseService, logger);
             //ItemUtils.GetItem("5e42c81886f7742a01529f57", databaseService).Properties.MaximumNumberOfUsage = 0; //完全可以
             //databaseService.GetTraders().Values[IEnumerable<Trader>.]

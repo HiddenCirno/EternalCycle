@@ -126,6 +126,7 @@ namespace EternalCycleServer
             EventManager.InitLoadAlterBotEvent(context);
             EventManager.InitLoadItemTagEvent(context);
             InitItemTag(context);
+            InitHandbookBuild(context);
             EventManager.InitLoadDrawPoolEventEvent(context);
             EventManager.InitLoadTraderAssortEvent(context);
             EventManager.InitLoadQuestDataEvent(context);
@@ -271,6 +272,56 @@ namespace EternalCycleServer
             }
 
             ItemTagUtils.InitItemTagData(taglist, context);
+        }
+
+        public static void InitHandbookBuild(LoadModContext context)
+        {
+            var items = context.DB.GetItems();
+            foreach (var item in items)
+            {
+                var handbooks = context.DB.GetHandbook().Items;
+                var handbook = handbooks.FirstOrDefault(x => x.Id == item.Value.Id);
+                if (item.Value.Type != "Node" && item.Value.Properties != null)
+                {
+                    if (item.Value.Properties.Width >= 10)
+                    {
+                        item.Value.Properties.Width = 2;
+                    }
+                    if (item.Value.Properties.Height >= 10)
+                    {
+                        item.Value.Properties.Height = 2;
+                    }
+                    if ((bool)item.Value.Properties.QuestItem)
+                    {
+                        if (handbook != null)
+                        {
+                            handbook.ParentId = ERagfairTagsType.任务物品;
+                            ItemUtils.AddBlackList(item.Value.Id, 31, context);
+                        }
+                        else
+                        {
+                            handbooks.Add(new HandbookItem
+                            {
+                                Id = item.Value.Id,
+                                ParentId = ERagfairTagsType.任务物品,
+                                Price = 20000
+                            });
+                            ItemUtils.AddBlackList(item.Value.Id, 31, context);
+                        }
+                    }
+                    else if (handbook == null)
+                    {
+                        item.Value.Properties.CanSellOnRagfair = false;
+                        handbooks.Add(new HandbookItem
+                        {
+                            Id = item.Value.Id,
+                            ParentId = ERagfairTagsType.调试物品,
+                            Price = 20000
+                        });
+                        ItemUtils.AddBlackList(item.Value.Id, 64, context);
+                    }
+                }
+            }
         }
     }
     }
