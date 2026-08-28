@@ -63,6 +63,8 @@ namespace EternalCycleServer
                     //最前列hookAddBundle方法移除重复警告
                     //火神之心兼容
                     new AddBundlePatch().Enable();
+                    //任务配方解锁修复
+                    new StringOrIntPatch().Enable();
                     //我去你妈的傻逼白皮, 会写代码吗
                     new FuckMongoIdPatch().Enable();
                     new FuckMongoIdPatch2().Enable();
