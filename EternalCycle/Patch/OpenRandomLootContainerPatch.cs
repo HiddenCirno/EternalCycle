@@ -225,7 +225,7 @@ namespace EternalCycleServer
                                             }
                                         }
                                     });
-                                    _profileHelper.AddSkillPointsToPlayer(pmcData, skillData.Skill, (double)skillData.Count, false);
+                                    _profileHelper.AddSkillPointsToPlayer(pmcData, skillData.Skill, (double)skillData.Count, false, false);
                                 }
                                 break;
                             case GiftDataExperienceData experienceData:
