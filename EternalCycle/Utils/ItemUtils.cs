@@ -5,6 +5,7 @@ using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Models.Spt.Config;
 using SPTarkov.Server.Core.Models.Spt.Tables;
 using SPTarkov.Server.Core.Services;
+using SPTarkov.Server.Core.Utils.Json;
 using System.Reflection;
 using static EternalCycleServer.ContextManager;
 
@@ -464,7 +465,7 @@ namespace EternalCycleServer
 
         public static CustomItemTemplate FixFuelData(this CustomItemTemplate template, LoadModContext context)
         {
-            if (template.CustomProps.FuelLevel!=null)
+            if (template.CustomProps.FuelLevel != null)
             {
                 var areas = context.DB.GetHideout().Areas;
                 areas.Find(x => x.Type == SPTarkov.Server.Core.Models.Enums.Hideout.HideoutAreas.Generator).Stages[template.CustomProps.FuelLevel.ToString()].Bonuses.First().Filter.Add(template.Id.ConvertHashID());
@@ -648,34 +649,34 @@ namespace EternalCycleServer
                 //提取数据, 定位地图
                 var spawnpoint = questItemProps.SpawnPointData;
                 var looseloot = context.DB.GetLocation(spawnpoint.Location)?.LooseLoot;
-                if (looseloot != null)
+                if (looseloot == null) return template;
+                void SetGenerateData(LazyLoad<LooseLoot> looseLootData, CustomSpawnPointData spawnPointData)
                 {
-                    //对战利品执行懒加载
-                    looseloot.AddTransformer(loostLoot =>
+                    looseLootData.AddTransformer(loostLoot =>
                     {
                         //获取物品根节点
-                        spawnpoint.Template.Root = spawnpoint.Template.Root.ConvertHashID();
+                        spawnPointData.Template.Root = spawnPointData.Template.Root.ConvertHashID();
                         var list = loostLoot.SpawnpointsForced.ToList();
                         //定义刷新点, 物品留空做预处理
                         var newspawnpoint = new Spawnpoint
                         {
-                            LocationId = spawnpoint.LocationId,
-                            Probability = spawnpoint.Probability,
+                            LocationId = spawnPointData.LocationId,
+                            Probability = spawnPointData.Probability,
                             Template = new SpawnpointTemplate
                             {
-                                Id = spawnpoint.Template.Id,
-                                IsAlwaysSpawn = spawnpoint.Template.IsAlwaysSpawn,
-                                IsGroupPosition = spawnpoint.Template.IsGroupPosition,
-                                GroupPositions = spawnpoint.Template.GroupPositions,
-                                Position = spawnpoint.Template.Position,
-                                Rotation = spawnpoint.Template.Rotation,
-                                Root = spawnpoint.Template.Root,
+                                Id = spawnPointData.Template.Id,
+                                IsAlwaysSpawn = spawnPointData.Template.IsAlwaysSpawn,
+                                IsGroupPosition = spawnPointData.Template.IsGroupPosition,
+                                GroupPositions = spawnPointData.Template.GroupPositions,
+                                Position = spawnPointData.Template.Position,
+                                Rotation = spawnPointData.Template.Rotation,
+                                Root = spawnPointData.Template.Root,
                                 Items = null
                             }
                         };
                         //处理物品表
                         var spawnpointitemlist = new List<SptLootItem>();
-                        foreach (var item in spawnpoint.Template.Items)
+                        foreach (var item in spawnPointData.Template.Items)
                         {
                             spawnpointitemlist.Add(new SptLootItem
                             {
@@ -689,6 +690,28 @@ namespace EternalCycleServer
                         loostLoot.SpawnpointsForced = list;
                         return loostLoot;
                     });
+                }
+                //对战利品执行懒加载
+                SetGenerateData(looseloot, spawnpoint);
+                //复制地图
+                if (spawnpoint.CopyLocation != null && spawnpoint?.CopyLocation?.Count > 0)
+                {
+                    foreach (var location in spawnpoint.CopyLocation)
+                    {
+                        var looseloots = context.DB.GetLocation(location)?.LooseLoot;
+                        if (looseloots == null) continue;
+                        SetGenerateData(looseloots, spawnpoint);
+                    }
+                }
+                //增量刷新点/多刷新点
+                if (spawnpoint.OtherLocation != null && spawnpoint?.OtherLocation?.Count > 0)
+                {
+                    foreach (var location in spawnpoint.OtherLocation)
+                    {
+                        var looseloots = context.DB.GetLocation(location.Location)?.LooseLoot;
+                        if (looseloots == null) continue;
+                        SetGenerateData(looseloots, location);
+                    }
                 }
             }
             return template;

@@ -393,7 +393,12 @@ namespace EternalCycleServer
         public virtual CustomSpawnpointTemplate? Template { get; set; }
         [JsonPropertyName("location")]
         public string Location { get; set; }
+        [JsonPropertyName("copyLocation")]
+        public List<string>? CopyLocation { get; set; }
+        [JsonPropertyName("otherLocation")]
+        public List<CustomSpawnPointData>? OtherLocation { get; set; }
     }
+
     public record CustomSpawnpointTemplate
     {
 
