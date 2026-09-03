@@ -1,5 +1,6 @@
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
+using SPTarkov.Server.Core.Models.Enums.Hideout;
 using System.Text.Json.Serialization;
 using static EternalCycleServer.Utils;
 
@@ -71,6 +72,7 @@ namespace EternalCycleServer
     [JsonDerivedType(typeof(LaunchFlareData), "flare")]
     [JsonDerivedType(typeof(SellItemData), "sell")]
     [JsonDerivedType(typeof(PlaceBeaconData), "mark")]
+    [JsonDerivedType(typeof(AreaLevelData), "area")]
 
     public class CustomQuestData
     {
@@ -474,6 +476,13 @@ namespace EternalCycleServer
         public MongoId? ItemId { get; set; }
         [JsonPropertyName("zoneid")]
         public string ZoneId { get; set; }
+    }
+    public class AreaLevelData : CustomQuestData
+    {
+        [JsonPropertyName("areatype")]
+        public HideoutAreas? AreaType { get; set; }
+        [JsonPropertyName("arealevel")]
+        public int AreaLevel { get; set; }
     }
 
     [JsonDerivedType(typeof(CustomQuestRewardData), "base")]

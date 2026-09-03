@@ -1,12 +1,8 @@
 using HarmonyLib;
-using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Enums;
-using SPTarkov.Server.Core.Routers;
 using SPTarkov.Server.Core.Utils.Json;
-using System.Diagnostics.Metrics;
-using System.IO;
 using static EternalCycleServer.ContextManager;
 using Path = System.IO.Path;
 
@@ -35,6 +31,7 @@ namespace EternalCycleServer
             Completion,
             SellItemToTrader,
             PlaceBeacon,
+            HideoutArea,
             Block
         }
 
@@ -299,6 +296,11 @@ namespace EternalCycleServer
                     case PlaceBeaconData placeBeaconData:
                         {
                             InitPlaceBeaconDataConditions(conditions, placeBeaconData, context);
+                        }
+                        break;
+                    case AreaLevelData areaLevelData:
+                        {
+                            InitAreaLevelConditions(conditions, areaLevelData, context);
                         }
                         break;
                     default:
@@ -1292,6 +1294,23 @@ namespace EternalCycleServer
             copycondition.Value = 1;
             copycondition.PlantTime = (double)placeBeaconData.Time;
             copycondition.ZoneId = placeBeaconData.ZoneId;
+            conditions.Add(copycondition);
+        }
+
+        /// <summary>
+        /// 处理藏身处区域等级的工具方法
+        /// </summary>
+        /// <param name="conditions"></param>
+        /// <param name="areaLevelData"></param>
+        /// <param name="context"></param>
+        public static void InitAreaLevelConditions(List<QuestCondition> conditions, AreaLevelData areaLevelData, LoadModContext context)
+        {
+            var condition = GetConditionTemplate(EQuestConditionsTypeCache.HideoutArea, "HideoutArea", context);
+            if (condition == null) return;
+            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(areaLevelData, context);
+            copycondition.Index = conditions.Count;
+            copycondition.AreaType = areaLevelData.AreaType ?? SPTarkov.Server.Core.Models.Enums.Hideout.HideoutAreas.Stash;
+            copycondition.Value = areaLevelData.AreaLevel;
             conditions.Add(copycondition);
         }
 
