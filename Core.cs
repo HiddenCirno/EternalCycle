@@ -306,7 +306,6 @@ namespace EternalCycleServer
             public virtual Action<int>? Callback { get; set; }
             public virtual bool? DiscardOverflowItem { get; set; }
         }
-        //操死傻逼白皮的血妈，他妈逼你妈小时候生你是不是也得先喊一声本宫要生了实例化了才能继续啊
         //死妈东西
         [Injectable]
         public class ProfileStashSyncService
@@ -435,6 +434,8 @@ namespace EternalCycleServer
         }
 
         //Weird, sometimes item from gift box will missing and sometimes will duplicate, profile broken risk, tried to fix it.
+        //finally got it, you could not add a item just in client without server permission, this is for EternalRing, tell server you created a item and sync it.
+        //if you want a ustom gift box in client side, this will be useful.
         [Injectable(TypePriority = OnLoadOrder.Routers + 1)]
         public class ProfileStashSyncExtendEventRouter : ItemEventRouter
         {
