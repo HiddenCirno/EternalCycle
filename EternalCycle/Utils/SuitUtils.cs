@@ -53,7 +53,7 @@ namespace EternalCycleServer
                 {
                     try
                     {
-                        var suitData = context.JsonUtil.Deserialize<List<CustomSuit>>(File.ReadAllText(correctpath));
+                        var suitData = MongoNormalizer.Deserialize<List<CustomSuit>>(context.JsonUtil, File.ReadAllText(correctpath));
                         InitCustomSuitData(suitData, context, traderId);
                     }
                     catch (Exception ex)
@@ -81,7 +81,7 @@ namespace EternalCycleServer
                 foreach (var file in files)
                 {
                     string fileName = Path.GetFileName(file);
-                    var suits = context.ModHelper.GetJsonDataFromFile<List<CustomSuit>>(folderpath, fileName);
+                    var suits = MongoNormalizer.Deserialize<List<CustomSuit>>(context.JsonUtil, File.ReadAllText(System.IO.Path.Combine(folderpath, fileName)));
 
                     if (suits != null)
                     {

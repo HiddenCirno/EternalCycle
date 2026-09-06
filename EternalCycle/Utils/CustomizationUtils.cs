@@ -34,7 +34,7 @@ namespace EternalCycleServer
                 {
                     try
                     {
-                        var customization = context.JsonUtil.Deserialize<Dictionary<string, CustomCustomizationItem>>(File.ReadAllText(correctPath));
+                        var customization = MongoNormalizer.Deserialize<Dictionary<string, CustomCustomizationItem>>(context.JsonUtil, File.ReadAllText(correctPath));
                         InitCustomizationData(customization, modpath, respath, context);
                     }
                     catch (Exception ex)
@@ -60,7 +60,7 @@ namespace EternalCycleServer
                 foreach (var file in files)
                 {
                     string fileName = Path.GetFileName(file);
-                    var customization = context.ModHelper.GetJsonDataFromFile<Dictionary<string, CustomCustomizationItem>>(correctpath, fileName);
+                    var customization = MongoNormalizer.Deserialize<Dictionary<string, CustomCustomizationItem>>(context.JsonUtil, File.ReadAllText(System.IO.Path.Combine(correctpath, fileName)));
 
                     if (customization != null)
                     {
@@ -162,7 +162,7 @@ namespace EternalCycleServer
                 {
                     try
                     {
-                        var customData = context.JsonUtil.Deserialize<Dictionary<string, CustomHideoutCustomization>>(File.ReadAllText(correctpath));
+                        var customData = MongoNormalizer.Deserialize<Dictionary<string, CustomHideoutCustomization>>(context.JsonUtil, File.ReadAllText(correctpath));
                         InitHideoutCustomizationData(customData, context);
                     }
                     catch (Exception ex)
@@ -188,7 +188,7 @@ namespace EternalCycleServer
                 foreach (var file in files)
                 {
                     string fileName = Path.GetFileName(file);
-                    var customization = context.ModHelper.GetJsonDataFromFile<Dictionary<string, CustomHideoutCustomization>>(folderpath, fileName);
+                    var customization = MongoNormalizer.Deserialize<Dictionary<string, CustomHideoutCustomization>>(context.JsonUtil, File.ReadAllText(System.IO.Path.Combine(folderpath, fileName)));
 
                     if (customization != null)
                     {

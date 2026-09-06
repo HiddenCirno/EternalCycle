@@ -93,7 +93,7 @@ namespace EternalCycleServer
                 foreach (var file in files)
                 {
                     string fileName = Path.GetFileName(file);
-                    var customquest = context.ModHelper.GetJsonDataFromFile<CustomQuest>(correctpath, fileName);
+                    var customquest = MongoNormalizer.Deserialize<CustomQuest>(context.JsonUtil, File.ReadAllText(System.IO.Path.Combine(correctpath, fileName)));
                     InitQuest(customquest, modpath, respath, context);
                 }
             }
@@ -355,7 +355,7 @@ namespace EternalCycleServer
                     try
                     {
                         // 反序列化为字典字典，对应已有的 Dictionary 重载方法
-                        var questData = context.JsonUtil.Deserialize<Dictionary<string, CustomQuest>>(File.ReadAllText(correctpath));
+                        var questData = MongoNormalizer.Deserialize<Dictionary<string, CustomQuest>>(context.JsonUtil, File.ReadAllText(correctpath));
                         InitQuestData(questData, modpath, respath, context);
 
                         //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务模块(单文件)注册成功");
@@ -1348,7 +1348,7 @@ namespace EternalCycleServer
                     try
                     {
                         // 反序列化为 List 集合，对应已有的 List 重载方法
-                        var rewardsData = context.JsonUtil.Deserialize<List<CustomQuestRewardData>>(File.ReadAllText(correctpath));
+                        var rewardsData = MongoNormalizer.Deserialize<List<CustomQuestRewardData>>(context.JsonUtil, File.ReadAllText(correctpath));
                         InitQuestRewards(rewardsData, context);
 
                         //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务奖励模块(单文件)注册成功");
@@ -1381,7 +1381,7 @@ namespace EternalCycleServer
                     foreach (var file in files)
                     {
                         string fileName = Path.GetFileName(file);
-                        var rewards = context.ModHelper.GetJsonDataFromFile<List<CustomQuestRewardData>>(folderpath, fileName);
+                        var rewards = MongoNormalizer.Deserialize<List<CustomQuestRewardData>>(context.JsonUtil, File.ReadAllText(System.IO.Path.Combine(folderpath, fileName)));
 
                         if (rewards != null)
                         {
@@ -1770,7 +1770,7 @@ namespace EternalCycleServer
                     try
                     {
                         // 反序列化为字典字典，对应已有的 Dictionary 重载方法
-                        var logicTreeData = context.JsonUtil.Deserialize<Dictionary<string, QuestLogicTree>>(File.ReadAllText(correctpath));
+                        var logicTreeData = MongoNormalizer.Deserialize<Dictionary<string, QuestLogicTree>>(context.JsonUtil, File.ReadAllText(correctpath));
                         InitQuestLogicTreeData(logicTreeData, context);
 
                         //EventManager.EventLogger.Info($"[{modname}] {creator} 的任务逻辑模块(单文件)注册成功");
@@ -1800,7 +1800,7 @@ namespace EternalCycleServer
                     foreach (var file in files)
                     {
                         string fileName = Path.GetFileName(file);
-                        var logictree = context.ModHelper.GetJsonDataFromFile<QuestLogicTree>(folderpath, fileName);
+                        var logictree = MongoNormalizer.Deserialize<QuestLogicTree>(context.JsonUtil, File.ReadAllText(System.IO.Path.Combine(folderpath, fileName)));
 
                         if (logictree != null)
                         {

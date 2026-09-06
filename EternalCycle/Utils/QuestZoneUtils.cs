@@ -44,7 +44,7 @@ public static class QuestZoneUtils
             {
                 try
                 {
-                    var zoneList = context.JsonUtil.Deserialize<List<QuestZone>>(File.ReadAllText(fullPath));
+                    var zoneList = MongoNormalizer.Deserialize<List<QuestZone>>(context.JsonUtil, File.ReadAllText(fullPath));
                     if (zoneList != null)
                         _zones.AddRange(zoneList);
                 }
@@ -100,7 +100,7 @@ public static class QuestZoneUtils
     {
         foreach (var file in Directory.GetFiles(dir, "*.json*"))
         {
-            var zones = context.ModHelper.GetJsonDataFromFile<List<QuestZone>>(dir, Path.GetFileName(file));
+            var zones = MongoNormalizer.Deserialize<List<QuestZone>>(context.JsonUtil, File.ReadAllText(System.IO.Path.Combine(dir, Path.GetFileName(file))));
             if (zones != null)
                 _zones.AddRange(zones);
         }

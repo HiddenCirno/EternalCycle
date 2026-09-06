@@ -65,7 +65,7 @@ namespace EternalCycleServer
                     try
                     {
                         // 商人特有：单文件直接反序列化为单体对象
-                        var traderbase = context.JsonUtil.Deserialize<TraderBaseWithDesc>(File.ReadAllText(correctpath));
+                        var traderbase = MongoNormalizer.Deserialize<TraderBaseWithDesc>(context.JsonUtil, File.ReadAllText(correctpath));
 
                         if (traderbase != null)
                         {
@@ -100,7 +100,7 @@ namespace EternalCycleServer
                     foreach (var file in files)
                     {
                         string fileName = Path.GetFileName(file);
-                        var traderbase = modHelper.GetJsonDataFromFile<TraderBaseWithDesc>(correctpath, fileName);
+                        var traderbase = MongoNormalizer.Deserialize<TraderBaseWithDesc>(jsonUtil, File.ReadAllText(System.IO.Path.Combine(correctpath, fileName)));
 
                         if (traderbase != null)
                         {

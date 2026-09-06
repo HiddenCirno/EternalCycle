@@ -45,7 +45,7 @@ namespace EternalCycleServer
                     try
                     {
                         // 反序列化为 List 集合，对应已有的 List 重载方法
-                        var assortData = context.JsonUtil.Deserialize<List<CustomAssortData>>(File.ReadAllText(correctpath));
+                        var assortData = MongoNormalizer.Deserialize<List<CustomAssortData>>(context.JsonUtil, File.ReadAllText(correctpath));
 
                         if (assortData != null)
                         {
@@ -112,7 +112,7 @@ namespace EternalCycleServer
                 foreach (var file in files)
                 {
                     string fileName = Path.GetFileName(file);
-                    var assort = context.ModHelper.GetJsonDataFromFile<List<CustomAssortData>>(correctpath, fileName);
+                    var assort = MongoNormalizer.Deserialize<List<CustomAssortData>>(context.JsonUtil, File.ReadAllText(System.IO.Path.Combine(correctpath, fileName)));
                     InitAssortData(assort, context);
                 }
             }

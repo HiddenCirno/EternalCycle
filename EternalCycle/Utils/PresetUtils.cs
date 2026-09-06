@@ -43,7 +43,7 @@ namespace EternalCycleServer
                     try
                     {
                         // 反序列化为 List 集合，对接已有的重载方法
-                        var presetData = context.JsonUtil.Deserialize<List<CustomPresetData>>(File.ReadAllText(correctpath));
+                        var presetData = MongoNormalizer.Deserialize<List<CustomPresetData>>(context.JsonUtil, File.ReadAllText(correctpath));
 
                         if (presetData != null)
                         {
@@ -91,7 +91,7 @@ namespace EternalCycleServer
                 foreach (var file in files)
                 {
                     string fileName = Path.GetFileName(file);
-                    var preset = context.ModHelper.GetJsonDataFromFile<CustomPresetData>(folderpath, fileName);
+                    var preset = MongoNormalizer.Deserialize<CustomPresetData>(context.JsonUtil, File.ReadAllText(System.IO.Path.Combine(folderpath, fileName)));
 
                     if (preset != null)
                     {

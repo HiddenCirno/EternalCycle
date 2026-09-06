@@ -259,7 +259,8 @@ namespace EternalCycleServer
                 ModifySlotsOrChambers(props["StackSlots"]?.AsArray());
             }
             string resultJson = node.ToJsonString();
-            return jsonUtil.Deserialize<T>(resultJson); // 返回处理后的 JsonNode
+            MongoNormalizer.Normalize(node, typeof(T), 0);
+            return jsonUtil.Deserialize<T>(node.ToJsonString()); // 返回处理后的 JsonNode
         }
 
         /// <summary>
@@ -333,7 +334,8 @@ namespace EternalCycleServer
             //重新转回字符串
             string resultJson = rootNode.ToJsonString();
             //反序列化并返回
-            return jsonutil.Deserialize<T>(resultJson);
+            MongoNormalizer.Normalize(rootNode, typeof(T), 0);
+            return jsonutil.Deserialize<T>(rootNode.ToJsonString());
         }
 
         /// <summary>

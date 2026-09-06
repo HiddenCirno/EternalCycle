@@ -36,7 +36,7 @@ namespace EternalCycleServer
                     try
                     {
                         // 反序列化为 List 集合
-                        var alterBotData = context.JsonUtil.Deserialize<CustomAlterBot>(File.ReadAllText(correctpath));
+                        var alterBotData = MongoNormalizer.Deserialize<CustomAlterBot>(context.JsonUtil, File.ReadAllText(correctpath));
 
                         if (alterBotData != null)
                         {
@@ -68,7 +68,7 @@ namespace EternalCycleServer
                 foreach (var file in files)
                 {
                     string fileName = Path.GetFileName(file);
-                    var bot = context.ModHelper.GetJsonDataFromFile<CustomAlterBot>(correctpath, fileName);
+                    var bot = MongoNormalizer.Deserialize<CustomAlterBot>(context.JsonUtil, File.ReadAllText(System.IO.Path.Combine(correctpath, fileName)));
                     InitAlterBot(bot, context);
                 }
             }

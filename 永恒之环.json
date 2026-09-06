@@ -1,0 +1,76 @@
+{
+    "永恒之环": {
+        "_id": "永恒之环",
+        "_targetid": "5c0a840b86f7742ffa4f2482",
+        "_name": "永恒之环",
+        "_props": {
+            "Width": 2,
+            "Height": 2,
+            "StackMaxSize": 1,
+            "DiscardLimit": 0,
+            "Weight": 0,
+            "CanRequireOnRagfair": false,
+            "CanSellOnRagfair": false,
+            "IsSpecialSlotOnly": false,
+            "IsUnbuyable": true,
+            "IsUndiscardable": true,
+            "IsUngivable": false,
+            "IsUnremovable": true,
+            "IsUnsaleable": false,
+            "InsuranceDisabled": true,
+            "Unlootable": true,
+            "UnlootableFromSide": [
+                "Bear",
+                "Usec",
+                "Savage"
+            ],
+            "Grids": [
+                {
+                    "_id": "永恒之环_内空间",
+                    "_name": "main",
+                    "_parent": "永恒之环",
+                    "_props": {
+                        "cellsH": 25,
+                        "cellsV": 16,
+                        "filters": [
+                            {
+                                "ExcludedFilter": [],
+                                "Filter": [
+                                    "54009119af1c881c07000029"
+                                ]
+                            }
+                        ],
+                        "isSortingTable": false,
+                        "maxCount": 0,
+                        "maxWeight": 0,
+                        "minCount": 0
+                    },
+                    "_proto": "55d329c24bdc2d892f8b4567"
+                }
+            ],
+            "UnlootableFromSlot": "SpecialSlot",
+            "BackgroundColor": "yellow",
+            "Prefab": {
+                "path": "eternal_cycle.pack",
+                "rcid": ""
+            }
+        },
+        "_customprops": {
+            "$type": "fixed",
+            "Name": "永恒之环",
+            "ShortName": "永恒之环",
+            "Description": "<b><color=#AA0000>谎言</color></b>重复一千次就会变成<b><color=#00D0FF>真理</color></b>，所以，<b><color=#FFFFFF>「现实」</color></b>也是这样诞生的。\n我所描绘的一切或许并非真实，然而我的感受绝无虚假。",
+            "DefaultPrice": 20170317,
+            "RagfairType": "VulcanSpecialItem",
+            "CanFindInRaid": false,
+            "CustomLoot": false,
+            "CustomLootTarget": "59faff1d86f7746c51718c9c",
+            "isMoney": false,
+            "CustomFixID": "6655e35b6bc645cb7b059912",
+            "BlackListType": 127,
+            "FixType": [
+                "None"
+            ]
+        }
+    }
+}

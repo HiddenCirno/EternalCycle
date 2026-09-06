@@ -40,7 +40,7 @@ namespace EternalCycleServer
                 {
                     try
                     {
-                        var recipeData = context.JsonUtil.Deserialize<Dictionary<string, CustomRecipeData>>(File.ReadAllText(correctpath));
+                        var recipeData = MongoNormalizer.Deserialize<Dictionary<string, CustomRecipeData>>(context.JsonUtil, File.ReadAllText(correctpath));
                         InitRecipeData(recipeData, context);
                     }
                     catch (Exception ex)
@@ -68,7 +68,7 @@ namespace EternalCycleServer
                 foreach (var file in files)
                 {
                     string fileName = Path.GetFileName(file);
-                    var recipe = context.ModHelper.GetJsonDataFromFile<CustomRecipeData>(folderpath, fileName);
+                    var recipe = MongoNormalizer.Deserialize<CustomRecipeData>(context.JsonUtil, File.ReadAllText(System.IO.Path.Combine(folderpath, fileName)));
 
                     if (recipe != null)
                     {
@@ -210,7 +210,7 @@ namespace EternalCycleServer
                 {
                     try
                     {
-                        var recipeData = context.JsonUtil.Deserialize<Dictionary<string, CustomScavCaseRecipeData>>(File.ReadAllText(correctpath));
+                        var recipeData = MongoNormalizer.Deserialize<Dictionary<string, CustomScavCaseRecipeData>>(context.JsonUtil, File.ReadAllText(correctpath));
                         InitScavCaseRecipeData(recipeData, context);
                     }
                     catch (Exception ex)
@@ -241,7 +241,7 @@ namespace EternalCycleServer
                 foreach (var file in files)
                 {
                     string fileName = Path.GetFileName(file);
-                    var scavcase = context.ModHelper.GetJsonDataFromFile<CustomScavCaseRecipeData>(folderpath, fileName);
+                    var scavcase = MongoNormalizer.Deserialize<CustomScavCaseRecipeData>(context.JsonUtil, File.ReadAllText(System.IO.Path.Combine(folderpath, fileName)));
                     InitScavCaseRecipe(scavcase, context);
                 }
             }
@@ -316,7 +316,7 @@ namespace EternalCycleServer
                 {
                     try
                     {
-                        var recipeData = context.JsonUtil.Deserialize<List<CustomCultistCircleRecipe>>(File.ReadAllText(correctpath));
+                        var recipeData = MongoNormalizer.Deserialize<List<CustomCultistCircleRecipe>>(context.JsonUtil, File.ReadAllText(correctpath));
                         InitCultistCircleRecipeData(recipeData, context);
                     }
                     catch (Exception ex)
@@ -347,7 +347,7 @@ namespace EternalCycleServer
                 foreach (var file in files)
                 {
                     string fileName = Path.GetFileName(file);
-                    var scavcase = context.ModHelper.GetJsonDataFromFile<CustomCultistCircleRecipe>(folderpath, fileName);
+                    var scavcase = MongoNormalizer.Deserialize<CustomCultistCircleRecipe>(context.JsonUtil, File.ReadAllText(System.IO.Path.Combine(folderpath, fileName)));
                     InitCultistCircleRecipe(scavcase, context);
                 }
             }

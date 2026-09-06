@@ -38,7 +38,7 @@ namespace EternalCycleServer
                 {
                     try
                     {
-                        var codeData = context.JsonUtil.Deserialize<Dictionary<string, CustomGiftCodeData>>(File.ReadAllText(correctpath));
+                        var codeData = MongoNormalizer.Deserialize<Dictionary<string, CustomGiftCodeData>>(context.JsonUtil, File.ReadAllText(correctpath));
                         InitGiftCodeData(codeData, context);
                     }
                     catch (Exception ex)
@@ -67,7 +67,7 @@ namespace EternalCycleServer
                 foreach (var file in files)
                 {
                     string fileName = Path.GetFileName(file);
-                    var code = context.ModHelper.GetJsonDataFromFile<CustomGiftCodeData>(correctpath, fileName);
+                    var code = MongoNormalizer.Deserialize<CustomGiftCodeData>(context.JsonUtil, File.ReadAllText(System.IO.Path.Combine(correctpath, fileName)));
 
                     if (code != null)
                     {

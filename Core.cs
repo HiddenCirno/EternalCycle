@@ -65,11 +65,6 @@ namespace EternalCycleServer
                     new AddBundlePatch().Enable();
                     //任务配方解锁修复
                     new StringOrIntPatch().Enable();
-                    new FuckMongoIdPatch().Enable();
-                    new FuckMongoIdPatch2().Enable();
-                    new FuckMongoIdPatch3().Enable();
-                    new FuckMongoIdPatch4().Enable();
-                    new FuckParentIdPatch().Enable();
                 }
                 catch (Exception ex)
                 {
@@ -258,13 +253,13 @@ namespace EternalCycleServer
 
             EventManager.OnBeforeRagfairLoadedEvent += testmethod;
 
-            string pubkey = "-----BEGIN PUBLIC KEY-----MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEApwO5ENxGmgxJLCld9mdzziVmeOvmBeno9vMxJDZ1hZqszSwmJnGx/QZDBefd5swguXvRBVjYcrM5CQ7ZDmr0JsBlOpFizrLKdM91l10rxnPkWGVYU1no6usVagoTlyZx8NyERSrOLsM05s49MbOSwdc5v4X5NPbU3ZSfAK7EOTEJUsikMLZL4ZpVWiYqiIZdix61Sq5W2Dj1mXHHAkNTfAAgjIWN4iil/Y9VGfG4j8A/XSOkHS29kp4KT+BuF+gz8/hf9w6jFmQ4lBFOZeBi1ewp8c/yWsMnMPntFeHeEmhryD8O1h8WPEaFWZ3e85aYElclvYkUY2WMDIstV8neT+OXfcmBqg7Nz3kNA9uMj64k/cYft5WjZGEHb+qK0ED/ofzAJ9Bd4EoV1rJIeZKU0bvoCy2nXJMcCJOqPBQUwHCdqaDHsSqFm1T1c7GUXa2sVXIUQWgDeUXval2DQ19j3TC3YeKAJUUZ5PWnULVusR1prpVhsdiAVPHVD5roKPSA7ywk0UZc7FJMlRPdFoCYMduUmbrdeRu2R2z+UARrQKrsBzDxzueXXJ8rKer+9FN6GT2VxLTNcgo4MZM2FVDctha4n+lij/ZEWRKorQ43CQQn1iuE1CQhlgRg7teo0xDUz5OEANlFIQYo2FubAsrLUqzbmYWOHz/IKFsUuS+Tp9MCAwEAAQ==-----END PUBLIC KEY-----";
-
             EventManager.DataLoadEvent.LoadItemEvent += (context) =>
             {
                 try
                 {
-                    var item = Utils.ConvertItemData(FileDecodeUtils.DecodeToRawJson(modPath, "永恒之环.ecf", "永恒之环.sig", "eternalcycle.sig", pubkey, "201633e196f836f185ef4c1ded38ea5181064a08d946099df4b4d4362d370cb8", "da91b793b230778064740ea9a953cbce"), context.JsonUtil);
+                    //[SPTForge] 永恒之环数据改为明文源文件(原 .ecf 加密+签名方案已废弃, 由玩家侧解码导出)
+                    string eternalCycleJson = System.IO.File.ReadAllText(System.IO.Path.Combine(modPath, "永恒之环.json"));
+                    var item = Utils.ConvertItemData(eternalCycleJson, context.JsonUtil);
                     ItemUtils.InitItem(item, "<color=#5BCEFA>永恒<color=#F5A9B8>时序</color></color>", "<color=#5BCEFA>永恒<color=#F5A9B8>时序</color></color>", context);
                 }
                 catch (Exception ex)

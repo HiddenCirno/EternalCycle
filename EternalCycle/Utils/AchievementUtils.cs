@@ -49,7 +49,7 @@ namespace EternalCycleServer
                     try
                     {
                         // 反序列化为 List 集合
-                        var achievementData = context.JsonUtil.Deserialize<List<CustomAchievementData>>(File.ReadAllText(correctpath));
+                        var achievementData = MongoNormalizer.Deserialize<List<CustomAchievementData>>(context.JsonUtil, File.ReadAllText(correctpath));
 
                         if (achievementData != null)
                         {
@@ -84,7 +84,7 @@ namespace EternalCycleServer
                 {
                     string fileName = Path.GetFileName(file);
                     // 文件夹模式下，按你的原逻辑，每个文件是一个 CustomAchievementData
-                    var achievement = context.ModHelper.GetJsonDataFromFile<CustomAchievementData>(correctpath, fileName);
+                    var achievement = MongoNormalizer.Deserialize<CustomAchievementData>(context.JsonUtil, File.ReadAllText(System.IO.Path.Combine(correctpath, fileName)));
 
                     if (achievement != null)
                     {
