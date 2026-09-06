@@ -35,7 +35,7 @@ namespace EternalCycleServer
         public  string Name { get; init; } = "永恒时序";
         public  string Author { get; init; } = "HiddenHiragi";
         public  List<string>? Contributors { get; init; }
-        public  SemanticVersioning.Version Version { get; init; } = new("1.6.6");
+        public  SemanticVersioning.Version Version { get; init; } = new("1.6.7");
         public  SemanticVersioning.Range SptVersion { get; init; } = new("~4.1.1");
         public  List<string>? Incompatibilities { get; init; }
         public  Dictionary<string, SemanticVersioning.Range>? ModDependencies { get; init; }
@@ -150,6 +150,7 @@ namespace EternalCycleServer
             var dev = ERagfairTagsType.调试物品;
             var quest = ERagfairTagsType.任务物品;
             var categories = databaseService.GetHandbook().Categories;
+
             if (!categories.Any(x => x.Id == dim))
             {
                 databaseService.GetHandbook().Categories.Add(new HandbookCategory
@@ -161,6 +162,7 @@ namespace EternalCycleServer
                     Order = "100"
                 });
             }
+
             if (!categories.Any(x => x.Id == special))
             {
 
@@ -173,6 +175,7 @@ namespace EternalCycleServer
                     Order = "15"
                 });
             }
+
             if (!categories.Any(x => x.Id == dev))
             {
                 databaseService.GetHandbook().Categories.Add(new HandbookCategory
@@ -184,6 +187,7 @@ namespace EternalCycleServer
                     Order = "16"
                 });
             }
+
             if (!categories.Any(x => x.Id == quest))
             {
                 databaseService.GetHandbook().Categories.Add(new HandbookCategory
@@ -195,12 +199,25 @@ namespace EternalCycleServer
                     Order = "17"
                 });
             }
-            databaseService.GetLocales().Global["ch"].AddTransformer(delegate (GlobalLocaleDictionary lang)
+
+            databaseService.GetLocales().Global["ch"].AddTransformer(lang =>
             {
                 lang[dim] = "次元博物";
                 lang[special] = "特殊物品";
                 lang[dev] = "技术物品";
                 lang[quest] = "任务物品";
+                return lang;
+            });
+
+            databaseService.GetLocales().Global["en"].AddTransformer(lang =>
+            {
+                lang[dim] = "Dimensional Artifacts";
+                lang[special] = "Special Items";
+                lang[dev] = "Development Items";
+                lang[quest] = "Quest Items";
+                lang["94fabbbc70e5e0418be0efbc " + "Name"] = "Eternal Ring";
+                lang["94fabbbc70e5e0418be0efbc " + "ShortName"] = "Eternal Ring";
+                lang["94fabbbc70e5e0418be0efbc " + "Description"] = "<b><color=#AA0000>Lie</color></b> repeated a thousand times becomes <b><color=#00D0FF>Truth</color></b>, and that is how <b><color=#FFFFFF>\"Reality\"</color></b> itself is born.\nWhat I depict may not be real, but what I feel is never false.";
                 return lang;
             });
 
