@@ -35,7 +35,7 @@ namespace EternalCycleServer
         public  string Name { get; init; } = "永恒时序";
         public  string Author { get; init; } = "HiddenHiragi";
         public  List<string>? Contributors { get; init; }
-        public  SemanticVersioning.Version Version { get; init; } = new("1.6.7");
+        public  SemanticVersioning.Version Version { get; init; } = new("1.6.8");
         public  SemanticVersioning.Range SptVersion { get; init; } = new("~4.1.1");
         public  List<string>? Incompatibilities { get; init; }
         public  Dictionary<string, SemanticVersioning.Range>? ModDependencies { get; init; }
@@ -208,18 +208,6 @@ namespace EternalCycleServer
                 return lang;
             });
 
-            databaseService.GetLocales().Global["en"].AddTransformer(lang =>
-            {
-                lang[dim] = "Dimensional Artifacts";
-                lang[special] = "Special Items";
-                lang[dev] = "Development Items";
-                lang[quest] = "Quest Items";
-                lang["94fabbbc70e5e0418be0efbc " + "Name"] = "Eternal Ring";
-                lang["94fabbbc70e5e0418be0efbc " + "ShortName"] = "Eternal Ring";
-                lang["94fabbbc70e5e0418be0efbc " + "Description"] = "<b><color=#AA0000>Lie</color></b> repeated a thousand times becomes <b><color=#00D0FF>Truth</color></b>, and that is how <b><color=#FFFFFF>\"Reality\"</color></b> itself is born.\nWhat I depict may not be real, but what I feel is never false.";
-                return lang;
-            });
-
             //LootUtils.GenerateStaticLootMap(databaseService, logger);
             //ItemUtils.GetItem("5e42c81886f7742a01529f57", databaseService).Properties.MaximumNumberOfUsage = 0; //完全可以
             //databaseService.GetTraders().Values[IEnumerable<Trader>.]
@@ -255,6 +243,8 @@ namespace EternalCycleServer
             {
                 prlc.Logger.Error("Test");
             }
+
+            LocaleUtils.RegisterLocaleText(modPath, "locale/");
 
             EventManager.OnBeforeRagfairLoadedEvent += testmethod;
 
