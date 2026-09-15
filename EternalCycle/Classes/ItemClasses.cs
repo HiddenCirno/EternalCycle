@@ -373,7 +373,12 @@ namespace EternalCycleServer
     public class BuffItemProps : LootableItemProps
     {
         [JsonPropertyName("BuffValue")]
-        public List<Buff> BuffValue { get; set; }
+        // SPT 5.0 将 Spt.Tables.Buff 更名为 StimulatorBuff 并移入 Spt.Tables.Globals 命名空间，
+        // 成员逐项一致（仅 AppliesTo 由 IEnumerable<string> 变为 List<string>）。
+        // 语义确认：ItemUtils 会把本字段直接写入
+        // globals.Configuration.Health.Effects.Stimulator.Buffs，即兴奋剂 Buff 定义。
+        // 此处用全限定名书写，避免与 Spt.Tables 下的其它同名类型产生解析歧义。
+        public List<SPTarkov.Server.Core.Models.Spt.Tables.Globals.StimulatorBuff> BuffValue { get; set; }
     }
     public class QuestItemProps : CustomProps
     {

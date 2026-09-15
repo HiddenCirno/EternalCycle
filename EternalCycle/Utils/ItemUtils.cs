@@ -665,11 +665,24 @@ namespace EternalCycleServer
                             Template = new SpawnpointTemplate
                             {
                                 Id = spawnPointData.Template.Id,
-                                IsAlwaysSpawn = spawnPointData.Template.IsAlwaysSpawn,
-                                IsGroupPosition = spawnPointData.Template.IsGroupPosition,
+                                // ⚠ SPT 5.0 把 SpawnpointTemplate 的这几个成员从可空收紧为非空，
+                                //   其中 UseGravity 还被标为 required（不赋值直接编译失败）。
+                                //   本模块自己的 CustomSpawnpointTemplate 仍是可空类型，
+                                //   因此这里必须逐个兜底。
+                                //
+                                //   兜底值有数据依据，不是随手填的：
+                                //   统计 vanilla 各图 looseLoot.json 的 spawnpointsForced（共 81 条），
+                                //   useGravity 100% 为 false —— 强制刷新点不落重力，
+                                //   与本案（往 SpawnpointsForced 里塞任务物品刷点）场景完全一致。
+                                //   Position/Rotation 是值类型，缺省用 default 即 (0,0,0)。
+                                IsContainer = spawnPointData.Template.IsContainer ?? false,
+                                RandomRotation = spawnPointData.Template.RandomRotation ?? false,
+                                IsAlwaysSpawn = spawnPointData.Template.IsAlwaysSpawn ?? false,
+                                IsGroupPosition = spawnPointData.Template.IsGroupPosition ?? false,
                                 GroupPositions = spawnPointData.Template.GroupPositions,
-                                Position = spawnPointData.Template.Position,
-                                Rotation = spawnPointData.Template.Rotation,
+                                Position = spawnPointData.Template.Position ?? default,
+                                Rotation = spawnPointData.Template.Rotation ?? default,
+                                UseGravity = spawnPointData.Template.UseGravity ?? false,
                                 Root = spawnPointData.Template.Root,
                                 Items = null
                             }

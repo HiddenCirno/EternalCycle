@@ -138,7 +138,12 @@ namespace EternalCycleServer
                 Continuous = false,
                 Count = recipeData.OutputCount,
                 ProductionLimitCount = 0,
-                IsEncoded = false
+                IsEncoded = false,
+                // SPT 5.0 把 IsCodeProduction 由 bool? 收紧为非空且 required
+                // （4.1 时该成员已存在，只是可空，故当时不写也能编译）。
+                // 语义为「该配方是否由代码生成」：vanilla production.json 中
+                // 251 条为 false、仅 3 条为 true，普通配方取 false。
+                IsCodeProduction = false
             };
             if (recipeData.IsEncoded == true)
             {
