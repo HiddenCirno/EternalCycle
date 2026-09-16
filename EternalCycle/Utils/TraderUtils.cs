@@ -1,4 +1,4 @@
-using SPTarkov.Server.Core.Helpers;
+ï»¿using SPTarkov.Server.Core.Helpers;
 using SPTarkov.Server.Core.Helpers.Server;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
@@ -16,12 +16,12 @@ using Path = System.IO.Path;
 namespace EternalCycleServer
 {
     /// <summary>
-    /// ÉÌÈË²¿·Ö
+    /// å•†äººéƒ¨åˆ†
     /// </summary>
     public class TraderUtils
     {
         /// <summary>
-        /// »ñÈ¡ÉÌÈËÒıÓÃ
+        /// è·å–å•†äººå¼•ç”¨
         /// </summary>
         /// <param name="traderid"></param>
         /// <param name="databaseService"></param>
@@ -32,61 +32,61 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ½«×Ô¶¨ÒåÉÌÈË×¢²áµ½¼ÓÔØÊÂ¼ş
+        /// å°†è‡ªå®šä¹‰å•†äººæ³¨å†Œåˆ°åŠ è½½äº‹ä»¶
         /// </summary>
-        /// <param name="path">Ö¸¶¨µÄ´æ·ÅÉÌÈËÎÄ¼şµÄÎÄ¼ş¼ĞÂ·¾¶»òµ¥¸öÉÌÈËÎÄ¼şÂ·¾¶</param>
-        /// <param name="imagePath">µ÷ÓÃÕß(×ÓMod)µÄÉÌÈËÍ·ÏñÍ¼Æ¬´æ·ÅÂ·¾¶</param>
-        /// <param name="creator">´´½¨Õß</param>
-        /// <param name="modname">ModÃû</param>
+        /// <param name="path">æŒ‡å®šçš„å­˜æ”¾å•†äººæ–‡ä»¶çš„æ–‡ä»¶å¤¹è·¯å¾„æˆ–å•ä¸ªå•†äººæ–‡ä»¶è·¯å¾„</param>
+        /// <param name="imagePath">è°ƒç”¨è€…(å­Mod)çš„å•†äººå¤´åƒå›¾ç‰‡å­˜æ”¾è·¯å¾„</param>
+        /// <param name="creator">åˆ›å»ºè€…</param>
+        /// <param name="modname">Modå</param>
         public static void RegisterTrader(string modpath, string path, string imagePath, string creator, string modname)
         {
             var correctpath = System.IO.Path.Combine(modpath, path);
-            // ÎÄ¼ş¼Ğ¼ÓÔØÄ£Ê½
+            // æ–‡ä»¶å¤¹åŠ è½½æ¨¡å¼
             if (Directory.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadTraderBaseEvent += (context) =>
                 {
                     try
                     {
-                        // ¶ÔÓ¦µ÷ÓÃÒÑÓĞµÄÎÄ¼ş¼ĞÖØÔØ·½·¨£¬Í¸´« imagePath
+                        // å¯¹åº”è°ƒç”¨å·²æœ‰çš„æ–‡ä»¶å¤¹é‡è½½æ–¹æ³•ï¼Œé€ä¼  imagePath
                         InitTraders(modpath, path, imagePath, creator, modname, context.ConfigServer, context.JsonUtil, context.ModHelper, context.DB, context.Cloner, context.ImageRouter);
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²áÉÌÈËÊ±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş¼Ğ {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œå•†äººæ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶å¤¹ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
-            // µ¥ÎÄ¼ş¼ÓÔØÄ£Ê½
+            // å•æ–‡ä»¶åŠ è½½æ¨¡å¼
             else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadTraderBaseEvent += (context) =>
                 {
                     try
                     {
-                        // ÉÌÈËÌØÓĞ£ºµ¥ÎÄ¼şÖ±½Ó·´ĞòÁĞ»¯Îªµ¥Ìå¶ÔÏó
+                        // å•†äººç‰¹æœ‰ï¼šå•æ–‡ä»¶ç›´æ¥ååºåˆ—åŒ–ä¸ºå•ä½“å¯¹è±¡
                         var traderbase = context.JsonUtil.Deserialize<TraderBaseWithDesc>(File.ReadAllText(correctpath));
 
                         if (traderbase != null)
                         {
-                            // Ö±½ÓÌø¹ıÎÄ¼ş¼Ğ±éÀú£¬µ÷ÓÃµ×²ãµÄÊı¾İ Init ·½·¨
+                            // ç›´æ¥è·³è¿‡æ–‡ä»¶å¤¹éå†ï¼Œè°ƒç”¨åº•å±‚çš„æ•°æ® Init æ–¹æ³•
                             InitTrader(traderbase, modpath, imagePath, creator, modname, context.ConfigServer, context.DB, context.Cloner, context.ImageRouter);
                         }
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²áÉÌÈËÊ±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œå•†äººæ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"×¢²áÉÌÈËÊ±·¢ÉúÒì³££ºÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş»òÎÄ¼ş¼Ğ {correctpath}");
+                EventManager.EventLogger.Warn($"æ³¨å†Œå•†äººæ—¶å‘ç”Ÿå¼‚å¸¸ï¼šæ‰¾ä¸åˆ°æŒ‡å®šçš„æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹ {correctpath}");
             }
         }
 
         /// <summary>
-        /// InitÖØÔØ 1£º´¦ÀíÎÄ¼ş¼ĞÂ·¾¶£¬±éÀúÎÄ¼ş²¢½âÎöÎªµ¥ÌåÊı¾İ
+        /// Inité‡è½½ 1ï¼šå¤„ç†æ–‡ä»¶å¤¹è·¯å¾„ï¼Œéå†æ–‡ä»¶å¹¶è§£æä¸ºå•ä½“æ•°æ®
         /// </summary>
         public static void InitTraders(string modpath, string folderpath, string imagePath, string creator, string modname, ConfigServer configServer, JsonUtil jsonUtil, ModHelper modHelper, DatabaseService databaseService, ICloner cloner, ImageRouter imageRouter)
         {
@@ -104,7 +104,7 @@ namespace EternalCycleServer
 
                         if (traderbase != null)
                         {
-                            // ½âÎö³öµ¥Ìåºó£¬µ÷ÓÃµ×²ã Init
+                            // è§£æå‡ºå•ä½“åï¼Œè°ƒç”¨åº•å±‚ Init
                             InitTrader(traderbase, modpath, imagePath, creator, modname, configServer, databaseService, cloner, imageRouter);
                         }
                     }
@@ -113,23 +113,23 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// »ùÓÚ×Ô¶¨Òå¸ñÊ½ÎÄ¼ş´´½¨Ò»¸öĞÂµÄÉÌÈË
+        /// åŸºäºè‡ªå®šä¹‰æ ¼å¼æ–‡ä»¶åˆ›å»ºä¸€ä¸ªæ–°çš„å•†äºº
         /// </summary>
-        /// <param name="traderBase">ÉÌÈËµÄbaseÎÄ¼ş</param>
-        /// <param name="creator">´´½¨ÕßÃû³Æ£¨ÓÃÓÚ±êÊ¶À´Ô´£©</param>
-        /// <param name="modname">ModÃû³Æ£¨ÓÃÓÚ±êÊ¶À´Ô´£©</param>
-        /// <param name="configServer">SPT¹¤¾ßÀà´«Èë</param>
-        /// <param name="databaseService">SPT¹¤¾ßÀà´«Èë</param>
-        /// <param name="cloner">SPT¹¤¾ßÀà´«Èë</param>
-        /// <param name="imageRouter">SPT¹¤¾ßÀà´«Èë</param>
+        /// <param name="traderBase">å•†äººçš„baseæ–‡ä»¶</param>
+        /// <param name="creator">åˆ›å»ºè€…åç§°ï¼ˆç”¨äºæ ‡è¯†æ¥æºï¼‰</param>
+        /// <param name="modname">Modåç§°ï¼ˆç”¨äºæ ‡è¯†æ¥æºï¼‰</param>
+        /// <param name="configServer">SPTå·¥å…·ç±»ä¼ å…¥</param>
+        /// <param name="databaseService">SPTå·¥å…·ç±»ä¼ å…¥</param>
+        /// <param name="cloner">SPTå·¥å…·ç±»ä¼ å…¥</param>
+        /// <param name="imageRouter">SPTå·¥å…·ç±»ä¼ å…¥</param>
         public static void InitTrader(TraderBaseWithDesc traderBase, string modpath, string respath, string creator, string modname, ConfigServer configServer, DatabaseService databaseService, ICloner cloner, ImageRouter imageRouter)
         {
             InsuranceConfig insuranceConfig = configServer.GetConfig<InsuranceConfig>();
             TraderConfig traderConfig = configServer.GetConfig<TraderConfig>();
             RagfairConfig ragfairConfig = configServer.GetConfig<RagfairConfig>();
             Trader traderPattern = cloner.Clone(GetTrader((string)Traders.PRAPOR, databaseService));
-            //¸É, ÏÖÔÚÖ»ÓĞ·ş×°ÉÌÄ¬ÈÏ½âËø, ¶ø·ş×°ÉÌ¾ßÓĞCloth·şÎñ
-            //ÊÖ¶¯ÉèÖÃÎªÄ¬ÈÏ½âËø£¬Èç¹ûÄãµÄÉÌÈËÊÇËø¶¨µÄ£¬Ëü»áÔÚºóÃæºÏ²¢Ê±×Ô¶¯¸²¸Ç
+            //å¹², ç°åœ¨åªæœ‰æœè£…å•†é»˜è®¤è§£é”, è€Œæœè£…å•†å…·æœ‰ClothæœåŠ¡
+            //æ‰‹åŠ¨è®¾ç½®ä¸ºé»˜è®¤è§£é”ï¼Œå¦‚æœä½ çš„å•†äººæ˜¯é”å®šçš„ï¼Œå®ƒä¼šåœ¨åé¢åˆå¹¶æ—¶è‡ªåŠ¨è¦†ç›–
             traderPattern.Base.UnlockedByDefault = true;
             string traderId = (MongoId)traderBase.Id;
             var correctpath = System.IO.Path.Combine(modpath, respath);
@@ -160,6 +160,9 @@ namespace EternalCycleServer
                 traderPattern.Suits = new List<Suit>();
             }
             traderPattern?.Services?.Clear();
+            // æ³¨æ„ï¼šè¿™é‡Œä¿æŒã€Œå®½æ¾è¦†ç›–ã€ï¼ˆä¸ä¼  writtenKeysï¼‰æ˜¯åˆ»æ„çš„ â€”â€”
+            // ä¸Šé¢ traderPattern.Base.UnlockedByDefault = true åªæ˜¯ç»™ä¸€ä¸ªé»˜è®¤å¯è§£é”çš„åº•ï¼Œ
+            // æ¨¡ç»„æƒ³é”ä½è‡ªå·±çš„å•†äººå°±é è¿™ä¸€æ­¥åˆå¹¶è¦†ç›–å›å»ã€‚ä¸è¦æ”¹æˆä¸¥æ ¼æ¨¡å¼ã€‚
             Utils.CopyNonNullProperties(traderBase, traderPattern.Base);
             LocaleUtils.AddTraderToLocales(traderBase, databaseService, creator, modname);
             var insuranceChance = traderBase.InsuranceChance ?? 0;

@@ -1,4 +1,4 @@
-using SPTarkov.Server.Core.Models.Common;
+﻿using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Enums.Hideout;
 using System.Text.Json.Serialization;
@@ -165,7 +165,7 @@ namespace EternalCycleServer
     public class KillTargetData : CustomQuestData
     {
         //TODO 
-        //location��bodyλͼ
+        //location和body位图
         [JsonPropertyName("oneraid")]
         public bool CompleteInOneRaid { get; set; }
         [JsonPropertyName("count")]
@@ -241,6 +241,15 @@ namespace EternalCycleServer
         public MongoId ItemId { get; set; }
         [JsonPropertyName("zoneid")]
         public string ZoneId { get; set; }
+
+        /// <summary>
+        /// 复数区域 ID（SPT 5.0 起「区域」标准化为数组）。
+        /// 官方任务数据里已不再使用单数 zoneid，客户端 ConditionZone 也改读 zoneIds，
+        /// 所以本字段才是现在真正生效的那个；单数那份保留是为了兼容既有的 Mod 数据。
+        /// 两者会被合并去重，见 QuestUtils.ApplyZoneIds。
+        /// </summary>
+        [JsonPropertyName("zoneids")]
+        public List<string> ZoneIds { get; set; }
         [JsonPropertyName("count")]
         public int Count { get; set; }
         [JsonPropertyName("durability")]
@@ -255,6 +264,15 @@ namespace EternalCycleServer
         public List<string> Items { get; set; }
         [JsonPropertyName("zoneid")]
         public string ZoneId { get; set; }
+
+        /// <summary>
+        /// 复数区域 ID（SPT 5.0 起「区域」标准化为数组）。
+        /// 官方任务数据里已不再使用单数 zoneid，客户端 ConditionZone 也改读 zoneIds，
+        /// 所以本字段才是现在真正生效的那个；单数那份保留是为了兼容既有的 Mod 数据。
+        /// 两者会被合并去重，见 QuestUtils.ApplyZoneIds。
+        /// </summary>
+        [JsonPropertyName("zoneids")]
+        public List<string> ZoneIds { get; set; }
         [JsonPropertyName("count")]
         public int Count { get; set; }
         [JsonPropertyName("tags")]
@@ -476,6 +494,15 @@ namespace EternalCycleServer
         public MongoId? ItemId { get; set; }
         [JsonPropertyName("zoneid")]
         public string ZoneId { get; set; }
+
+        /// <summary>
+        /// 复数区域 ID（SPT 5.0 起「区域」标准化为数组）。
+        /// 官方任务数据里已不再使用单数 zoneid，客户端 ConditionZone 也改读 zoneIds，
+        /// 所以本字段才是现在真正生效的那个；单数那份保留是为了兼容既有的 Mod 数据。
+        /// 两者会被合并去重，见 QuestUtils.ApplyZoneIds。
+        /// </summary>
+        [JsonPropertyName("zoneids")]
+        public List<string> ZoneIds { get; set; }
     }
     public class AreaLevelData : CustomQuestData
     {

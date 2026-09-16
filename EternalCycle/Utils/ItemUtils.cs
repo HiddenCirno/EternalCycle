@@ -141,7 +141,16 @@ namespace EternalCycleServer
                 itemClone = context.Cloner.Clone(GetItem(targetid, context));
             }
             //参数覆盖
-            Utils.CopyNonNullProperties(template.Props, itemClone.Properties);
+            // ⚠ 必须把 RawProps 一起传进去：只覆盖模组 JSON 里真的写了的 _props 键。
+            //   否则模组没写的值类型字段会被默认值 0 盖掉从原版克隆来的真实值 ——
+            //   Width/Height 变 0 会让客户端图标渲染抛 ArgumentException、物品在格子里不可见，
+            //   Weight / StackMaxSize / MaxHpResource 等也会被一并清零。
+            if (template.Props != null && template.RawProps == null)
+            {
+                // 理论上走不到这里（ResolveJsonNode 一定会填）；万一走到了，宁可留下痕迹也别静默清零
+                Utils.commonLogger.Warn($"物品 [{template.CustomProps?.Name ?? template.Id}] 缺少原始 _props 节点，退回宽松覆盖，可能清零原版字段");
+            }
+            Utils.CopyNonNullProperties(template.Props, itemClone.Properties, template.RawProps);
             //参数覆盖
             SetItemBaseData(template, itemClone);
             //总之上面这两条是肯定要做的

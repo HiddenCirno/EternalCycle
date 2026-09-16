@@ -1,10 +1,11 @@
-using SPTarkov.DI.Annotations;
+﻿using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.Models.Spt.Mod;
 using SPTarkov.Server.Core.Models.Utils;
 using SPTarkov.Server.Core.Services;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common;
 using Microsoft.AspNetCore.Mvc.ViewFeatures.Buffers;
@@ -28,20 +29,34 @@ namespace EternalCycleServer
         [JsonPropertyName("_name")]
         public string Name { get; set; }
 
-        // �Զ������
+        // 自定义参数
         [JsonPropertyName("_customprops")]
         public CustomProps CustomProps { get; set; }
 
-        // ԭ�� Props
+        // 原版 Props
         [JsonPropertyName("_props")]
         public TemplateItemProperties Props { get; set; }
+
+        /// <summary>
+        /// 模组 JSON 里【实际写了】的 _props 原始节点。
+        ///
+        /// ⚠ 为什么需要它：反序列化之后就没法区分「模组写了 0」和「模组没写（默认也是 0）」了，
+        ///   而 0 在值类型上是有意义的取值 —— 比如 RITC 的示例针包就显式写着 "Weight": 0。
+        ///   所以覆盖阶段只能回到 JSON 里按「键存不存在」判断，才能既保住从原版克隆来的值，
+        ///   又不吞掉模组显式写的 0。
+        ///
+        /// 由 Utils.ResolveJsonNode 在反序列化时填充；纯运行时字段，不参与序列化。
+        /// </summary>
+        [JsonIgnore]
+        public JsonObject RawProps { get; set; }
+
         [JsonPropertyName("_proto")]
         public string Prototype { get; set; }
         [JsonPropertyName("_type")]
         public string Type { get; set; }
     }
 
-    // �Զ��������
+    // 自定义参数类
     [JsonDerivedType(typeof(CustomProps), "base")]
     [JsonDerivedType(typeof(CustomFixedItemProps), "fixed")]
     [JsonDerivedType(typeof(WeaponItemProps), "weapon")]
@@ -373,11 +388,11 @@ namespace EternalCycleServer
     public class BuffItemProps : LootableItemProps
     {
         [JsonPropertyName("BuffValue")]
-        // SPT 5.0 �� Spt.Tables.Buff ����Ϊ StimulatorBuff ������ Spt.Tables.Globals �����ռ䣬
-        // ��Ա����һ�£��� AppliesTo �� IEnumerable<string> ��Ϊ List<string>����
-        // ����ȷ�ϣ�ItemUtils ��ѱ��ֶ�ֱ��д��
-        // globals.Configuration.Health.Effects.Stimulator.Buffs�����˷ܼ� Buff ���塣
-        // �˴���ȫ�޶�����д�������� Spt.Tables �µ�����ͬ�����Ͳ����������塣
+        // SPT 5.0 将 Spt.Tables.Buff 更名为 StimulatorBuff 并移入 Spt.Tables.Globals 命名空间，
+        // 成员逐项一致（仅 AppliesTo 由 IEnumerable<string> 变为 List<string>）。
+        // 语义确认：ItemUtils 会把本字段直接写入
+        // globals.Configuration.Health.Effects.Stimulator.Buffs，即兴奋剂 Buff 定义。
+        // 此处用全限定名书写，避免与 Spt.Tables 下的其它同名类型产生解析歧义。
         public List<SPTarkov.Server.Core.Models.Spt.Tables.Globals.StimulatorBuff> BuffValue { get; set; }
     }
     public class QuestItemProps : CustomProps

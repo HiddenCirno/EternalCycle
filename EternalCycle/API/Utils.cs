@@ -1,4 +1,4 @@
-using SPTarkov.Server.Core.Models.Common;
+ï»¿using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Utils;
 using System.Collections.Concurrent;
 using System.Reflection;
@@ -12,78 +12,116 @@ using System.Text.RegularExpressions;
 namespace EternalCycleServer
 {
     /// <summary>
-    /// ·ºÓÃĞÍ¹¤¾ßÀà
+    /// æ³›ç”¨å‹å·¥å…·ç±»
     /// </summary>
     public static class Utils
     {
         /// <summary>
-        /// È«¾ÖµÄÈÕÖ¾ÊµÀı
+        /// å…¨å±€çš„æ—¥å¿—å®ä¾‹
         /// </summary>
-        public static ECLogger commonLogger = new ECLogger("ÓÀºãÊ±Ğò", true);
+        public static ECLogger commonLogger = new ECLogger("æ°¸æ’æ—¶åº", true);
         
-        //Ô¤´æ´¢×Ö·û´®
+        //é¢„å­˜å‚¨å­—ç¬¦ä¸²
         private static readonly char[] InvalidFolderChars = { '<', '>', ':', '"', '/', '\\', '|', '?', '*' };
         
         /// <summary>
-        /// È«¾Ö´æ´¢×ª»»ºóµÄIDÓ³Éä±í
+        /// å…¨å±€å­˜å‚¨è½¬æ¢åçš„IDæ˜ å°„è¡¨
         /// </summary>
         public static ConcurrentDictionary<string, string> hashIdList = new ConcurrentDictionary<string, string>();
         
         /// <summary>
-        /// ÓÃÓÚÔ¤´¦ÀíjsonRawµÄ×ª»»¹æÔò
+        /// ç”¨äºé¢„å¤„ç†jsonRawçš„è½¬æ¢è§„åˆ™
         /// </summary>
         public static JsonDocumentOptions convertOptions = new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip };
         
         /// <summary>
-        /// Éî¶È¿½±´jsonÊı¾İ
+        /// æ·±åº¦æ‹·è´jsonæ•°æ®
         /// </summary>
-        /// <typeparam name="T">·ºĞÍ¶¨Òå, ¿ÉÒÔ¶ÔÈÎÒâÀàĞÍ¿½±´</typeparam>
-        /// <param name="obj">¿½±´ÄÚÈİ</param>
-        /// <returns>Éî¿½±´ºóµÄ¶ÔÏó£¬ÈôobjÎªnullÔò·µ»ØÄ¬ÈÏÖµ</returns>
+        /// <typeparam name="T">æ³›å‹å®šä¹‰, å¯ä»¥å¯¹ä»»æ„ç±»å‹æ‹·è´</typeparam>
+        /// <param name="obj">æ‹·è´å†…å®¹</param>
+        /// <returns>æ·±æ‹·è´åçš„å¯¹è±¡ï¼Œè‹¥objä¸ºnullåˆ™è¿”å›é»˜è®¤å€¼</returns>
         public static T DeepCopyJson<T>(this T obj)
         {
             if (obj == null) return default;
-            //ĞòÁĞ»¯Îª×Ö·û´®
+            //åºåˆ—åŒ–ä¸ºå­—ç¬¦ä¸²
             var json = JsonSerializer.Serialize(obj);
-            //·´ĞòÁĞ»¯
+            //ååºåˆ—åŒ–
             return JsonSerializer.Deserialize<T>(json);
         }
 
         /// <summary>
-        /// Éî¶ÈºÏ²¢, ½«Ô´¶ÔÏóÖĞ·Ç¿ÕµÄÊôĞÔÖµ¸´ÖÆµ½Ä¿±ê¶ÔÏó£¨½öÏŞ¹«¹²ÊµÀıÊôĞÔ£©
+        /// æ·±åº¦åˆå¹¶, å°†æºå¯¹è±¡ä¸­éç©ºçš„å±æ€§å€¼å¤åˆ¶åˆ°ç›®æ ‡å¯¹è±¡ï¼ˆä»…é™å…¬å…±å®ä¾‹å±æ€§ï¼‰
         /// </summary>
-        /// <param name="source">Ô´¶ÔÏó</param>
-        /// <param name="target">Ä¿±ê¶ÔÏó</param>
-        public static void CopyNonNullProperties(object source, object target)
+        /// <param name="source">æºå¯¹è±¡</param>
+        /// <param name="target">ç›®æ ‡å¯¹è±¡</param>
+        /// <param name="writtenKeys">
+        /// æºå¯¹è±¡ã€åœ¨åŸå§‹ JSON é‡Œå®é™…å†™äº†ã€‘çš„é”®é›†åˆï¼ˆä¸€èˆ¬ç›´æ¥ä¼ æ¨¡ç»„ JSON çš„ _props èŠ‚ç‚¹ï¼‰ã€‚
+        /// ä¼ äº†å®ƒå°±èµ°ã€Œåªè¦†ç›–æ¨¡ç»„å†™è¿‡çš„é”®ã€çš„ä¸¥æ ¼è¯­ä¹‰ï¼›ä¼  null åˆ™é€€åŒ–ä¸ºæ—§çš„ã€Œé null å³è¦†ç›–ã€è¡Œä¸ºã€‚
+        /// </param>
+        public static void CopyNonNullProperties(object source, object target, JsonObject writtenKeys = null)
         {
             if (source == null || target == null)
                 return;
+
+            // é”®åç»Ÿä¸€å¤§å°å†™ä¸æ•æ„Ÿåœ°æ¯”å¯¹ï¼šSPT æ¨¡å‹è™½ç„¶éƒ½æ ‡äº† [JsonPropertyName]ï¼Œ
+            // ä½†å±æ€§åä¸é”®åå¶æœ‰å¤§å°å†™å·®å¼‚ï¼Œå®½æ¾ä¸€ç‚¹æ›´ç¨³ã€‚
+            HashSet<string> written = null;
+            if (writtenKeys != null)
+            {
+                written = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var kv in writtenKeys) written.Add(kv.Key);
+            }
+
             Type sourceType = source.GetType();
             Type targetType = target.GetType();
             foreach (var sourceProp in sourceType.GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
                 var targetProp = targetType.GetProperty(sourceProp.Name);
-                if (targetProp != null && targetProp.CanWrite)
+                if (targetProp == null || !targetProp.CanWrite) continue;
+
+                // â˜… åˆ¤æ®å¿…é¡»æ˜¯ã€Œè¿™ä¸ªé”®åœ¨åŸå§‹ JSON é‡Œå­˜åœ¨å—ã€ã€‚
+                //
+                //   æ—§å®ç°åªåˆ¤ value != null â€”â€” è¿™å¯¹å€¼ç±»å‹æ°¸è¿œæˆç«‹ï¼ˆint çš„ã€Œæ²¡å†™ã€å°±æ˜¯ 0ï¼Œ
+                //   è£…ç®±åå¹¶ä¸ç­‰äº nullï¼‰ï¼Œäºæ˜¯æ¨¡ç»„æ²¡å†™çš„å­—æ®µä¼šè¢« 0 ç›–æ‰åˆšä»åŸç‰ˆå…‹éš†æ¥çš„çœŸå®å€¼ã€‚
+                //   åæœï¼šWidth/Height å˜ 0 â†’ CalculateCellSize() å¾— (0,0) â†’
+                //   å›¾æ ‡å°ºå¯¸ 0Ã—0 â†’ RenderTexture.GetTemporary(0,0) æŠ› ArgumentExceptionï¼Œ
+                //   ç‰©å“åœ¨ç‰©å“æ é‡Œå½»åº•ä¸å¯è§ï¼›åŒä¸€æœºåˆ¶è¿˜ä¼šé¡ºæ‰‹æŠŠ Weight / StackMaxSize /
+                //   MaxHpResource ç­‰ä¸€å¹¶æ¸…é›¶ã€‚
+                //
+                //   ä½†ä¹Ÿä¸èƒ½æ”¹æˆã€Œè·³è¿‡ç­‰äºé»˜è®¤å€¼çš„å±æ€§ã€â€”â€” é‚£ä¼šåæ‰æ¨¡ç»„æ˜¾å¼å†™çš„ 0
+                //   ï¼ˆRITC çš„ç¤ºä¾‹é’ˆåŒ…å°±å†™ç€ "Weight": 0ï¼Œæ˜¯æœ‰æ•ˆå–å€¼ï¼‰ã€‚
+                //   æ‰€ä»¥åªèƒ½å›åˆ° JSON é‡ŒæŸ¥é”®ã€‚
+                if (written != null && !written.Contains(GetJsonPropertyName(sourceProp)))
                 {
-                    var value = sourceProp.GetValue(source);
-                    if (value != null)
-                    {
-                        targetProp.SetValue(target, value);
-                    }
+                    continue;
+                }
+
+                var value = sourceProp.GetValue(source);
+                if (value != null)
+                {
+                    targetProp.SetValue(target, value);
                 }
             }
         }
 
         /// <summary>
-        /// ÍØÕ¹·½·¨, ÅĞ¶Ï×Ö·û´®ÊÇ·ñÎª24Î»Ê®Áù½øÖÆ×Ö·û´®(¼´MongoIdµÄ¹æ·¶ĞÎÊ½)
+        /// å–å±æ€§å¯¹åº”çš„ JSON é”®åã€‚SPT çš„æ¨¡å‹ç»Ÿä¸€æ ‡äº† [JsonPropertyName]ï¼Œå–ä¸åˆ°æ‰é€€å›å±æ€§åã€‚
         /// </summary>
-        /// <param name="str">´ı¼ì²éµÄ×Ö·û´®</param>
-        /// <returns>ÊÇ24Î»Ê®Áù½øÖÆ×Ö·û´®·µ»Øtrue, ·ñÔò·µ»Øfalse</returns>
+        private static string GetJsonPropertyName(PropertyInfo prop)
+        {
+            return prop.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? prop.Name;
+        }
+
+        /// <summary>
+        /// æ‹“å±•æ–¹æ³•, åˆ¤æ–­å­—ç¬¦ä¸²æ˜¯å¦ä¸º24ä½åå…­è¿›åˆ¶å­—ç¬¦ä¸²(å³MongoIdçš„è§„èŒƒå½¢å¼)
+        /// </summary>
+        /// <param name="str">å¾…æ£€æŸ¥çš„å­—ç¬¦ä¸²</param>
+        /// <returns>æ˜¯24ä½åå…­è¿›åˆ¶å­—ç¬¦ä¸²è¿”å›true, å¦åˆ™è¿”å›false</returns>
         public static bool IsHex24(this string str)
         {
-            //À¹½Ø¿Õ×Ö·û´®ºÍ³¤¶È²»¶ÔµÄ×Ö·û´®
+            //æ‹¦æˆªç©ºå­—ç¬¦ä¸²å’Œé•¿åº¦ä¸å¯¹çš„å­—ç¬¦ä¸²
             if (str == null || str.Length != 24) return false;
-            //±©Á¦½â¸ã¶¨
+            //æš´åŠ›è§£æå®š
             for (int i = 0; i < 24; i++)
             {
                 char c = str[i];
@@ -96,20 +134,20 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ¸ù¾İÊäÈë×Ö·û´®×ª»»ID£ºÈôÒÑÊÇ24Î»HexÔòÔ­Ñù·µ»Ø£¬·ñÔòÉú³ÉĞÂµÄ24Î»¹şÏ£
+        /// æ ¹æ®è¾“å…¥å­—ç¬¦ä¸²è½¬æ¢IDï¼šè‹¥å·²æ˜¯24ä½Hexåˆ™åŸæ ·è¿”å›ï¼Œå¦åˆ™ç”Ÿæˆæ–°çš„24ä½å“ˆå¸Œ
         /// </summary>
-        /// <param name="str">ÊäÈë×Ö·û´®</param>
-        /// <returns>´¦ÀíºóµÄ24Î»ID×Ö·û´®</returns>
+        /// <param name="str">è¾“å…¥å­—ç¬¦ä¸²</param>
+        /// <returns>å¤„ç†åçš„24ä½IDå­—ç¬¦ä¸²</returns>
         public static string ConvertHashID(this string str)
         {
             return str.IsHex24() ? str : str.GenerateHash();
         }
 
         /// <summary>
-        /// À©Õ¹·½·¨, Éú³É SHA256 ¹şÏ£²¢È¡Ç°24Î»£¨¸ßĞÔÄÜÊµÏÖ£¬¸´ÓÃ¹şÏ£ÊµÀı£©
+        /// æ‰©å±•æ–¹æ³•, ç”Ÿæˆ SHA256 å“ˆå¸Œå¹¶å–å‰24ä½ï¼ˆé«˜æ€§èƒ½å®ç°ï¼Œå¤ç”¨å“ˆå¸Œå®ä¾‹ï¼‰
         /// </summary>
-        /// <param name="input">ÊäÈë×Ö·û´®</param>
-        /// <returns>24Î»Ê®Áù½øÖÆ¹şÏ£×Ö·û´®</returns>
+        /// <param name="input">è¾“å…¥å­—ç¬¦ä¸²</param>
+        /// <returns>24ä½åå…­è¿›åˆ¶å“ˆå¸Œå­—ç¬¦ä¸²</returns>
         public static string GenerateHash(this string input)
         {
             if (string.IsNullOrEmpty(input)) return string.Empty;
@@ -119,19 +157,19 @@ namespace EternalCycleServer
             byte[] hash = sha1.ComputeHash(Encoding.UTF8.GetBytes(input));
             string result = Convert.ToHexString(hash).ToLowerInvariant()[..24];
 
-            // Í¶ÈëÓ³Éä±í
+            // æŠ•å…¥æ˜ å°„è¡¨
             hashIdList.TryAdd(input, result);
 
             return result;
         }
 
         /// <summary>
-        /// ×ª»»ÎïÆ·Êı¾İ£¨´ÓÎÄ¼şÂ·¾¶+ÎÄ¼şÃû¼ÓÔØ£¬µİ¹é´¦ÀíÄÚ²¿ÒıÓÃID£©
+        /// è½¬æ¢ç‰©å“æ•°æ®ï¼ˆä»æ–‡ä»¶è·¯å¾„+æ–‡ä»¶ååŠ è½½ï¼Œé€’å½’å¤„ç†å†…éƒ¨å¼•ç”¨IDï¼‰
         /// </summary>
-        /// <param name="pathToFile">ÎÄ¼ş¼ĞÂ·¾¶</param>
-        /// <param name="fileName">ÎÄ¼şÃû</param>
-        /// <param name="jsonutil">JSON¹¤¾ßÊµÀı</param>
-        /// <returns>×ª»»ºóµÄ¶ÔÏó</returns>
+        /// <param name="pathToFile">æ–‡ä»¶å¤¹è·¯å¾„</param>
+        /// <param name="fileName">æ–‡ä»¶å</param>
+        /// <param name="jsonutil">JSONå·¥å…·å®ä¾‹</param>
+        /// <returns>è½¬æ¢åçš„å¯¹è±¡</returns>
         public static Dictionary<string, CustomItemTemplate> ConvertItemData(string pathToFile, string fileName, JsonUtil jsonutil)
         {
             string rawJson = File.ReadAllText(Path.Combine(pathToFile, fileName));
@@ -140,16 +178,16 @@ namespace EternalCycleServer
             foreach (var item in rootNode.AsObject())
             {
                 //var files = item.Value.AsValue().ToString();
-                //²İÂÊÁË, ÕâÀï²»Ó¦¸ÃÓÃ·ºĞÍ¶¨Òå·½·¨·µ»ØÖµµÄ....
-                //¾ÍÕâÑù°É, ·´Õı±¾À´Ò²ÊÇ¸ø×Ô¶¨ÒåÎïÆ·ÓÃµÄ
-                //ÔÙ¸Ä»¹µÃ¸ÄÆäËûmod, Ì«Âé·³ÁË
-                //ÂÛÊºÉ½ÊÇÔõÃ´ĞÎ³ÉµÄ.jpg
+                //è‰ç‡äº†, è¿™é‡Œä¸åº”è¯¥ç”¨æ³›å‹å®šä¹‰æ–¹æ³•è¿”å›å€¼çš„....
+                //å°±è¿™æ ·å§, åæ­£æœ¬æ¥ä¹Ÿæ˜¯ç»™è‡ªå®šä¹‰ç‰©å“ç”¨çš„
+                //å†æ”¹è¿˜å¾—æ”¹å…¶ä»–mod, å¤ªéº»çƒ¦äº†
+                //è®ºå±å±±æ˜¯æ€ä¹ˆå½¢æˆçš„.jpg
                 //....
-                //»µÁË, ¸ÄµÄ»°Ó¦¸ÃÔõÃ´¸ÄÀ´×Å?
-                //ÍêÁË
-                //ÄÇ»¹ÊÇ¼ÌĞøÓÃ°É
-                //Å¶, ÎÒ¶®ÁË
-                //ÔÚ¸ÄÁËºÍËãÁËÖ®¼äÑ¡ÔñÁË¶®ÁË
+                //åäº†, æ”¹çš„è¯åº”è¯¥æ€ä¹ˆæ”¹æ¥ç€?
+                //å®Œäº†
+                //é‚£è¿˜æ˜¯ç»§ç»­ç”¨å§
+                //å“¦, æˆ‘æ‡‚äº†
+                //åœ¨æ”¹äº†å’Œç®—äº†ä¹‹é—´é€‰æ‹©äº†æ‡‚äº†
                 dict[item.Key] = ResolveJsonNode<CustomItemTemplate>(item.Value, jsonutil);
             }
             return dict;
@@ -162,41 +200,41 @@ namespace EternalCycleServer
             foreach (var item in rootNode.AsObject())
             {
                 //var files = item.Value.AsValue().ToString();
-                //²İÂÊÁË, ÕâÀï²»Ó¦¸ÃÓÃ·ºĞÍ¶¨Òå·½·¨·µ»ØÖµµÄ....
-                //¾ÍÕâÑù°É, ·´Õı±¾À´Ò²ÊÇ¸ø×Ô¶¨ÒåÎïÆ·ÓÃµÄ
-                //ÔÙ¸Ä»¹µÃ¸ÄÆäËûmod, Ì«Âé·³ÁË
-                //ÂÛÊºÉ½ÊÇÔõÃ´ĞÎ³ÉµÄ.jpg
+                //è‰ç‡äº†, è¿™é‡Œä¸åº”è¯¥ç”¨æ³›å‹å®šä¹‰æ–¹æ³•è¿”å›å€¼çš„....
+                //å°±è¿™æ ·å§, åæ­£æœ¬æ¥ä¹Ÿæ˜¯ç»™è‡ªå®šä¹‰ç‰©å“ç”¨çš„
+                //å†æ”¹è¿˜å¾—æ”¹å…¶ä»–mod, å¤ªéº»çƒ¦äº†
+                //è®ºå±å±±æ˜¯æ€ä¹ˆå½¢æˆçš„.jpg
                 //....
-                //»µÁË, ¸ÄµÄ»°Ó¦¸ÃÔõÃ´¸ÄÀ´×Å?
-                //ÍêÁË
-                //ÄÇ»¹ÊÇ¼ÌĞøÓÃ°É
-                //Å¶, ÎÒ¶®ÁË
-                //ÔÚ¸ÄÁËºÍËãÁËÖ®¼äÑ¡ÔñÁË¶®ÁË
+                //åäº†, æ”¹çš„è¯åº”è¯¥æ€ä¹ˆæ”¹æ¥ç€?
+                //å®Œäº†
+                //é‚£è¿˜æ˜¯ç»§ç»­ç”¨å§
+                //å“¦, æˆ‘æ‡‚äº†
+                //åœ¨æ”¹äº†å’Œç®—äº†ä¹‹é—´é€‰æ‹©äº†æ‡‚äº†
                 dict[item.Key] = ResolveJsonNode<CustomItemTemplate>(item.Value, jsonutil);
             }
             return dict;
         }
 
         /// <summary>
-        /// ×ª»»ÎïÆ·Êı¾İ£¨Ö±½Ó´ÓJSON×Ö·û´®¼ÓÔØ£¬µİ¹é´¦ÀíÄÚ²¿ÒıÓÃID£©
+        /// è½¬æ¢ç‰©å“æ•°æ®ï¼ˆç›´æ¥ä»JSONå­—ç¬¦ä¸²åŠ è½½ï¼Œé€’å½’å¤„ç†å†…éƒ¨å¼•ç”¨IDï¼‰
         /// </summary>
-        /// <typeparam name="T">Ä¿±êÀàĞÍ</typeparam>
-        /// <param name="file">JSON×Ö·û´®ÄÚÈİ</param>
-        /// <param name="jsonutil">JSON¹¤¾ßÊµÀı</param>
-        /// <returns>×ª»»ºóµÄ¶ÔÏó</returns>
+        /// <typeparam name="T">ç›®æ ‡ç±»å‹</typeparam>
+        /// <param name="file">JSONå­—ç¬¦ä¸²å†…å®¹</param>
+        /// <param name="jsonutil">JSONå·¥å…·å®ä¾‹</param>
+        /// <returns>è½¬æ¢åçš„å¯¹è±¡</returns>
         public static T ConvertItemData<T>(string file, JsonUtil jsonutil)
         {
             JsonNode rootNode = JsonNode.Parse(file, null, convertOptions).AsObject();
-            return ResolveJsonNode<T>(rootNode, jsonutil); // ·µ»Ø´¦ÀíºóµÄ JsonNode
+            return ResolveJsonNode<T>(rootNode, jsonutil); // è¿”å›å¤„ç†åçš„ JsonNode
         }
 
         /// <summary>
-        /// µİ¹é´¦ÀíJSON½ÚµãÖĞµÄID×Ö¶Î£¨Slots/Chambers/GridsµÈ£©£¬½«·ÇHexµÄID×ª»»Îª¹şÏ£Öµ
+        /// é€’å½’å¤„ç†JSONèŠ‚ç‚¹ä¸­çš„IDå­—æ®µï¼ˆSlots/Chambers/Gridsç­‰ï¼‰ï¼Œå°†éHexçš„IDè½¬æ¢ä¸ºå“ˆå¸Œå€¼
         /// </summary>
-        /// <typeparam name="T">Ä¿±êÀàĞÍ</typeparam>
-        /// <param name="node">JSON½Úµã</param>
-        /// <param name="jsonUtil">JSON¹¤¾ßÊµÀı</param>
-        /// <returns>×ª»»ºóµÄ¶ÔÏó</returns>
+        /// <typeparam name="T">ç›®æ ‡ç±»å‹</typeparam>
+        /// <param name="node">JSONèŠ‚ç‚¹</param>
+        /// <param name="jsonUtil">JSONå·¥å…·å®ä¾‹</param>
+        /// <returns>è½¬æ¢åçš„å¯¹è±¡</returns>
         public static T ResolveJsonNode<T>(JsonNode node, JsonUtil jsonUtil)
         {
             var props = node?["_props"]?.AsObject();
@@ -253,19 +291,30 @@ namespace EternalCycleServer
                         conflicts[i] = conflicts[i]?.GetValue<string>()?.ConvertHashID();
                     }
                 }
-                //Ã÷ÌìĞèÒªÕûÀíÌáÈ¡ºÏ²¢
+                //æ˜å¤©éœ€è¦æ•´ç†æå–åˆå¹¶
                 //sbgpt
                 // StackSlots
                 ModifySlotsOrChambers(props["StackSlots"]?.AsArray());
             }
             string resultJson = node.ToJsonString();
-            return jsonUtil.Deserialize<T>(resultJson); // ·µ»Ø´¦ÀíºóµÄ JsonNode
+            var result = jsonUtil.Deserialize<T>(resultJson); // è¿”å›å¤„ç†åçš„ JsonNode
+
+            // é¡ºæ‰‹æŠŠã€Œæ¨¡ç»„å®é™…å†™äº†å“ªäº› _props é”®ã€æŒ‚åˆ°æ¨¡æ¿ä¸Šã€‚
+            // ååºåˆ—åŒ–æœ¬èº«æ˜¯æœ‰æŸçš„ï¼šé»˜è®¤å€¼ï¼ˆint çš„ 0ã€bool çš„ falseï¼‰å’Œã€Œæ¨¡ç»„æ²¡å†™ã€é•¿å¾—ä¸€æ¨¡ä¸€æ ·ï¼Œ
+            // è€Œè¦†ç›–é˜¶æ®µï¼ˆCopyNonNullPropertiesï¼‰å¿…é¡»èƒ½æŠŠä¸¤è€…åŒºåˆ†å¼€ï¼Œå¦åˆ™ä¼šæŠŠä»åŸç‰ˆå…‹éš†æ¥çš„
+            // Width / Height / Weight ç­‰å€¼ç±»å‹å­—æ®µç»Ÿç»Ÿæ¸…é›¶ã€‚
+            if (result is CustomItemTemplate itemTemplate)
+            {
+                itemTemplate.RawProps = props;
+            }
+
+            return result;
         }
 
         /// <summary>
-        /// ĞŞ¸ÄÅä¼ş²ÛÎ»»òÇ¹ÌÅÊı×éÖĞµÄIDÒıÓÃ£¨_parent, _id, Filter, ExcludedFilter, PlateµÈ£©
+        /// ä¿®æ”¹é…ä»¶æ§½ä½æˆ–æªè†›æ•°ç»„ä¸­çš„IDå¼•ç”¨ï¼ˆ_parent, _id, Filter, ExcludedFilter, Plateç­‰ï¼‰
         /// </summary>
-        /// <param name="array">Åä¼ş²ÛÎ»»òÇ¹ÌÅµÄJSONÊı×é</param>
+        /// <param name="array">é…ä»¶æ§½ä½æˆ–æªè†›çš„JSONæ•°ç»„</param>
         public static void ModifySlotsOrChambers(JsonArray array)
         {
             if (array == null) return;
@@ -290,12 +339,12 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ÏòÊı×éÖĞÌí¼ÓÔªËØ£¨ÈôÔ­Êı×éÎªnullÔò´´½¨ĞÂÊı×é£©
+        /// å‘æ•°ç»„ä¸­æ·»åŠ å…ƒç´ ï¼ˆè‹¥åŸæ•°ç»„ä¸ºnullåˆ™åˆ›å»ºæ–°æ•°ç»„ï¼‰
         /// </summary>
-        /// <typeparam name="T">Êı×éÔªËØÀàĞÍ</typeparam>
-        /// <param name="array">Ô­Êı×é</param>
-        /// <param name="item">ÒªÌí¼ÓµÄÔªËØ</param>
-        /// <returns>ĞÂÊı×é</returns>
+        /// <typeparam name="T">æ•°ç»„å…ƒç´ ç±»å‹</typeparam>
+        /// <param name="array">åŸæ•°ç»„</param>
+        /// <param name="item">è¦æ·»åŠ çš„å…ƒç´ </param>
+        /// <returns>æ–°æ•°ç»„</returns>
         public static T[] AddToArray<T>(T[] array, T item)
         {
             if (array == null) return [item];
@@ -303,24 +352,24 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ×ª»»ÉÌÈË»ù´¡Êı¾İ£¨ĞŞ¸Ä¸ù½ÚµãµÄ_id×Ö¶Î£©
+        /// è½¬æ¢å•†äººåŸºç¡€æ•°æ®ï¼ˆä¿®æ”¹æ ¹èŠ‚ç‚¹çš„_idå­—æ®µï¼‰
         /// </summary>
-        /// <typeparam name="T">Ä¿±êÀàĞÍ</typeparam>
-        /// <param name="pathToFile">ÎÄ¼ş¼ĞÂ·¾¶</param>
-        /// <param name="fileName">ÎÄ¼şÃû</param>
-        /// <param name="jsonutil">JSON¹¤¾ßÊµÀı</param>
-        /// <returns>×ª»»ºóµÄ¶ÔÏó</returns>
-        /// <exception cref="InvalidOperationException">JSON¸ù½Úµã²»ÊÇ¶ÔÏóÊ±Å×³ö</exception>
+        /// <typeparam name="T">ç›®æ ‡ç±»å‹</typeparam>
+        /// <param name="pathToFile">æ–‡ä»¶å¤¹è·¯å¾„</param>
+        /// <param name="fileName">æ–‡ä»¶å</param>
+        /// <param name="jsonutil">JSONå·¥å…·å®ä¾‹</param>
+        /// <returns>è½¬æ¢åçš„å¯¹è±¡</returns>
+        /// <exception cref="InvalidOperationException">JSONæ ¹èŠ‚ç‚¹ä¸æ˜¯å¯¹è±¡æ—¶æŠ›å‡º</exception>
         public static T ConvertTraderBaseData<T>(string pathToFile, string fileName, JsonUtil jsonutil)
         {
-            //¶ÁÈ¡json
+            //è¯»å–json
             string rawJson = File.ReadAllText(Path.Combine(pathToFile, fileName));
-            //½âÎöjson
+            //è§£æjson
             JsonNode rootNode = JsonNode.Parse(rawJson, null, convertOptions);
-            //È·¶¨¶ÔÏóÀàĞÍ
+            //ç¡®å®šå¯¹è±¡ç±»å‹
             if (rootNode is JsonObject objNode)
             {
-                //ĞŞ¸ÄID
+                //ä¿®æ”¹ID
                 if (objNode["_id"] != null)
                 {
                     objNode["_id"] = objNode["_id"].GetValue<string>().ConvertHashID();
@@ -328,30 +377,30 @@ namespace EternalCycleServer
             }
             else
             {
-                throw new InvalidOperationException("JSON ¸ù½Úµã±ØĞëÊÇ¶ÔÏó");
+                throw new InvalidOperationException("JSON æ ¹èŠ‚ç‚¹å¿…é¡»æ˜¯å¯¹è±¡");
             }
-            //ÖØĞÂ×ª»Ø×Ö·û´®
+            //é‡æ–°è½¬å›å­—ç¬¦ä¸²
             string resultJson = rootNode.ToJsonString();
-            //·´ĞòÁĞ»¯²¢·µ»Ø
+            //ååºåˆ—åŒ–å¹¶è¿”å›
             return jsonutil.Deserialize<T>(resultJson);
         }
 
         /// <summary>
-        /// ×Ô¶¨Òå×ª»»Æ÷: ×Ö·û´®toMongoId
+        /// è‡ªå®šä¹‰è½¬æ¢å™¨: å­—ç¬¦ä¸²toMongoId
         /// </summary>
         public class MongoIdConverter : JsonConverter<MongoId>
         {
             /// <summary>
-            /// ¶ÁÈ¡JSONÖĞµÄ×Ö·û´®²¢×ª»»ÎªMongoId
+            /// è¯»å–JSONä¸­çš„å­—ç¬¦ä¸²å¹¶è½¬æ¢ä¸ºMongoId
             /// </summary>
-            /// <returns>×ª»»ºóµÄMongoId</returns>
+            /// <returns>è½¬æ¢åçš„MongoId</returns>
             public override MongoId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 return reader.GetString()!.ConvertHashID();
             }
 
             /// <summary>
-            /// ½«MongoIdĞ´ÈëJSON×Ö·û´®
+            /// å°†MongoIdå†™å…¥JSONå­—ç¬¦ä¸²
             /// </summary>
             public override void Write(Utf8JsonWriter writer, MongoId value, JsonSerializerOptions options)
             {
@@ -360,20 +409,20 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ×Ô¶¨Òå×ª»»Æ÷: ×Ö·û´®ToHashId
+        /// è‡ªå®šä¹‰è½¬æ¢å™¨: å­—ç¬¦ä¸²ToHashId
         /// </summary>
         public class StringHashConverter : JsonConverter<string>
         {
             /// <summary>
-            /// ¶ÁÈ¡JSONÖĞµÄ×Ö·û´®²¢×ª»»³ÉHashId
+            /// è¯»å–JSONä¸­çš„å­—ç¬¦ä¸²å¹¶è½¬æ¢æˆHashId
             /// </summary>
             public override string? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 string? rawValue = reader.GetString();
 
-                if (rawValue == null) return ""; //·ÀÖ¹null´«²Î
+                if (rawValue == null) return ""; //é˜²æ­¢nullä¼ å‚
 
-                //²îµãÍüÁËÕâ¸ö....
+                //å·®ç‚¹å¿˜äº†è¿™ä¸ª....
                 if (rawValue == "hideout") return rawValue;
 
                 string hashedValue = rawValue.ConvertHashID();
@@ -381,7 +430,7 @@ namespace EternalCycleServer
             }
 
             /// <summary>
-            /// Ğ´Èë
+            /// å†™å…¥
             /// </summary>
             public override void Write(Utf8JsonWriter writer, string value, JsonSerializerOptions options)
             {
@@ -390,16 +439,16 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ×Ô¶¨Òå×ª»»Æ÷: JSON×Ö·û´®Êı×é to IEnumerable&lt;MongoId&gt;
-        /// ÓÃÓÚ´¦ÀíĞÎÈç ["id1", "id2"] µÄJSONÊı×é²¢×Ô¶¯Ó¦ÓÃ HashID ×ª»»
+        /// è‡ªå®šä¹‰è½¬æ¢å™¨: JSONå­—ç¬¦ä¸²æ•°ç»„ to IEnumerable&lt;MongoId&gt;
+        /// ç”¨äºå¤„ç†å½¢å¦‚ ["id1", "id2"] çš„JSONæ•°ç»„å¹¶è‡ªåŠ¨åº”ç”¨ HashID è½¬æ¢
         /// </summary>
         public class MongoIdEnumerableConverter : JsonConverter<IEnumerable<MongoId>>
         {
             /// <summary>
-            /// ¶ÁÈ¡JSONÖĞµÄ×Ö·û´®Êı×é²¢×ª»»ÎªMongoId¼¯ºÏ
+            /// è¯»å–JSONä¸­çš„å­—ç¬¦ä¸²æ•°ç»„å¹¶è½¬æ¢ä¸ºMongoIdé›†åˆ
             /// </summary>
-            /// <returns>×ª»»ºóµÄMongoId¼¯ºÏ</returns>
-            /// <exception cref="JsonException">µ±JSON½Úµã²»ÊÇÊı×éÊ±Å×³öÒì³£</exception>
+            /// <returns>è½¬æ¢åçš„MongoIdé›†åˆ</returns>
+            /// <exception cref="JsonException">å½“JSONèŠ‚ç‚¹ä¸æ˜¯æ•°ç»„æ—¶æŠ›å‡ºå¼‚å¸¸</exception>
             public override IEnumerable<MongoId> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 if (reader.TokenType != JsonTokenType.StartArray)
@@ -417,7 +466,7 @@ namespace EternalCycleServer
             }
 
             /// <summary>
-            /// ½«MongoId¼¯ºÏĞ´ÈëÎªJSON×Ö·û´®Êı×é
+            /// å°†MongoIdé›†åˆå†™å…¥ä¸ºJSONå­—ç¬¦ä¸²æ•°ç»„
             /// </summary>
             public override void Write(Utf8JsonWriter writer, IEnumerable<MongoId> value, JsonSerializerOptions options)
             {
@@ -431,23 +480,23 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ´ÓÁĞ±íÖĞËæ»ú³éÈ¡Ò»¸öÔªËØ
+        /// ä»åˆ—è¡¨ä¸­éšæœºæŠ½å–ä¸€ä¸ªå…ƒç´ 
         /// </summary>
-        /// <typeparam name="T">ÔªËØÀàĞÍ</typeparam>
-        /// <param name="list">Ô´ÁĞ±í</param>
-        /// <returns>Ëæ»ú³éÈ¡µÄÔªËØ</returns>
-        /// <exception cref="ArgumentException">ÁĞ±íÎª¿ÕÊ±Å×³ö</exception>
+        /// <typeparam name="T">å…ƒç´ ç±»å‹</typeparam>
+        /// <param name="list">æºåˆ—è¡¨</param>
+        /// <returns>éšæœºæŠ½å–çš„å…ƒç´ </returns>
+        /// <exception cref="ArgumentException">åˆ—è¡¨ä¸ºç©ºæ—¶æŠ›å‡º</exception>
         public static T DrawFromList<T>(List<T> list)
         {
-            if (list.Count == 0) throw new ArgumentException("ÁĞ±íÎª¿Õ", nameof(list));
+            if (list.Count == 0) throw new ArgumentException("åˆ—è¡¨ä¸ºç©º", nameof(list));
             return list[Random.Shared.Next(list.Count)];
         }
 
         /// <summary>
-        /// ½«Ë«¾«¶È¸¡µãÊı×ª»»Îª°Ù·Ö±È×Ö·û´®£¨±£ÁôÈıÎ»Ğ¡Êı£©
+        /// å°†åŒç²¾åº¦æµ®ç‚¹æ•°è½¬æ¢ä¸ºç™¾åˆ†æ¯”å­—ç¬¦ä¸²ï¼ˆä¿ç•™ä¸‰ä½å°æ•°ï¼‰
         /// </summary>
-        /// <param name="num">¸¡µãÊı£¨ÀıÈç0.5±íÊ¾50%£©</param>
-        /// <returns>°Ù·Ö±È×Ö·û´®£¬Èç"50.000%"£¬ÈôÊäÈëÎªNaNÔò·µ»Ø"NaN"</returns>
+        /// <param name="num">æµ®ç‚¹æ•°ï¼ˆä¾‹å¦‚0.5è¡¨ç¤º50%ï¼‰</param>
+        /// <returns>ç™¾åˆ†æ¯”å­—ç¬¦ä¸²ï¼Œå¦‚"50.000%"ï¼Œè‹¥è¾“å…¥ä¸ºNaNåˆ™è¿”å›"NaN"</returns>
         public static string DoubleToPercent(double num)
         {
             if (double.IsNaN(num))
@@ -459,10 +508,10 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ½«×Ö·û´®ÖĞµÄ·Ç·¨ÎÄ¼şÃû×Ö·ûÌæ»»ÎªÏÂ»®Ïß
+        /// å°†å­—ç¬¦ä¸²ä¸­çš„éæ³•æ–‡ä»¶åå­—ç¬¦æ›¿æ¢ä¸ºä¸‹åˆ’çº¿
         /// </summary>
-        /// <param name="folderName">Ô­Ê¼ÎÄ¼ş¼ĞÃû³Æ</param>
-        /// <returns>´¦ÀíºóµÄºÏ·¨ÎÄ¼ş¼ĞÃû³Æ</returns>
+        /// <param name="folderName">åŸå§‹æ–‡ä»¶å¤¹åç§°</param>
+        /// <returns>å¤„ç†åçš„åˆæ³•æ–‡ä»¶å¤¹åç§°</returns>
         public static string GetValidFolderName(string folderName)
         {
             if (string.IsNullOrEmpty(folderName)) return folderName;
@@ -482,31 +531,31 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ´ÓÎÄ¼şÂ·¾¶¼ÓÔØJSONC²¢·´ĞòÁĞ»¯ÎªÖ¸¶¨ÀàĞÍ£¨×Ô¶¯Ìø¹ı×¢ÊÍ£©
+        /// ä»æ–‡ä»¶è·¯å¾„åŠ è½½JSONCå¹¶ååºåˆ—åŒ–ä¸ºæŒ‡å®šç±»å‹ï¼ˆè‡ªåŠ¨è·³è¿‡æ³¨é‡Šï¼‰
         /// </summary>
-        /// <typeparam name="T">Ä¿±êÀàĞÍ</typeparam>
-        /// <param name="filepath">ÎÄ¼şÂ·¾¶</param>
-        /// <returns>·´ĞòÁĞ»¯ºóµÄ¶ÔÏó</returns>
+        /// <typeparam name="T">ç›®æ ‡ç±»å‹</typeparam>
+        /// <param name="filepath">æ–‡ä»¶è·¯å¾„</param>
+        /// <returns>ååºåˆ—åŒ–åçš„å¯¹è±¡</returns>
         public static T LoadJsonCFromPath<T>(string filepath)
         {
             var configJsoncContent = File.ReadAllText(filepath);
             return JsonSerializer.Deserialize<T>(configJsoncContent, new JsonSerializerOptions
             {
-                ReadCommentHandling = JsonCommentHandling.Skip // ÆôÓÃ×¢ÊÍ½âÎö
+                ReadCommentHandling = JsonCommentHandling.Skip // å¯ç”¨æ³¨é‡Šè§£æ
             });
         }
 
         /// <summary>
-        /// ´ÓJSONC×Ö·û´®·´ĞòÁĞ»¯ÎªÖ¸¶¨ÀàĞÍ£¨×Ô¶¯Ìø¹ı×¢ÊÍ£©
+        /// ä»JSONCå­—ç¬¦ä¸²ååºåˆ—åŒ–ä¸ºæŒ‡å®šç±»å‹ï¼ˆè‡ªåŠ¨è·³è¿‡æ³¨é‡Šï¼‰
         /// </summary>
-        /// <typeparam name="T">Ä¿±êÀàĞÍ</typeparam>
-        /// <param name="content">JSONC×Ö·û´®ÄÚÈİ</param>
-        /// <returns>·´ĞòÁĞ»¯ºóµÄ¶ÔÏó</returns>
+        /// <typeparam name="T">ç›®æ ‡ç±»å‹</typeparam>
+        /// <param name="content">JSONCå­—ç¬¦ä¸²å†…å®¹</param>
+        /// <returns>ååºåˆ—åŒ–åçš„å¯¹è±¡</returns>
         public static T LoadJsonC<T>(string content)
         {
             return JsonSerializer.Deserialize<T>(content, new JsonSerializerOptions
             {
-                ReadCommentHandling = JsonCommentHandling.Skip // ÆôÓÃ×¢ÊÍ½âÎö
+                ReadCommentHandling = JsonCommentHandling.Skip // å¯ç”¨æ³¨é‡Šè§£æ
             });
         }
     }

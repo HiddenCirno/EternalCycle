@@ -1,4 +1,4 @@
-using HarmonyLib;
+ï»¿using HarmonyLib;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Enums;
@@ -9,15 +9,15 @@ using Path = System.IO.Path;
 namespace EternalCycleServer
 {
     /// <summary>
-    /// ¶ÔÈÎÎñ½øĞĞ²Ù×÷´¦ÀíµÄ¹¤¾ßÀà
+    /// å¯¹ä»»åŠ¡è¿›è¡Œæ“ä½œå¤„ç†çš„å·¥å…·ç±»
     /// </summary>
     public static class QuestUtils
     {
-        //»º´æÈÎÎñÌõ¼ş×Öµä
+        //ç¼“å­˜ä»»åŠ¡æ¡ä»¶å­—å…¸
         public static Dictionary<EQuestConditionsTypeCache, QuestCondition> cacheConditions = new Dictionary<EQuestConditionsTypeCache, QuestCondition>();
         public static Dictionary<EQuestCountersCacheType, QuestConditionCounterCondition> cacheCounters = new Dictionary<EQuestCountersCacheType, QuestConditionCounterCondition>();
 
-        //ÎªÈÎÎñÌõ¼şÖØ¶¨ÒåµÄÃ¶¾ÙÀà, ×÷Îª×ÖµäË÷Òı
+        //ä¸ºä»»åŠ¡æ¡ä»¶é‡å®šä¹‰çš„æšä¸¾ç±», ä½œä¸ºå­—å…¸ç´¢å¼•
         public enum EQuestConditionsTypeCache
         {
             FindItem,
@@ -51,10 +51,10 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ´ÓÊı¾İ¿â·µ»ØÒ»¸öÈÎÎñµÄÒıÓÃ
+        /// ä»æ•°æ®åº“è¿”å›ä¸€ä¸ªä»»åŠ¡çš„å¼•ç”¨
         /// </summary>
-        /// <param name="questid">ÈÎÎñID</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="questid">ä»»åŠ¡ID</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         /// <returns></returns>
         public static Quest? GetQuest(string questid, LoadModContext context)
         {
@@ -66,10 +66,10 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ´ÓĞòÁĞ»¯¶ÔÏó¼ÓÔØÈÎÎñ
+        /// ä»åºåˆ—åŒ–å¯¹è±¡åŠ è½½ä»»åŠ¡
         /// </summary>
-        /// <param name="questData">ÈÎÎñÊı¾İ</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="questData">ä»»åŠ¡æ•°æ®</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         public static void InitQuestData(Dictionary<string, CustomQuest> questData, string modpath, string respath, LoadModContext context)
         {
             foreach (var customquest in questData)
@@ -79,10 +79,10 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ´ÓÖ¸¶¨Ä¿Â¼¼ÓÔØÈÎÎñ
+        /// ä»æŒ‡å®šç›®å½•åŠ è½½ä»»åŠ¡
         /// </summary>
-        /// <param name="folderpath">ÎÄ¼ş¼ĞÂ·¾¶</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="folderpath">æ–‡ä»¶å¤¹è·¯å¾„</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         public static void InitQuestData(string modpath, string folderpath, string respath, LoadModContext context)
         {
             var correctpath = System.IO.Path.Combine(modpath, folderpath);
@@ -100,31 +100,31 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ´Ó×Ô¶¨Òå½á¹¹ĞòÁĞ»¯ÍêÕûÈÎÎñÊı¾İ
+        /// ä»è‡ªå®šä¹‰ç»“æ„åºåˆ—åŒ–å®Œæ•´ä»»åŠ¡æ•°æ®
         /// </summary>
-        /// <param name="customQuest">×Ô¶¨ÒåÈÎÎñÊı¾İ</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="customQuest">è‡ªå®šä¹‰ä»»åŠ¡æ•°æ®</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         public static void InitQuest(CustomQuest customQuest, string modpath, string respath, LoadModContext context)
         {
             var questid = customQuest.QuestId;
-            //¶ÌÈ±
+            //çŸ­ç¼º
             var pattern = GetQuest(QuestTpl.SHORTAGE, context);
-            if (pattern == null) return; //ÔõÃ´¿ÉÄÜÄØ?
+            if (pattern == null) return; //æ€ä¹ˆå¯èƒ½å‘¢?
             Quest? questPattern = context.Cloner.Clone(pattern);
-            if (questPattern == null) return; //Éñ¾­²¡....
-                                              //°¥ÎÒÄáÂêµÄ²»¸ÄÁË, ·À¿Õ·À¿ÕÊ®·À¾Å¿Õ, ÎÒ·ÀÄãÂè, ±¨´íÀ­µ¹
-                                              //Çå¿ÕÈÎÎñÊı¾İ
+            if (questPattern == null) return; //ç¥ç»ç—…....
+                                              //å“æˆ‘å°¼ç›çš„ä¸æ”¹äº†, é˜²ç©ºé˜²ç©ºåé˜²ä¹ç©º, æˆ‘é˜²ä½ å¦ˆ, æŠ¥é”™æ‹‰å€’
+                                              //æ¸…ç©ºä»»åŠ¡æ•°æ®
             questPattern.Conditions.AvailableForStart.Clear();
             questPattern.Conditions.AvailableForFinish.Clear();
             questPattern.Conditions.Fail.Clear();
-            //Çå¿Õ²¢ÖØ½¨ÈÎÎñ½±Àø
+            //æ¸…ç©ºå¹¶é‡å»ºä»»åŠ¡å¥–åŠ±
             questPattern.Rewards = new Dictionary<string, List<Reward>>
             {
                 ["Started"] = new List<Reward>(),
                 ["Success"] = new List<Reward>(),
                 ["Fail"] = new List<Reward>(),
             };
-            //¸²¸ÇÈÎÎñ»ù´¡Êı¾İ
+            //è¦†ç›–ä»»åŠ¡åŸºç¡€æ•°æ®
             questPattern.Type = (QuestTypeEnum)customQuest.QuestType;
             questPattern.AcceptPlayerMessage = $"{questid} acceptPlayerMessage";
             questPattern.ChangeQuestMessageText = $"{questid} changeQuestMessageText";
@@ -144,11 +144,11 @@ namespace EternalCycleServer
             questPattern.Restartable = customQuest.IsRestartableQuest;
             //InitQuestConditions(questPattern.Conditions.AvailableForFinish, customQuest.QuestConditions.QuestFinishData, context);
             //InitQuestConditions(questPattern.Conditions.Fail, customQuest.QuestConditions.QuestFailedData, context);
-            //ÁÙÊ±
+            //ä¸´æ—¶
             context.DB.GetQuests().TryAdd(questid, questPattern);
             ImageUtils.RegisterQuestRoute(questPattern.Image, Path.Combine(modpath, respath), context.ImageRouter);
-            //ÎªÁËÍê³ÉÔ­°æ¼æÈİ, ½±Àø¶¨ÒåÓĞÈÎÎñID, ±ØĞëÔÚÈÎÎñ³õÊ¼»¯ºóÌí¼Ó
-            //Ó¦¸Ã¿ÉÒÔÖØÔØ
+            //ä¸ºäº†å®ŒæˆåŸç‰ˆå…¼å®¹, å¥–åŠ±å®šä¹‰æœ‰ä»»åŠ¡ID, å¿…é¡»åœ¨ä»»åŠ¡åˆå§‹åŒ–åæ·»åŠ 
+            //åº”è¯¥å¯ä»¥é‡è½½
             EventManager.DataLoadEvent.LoadQuestDataEvent += (eventContext) =>
             {
                 try
@@ -159,7 +159,7 @@ namespace EternalCycleServer
                 }
                 catch (Exception ex)
                 {
-                    EventManager.EventLogger.Error($"×¢ÈëÈÎÎñÊı¾İ²ãÊ±·¢ÉúÒì³££º{questid}", ex);
+                    EventManager.EventLogger.Error($"æ³¨å…¥ä»»åŠ¡æ•°æ®å±‚æ—¶å‘ç”Ÿå¼‚å¸¸ï¼š{questid}", ex);
                 }
             };
             EventManager.DataLoadEvent.LoadQuestRewardEvent += (eventContext) =>
@@ -170,17 +170,17 @@ namespace EternalCycleServer
                 }
                 catch (Exception ex)
                 {
-                    EventManager.EventLogger.Error($"×¢ÈëÈÎÎñÊı¾İ²ãÊ±·¢ÉúÒì³££º{questid}", ex);
+                    EventManager.EventLogger.Error($"æ³¨å…¥ä»»åŠ¡æ•°æ®å±‚æ—¶å‘ç”Ÿå¼‚å¸¸ï¼š{questid}", ex);
                 }
             };
         }
 
         /// <summary>
-        /// ¼ÓÔØÈÎÎñÊı¾İ
+        /// åŠ è½½ä»»åŠ¡æ•°æ®
         /// </summary>
-        /// <param name="conditions">Ä¿±êÁĞ±í</param>
-        /// <param name="customquestdata">×Ô¶¨ÒåÈÎÎñ¶ÔÏóÁĞ±í</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="conditions">ç›®æ ‡åˆ—è¡¨</param>
+        /// <param name="customquestdata">è‡ªå®šä¹‰ä»»åŠ¡å¯¹è±¡åˆ—è¡¨</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         public static void InitQuestConditions(List<QuestCondition> conditions, List<CustomQuestData> customquestdata, LoadModContext context)
         {
             var zhCNLang = context.DB.GetLocales().Global["ch"];
@@ -305,11 +305,11 @@ namespace EternalCycleServer
                         break;
                     default:
                         {
-                            //VulcanLog.Warn($"·¢ÏÖÎ´´¦ÀíµÄÈÎÎñÊôĞÔ({data.Id})! ", logger);
+                            //VulcanLog.Warn($"å‘ç°æœªå¤„ç†çš„ä»»åŠ¡å±æ€§({data.Id})! ", logger);
                         }
                         break;
                 }
-                //×Ô¶¯±¾µØ»¯
+                //è‡ªåŠ¨æœ¬åœ°åŒ–
                 if (data.Locale != null)
                 {
                     zhCNLang.AddTransformer(lang =>
@@ -322,63 +322,97 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ½«×Ô¶¨ÒåÈÎÎñ×¢²áµ½¼ÓÔØÊÂ¼ş
+        /// å°†è‡ªå®šä¹‰ä»»åŠ¡æ³¨å†Œåˆ°åŠ è½½äº‹ä»¶
         /// </summary>
-        /// <param name="path">Ö¸¶¨µÄ´æ·ÅÈÎÎñÎÄ¼şµÄÂ·¾¶»òÍêÕûµÄÈÎÎñÎÄ¼şÂ·¾¶</param>
-        /// <param name="creator">´´½¨Õß</param>
-        /// <param name="modname">ModÃû</param>
+        /// <param name="path">æŒ‡å®šçš„å­˜æ”¾ä»»åŠ¡æ–‡ä»¶çš„è·¯å¾„æˆ–å®Œæ•´çš„ä»»åŠ¡æ–‡ä»¶è·¯å¾„</param>
+        /// <param name="creator">åˆ›å»ºè€…</param>
+        /// <param name="modname">Modå</param>
         public static void RegisterQuest(string modpath, string path, string respath)
         {
             var correctpath = System.IO.Path.Combine(modpath, path);
-            // ÎÄ¼ş¼Ğ¼ÓÔØÄ£Ê½
+            // æ–‡ä»¶å¤¹åŠ è½½æ¨¡å¼
             if (Directory.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadQuestEvent += (context) =>
                 {
                     try
                     {
-                        // ¶ÔÓ¦µ÷ÓÃÒÑÓĞµÄÎÄ¼ş¼ĞÖØÔØ·½·¨
+                        // å¯¹åº”è°ƒç”¨å·²æœ‰çš„æ–‡ä»¶å¤¹é‡è½½æ–¹æ³•
                         InitQuestData(modpath, path, respath, context);
-                        //EventManager.EventLogger.Info($"[{modname}] {creator} µÄÈÎÎñÄ£¿é(ÎÄ¼ş¼Ğ)×¢²á³É¹¦");
+                        //EventManager.EventLogger.Info($"[{modname}] {creator} çš„ä»»åŠ¡æ¨¡å—(æ–‡ä»¶å¤¹)æ³¨å†ŒæˆåŠŸ");
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²áÈÎÎñÊ±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş¼Ğ {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œä»»åŠ¡æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶å¤¹ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
-            // µ¥ÎÄ¼ş¼ÓÔØÄ£Ê½
+            // å•æ–‡ä»¶åŠ è½½æ¨¡å¼
             else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadQuestEvent += (context) =>
                 {
                     try
                     {
-                        // ·´ĞòÁĞ»¯Îª×Öµä×Öµä£¬¶ÔÓ¦ÒÑÓĞµÄ Dictionary ÖØÔØ·½·¨
+                        // ååºåˆ—åŒ–ä¸ºå­—å…¸å­—å…¸ï¼Œå¯¹åº”å·²æœ‰çš„ Dictionary é‡è½½æ–¹æ³•
                         var questData = context.JsonUtil.Deserialize<Dictionary<string, CustomQuest>>(File.ReadAllText(correctpath));
                         InitQuestData(questData, modpath, respath, context);
 
-                        //EventManager.EventLogger.Info($"[{modname}] {creator} µÄÈÎÎñÄ£¿é(µ¥ÎÄ¼ş)×¢²á³É¹¦");
+                        //EventManager.EventLogger.Info($"[{modname}] {creator} çš„ä»»åŠ¡æ¨¡å—(å•æ–‡ä»¶)æ³¨å†ŒæˆåŠŸ");
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²áÈÎÎñÊ±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œä»»åŠ¡æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"×¢²áÈÎÎñÊ±·¢ÉúÒì³££ºÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş»òÎÄ¼ş¼Ğ {correctpath}");
+                EventManager.EventLogger.Warn($"æ³¨å†Œä»»åŠ¡æ—¶å‘ç”Ÿå¼‚å¸¸ï¼šæ‰¾ä¸åˆ°æŒ‡å®šçš„æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹ {correctpath}");
             }
         }
 
         /// <summary>
-        /// »ñÈ¡ÈÎÎñÌõ¼şµÄ¹¤¾ß·½·¨
+        /// è·å–ä»»åŠ¡æ¡ä»¶çš„å·¥å…·æ–¹æ³•
         /// </summary>
-        /// <param name="cacheType">Ìõ¼şÀàĞÍÃ¶¾Ù</param>
-        /// <param name="conditionTypeStr">Ìõ¼şÀàĞÍ</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
-        /// <returns>·µ»ØÒ»¸öÈÎÎñÌõ¼şÄ£°å</returns>
+        /// <param name="cacheType">æ¡ä»¶ç±»å‹æšä¸¾</param>
+        /// <param name="conditionTypeStr">æ¡ä»¶ç±»å‹</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
+        /// <returns>è¿”å›ä¸€ä¸ªä»»åŠ¡æ¡ä»¶æ¨¡æ¿</returns>
+        /// <summary>
+        /// æŠŠè‡ªå®šä¹‰æ•°æ®é‡Œçš„å•æ•° / å¤æ•°åŒºåŸŸ ID å½’ä¸€åŒ–è¿›æ¡ä»¶çš„ zoneIdsã€‚
+        ///
+        /// æ³¨æ„ï¼šå¿…é¡»å…ˆæ¸…ç©ºã€‚æ¡ä»¶æ˜¯å…ˆä» SPT çš„åŸç‰ˆæ¨¡æ¿ Clone å‡ºæ¥çš„ï¼Œè€ŒåŸç‰ˆæ¨¡æ¿è‡ªå¸¦ zoneIds
+        ///   â€”â€” ä¾‹å¦‚ PlaceBeacon æ¨¡æ¿å¸¦ç€ place_peacemaker_007_2_N2ã€‚
+        ///   åªè¿½åŠ ä¸æ¸…ç©ºçš„è¯ï¼Œæˆ‘ä»¬çš„æ¡ä»¶ä¼šè¿åŸç‰ˆé‚£ä¸ªåŒºåŸŸä¸€èµ·åŒ¹é…ä¸Šã€‚
+        ///
+        /// å•æ•°ï¼ˆzoneidï¼‰ä¸å¤æ•°ï¼ˆzoneidsï¼‰ä¸¤ç§å†™æ³•éƒ½æ”¶ï¼Œåˆå¹¶å»é‡åç»Ÿä¸€å†™è¿› ZoneIdsï¼›
+        /// å•æ•°å­—æ®µè¡¥ä¸Šç¬¬ä¸€ä¸ªå€¼ï¼Œä¿è¯ä¸¤ç§è¯»æ³•éƒ½æ‹¿å¾—åˆ°ï¼ˆå¹‚ç­‰ï¼Œæ— å‰¯ä½œç”¨ï¼‰ã€‚
+        /// </summary>
+        public static QuestCondition ApplyZoneIds(this QuestCondition condition, string singular, List<string> plural)
+        {
+            condition.ZoneIds = new List<string>();
+
+            if (!string.IsNullOrEmpty(singular))
+            {
+                condition.ZoneIds.Add(singular);
+            }
+
+            if (plural != null)
+            {
+                foreach (var zone in plural)
+                {
+                    if (!string.IsNullOrEmpty(zone) && !condition.ZoneIds.Contains(zone))
+                    {
+                        condition.ZoneIds.Add(zone);
+                    }
+                }
+            }
+
+            condition.ZoneId = condition.ZoneIds.Count > 0 ? condition.ZoneIds[0] : null;
+            return condition;
+        }
+
         public static QuestCondition GetConditionTemplate(EQuestConditionsTypeCache cacheType, string conditionTypeStr, LoadModContext context)
         {
             if (cacheConditions.TryGetValue(cacheType, out var condition) && condition != null)
@@ -393,12 +427,12 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// »ñÈ¡ÈÎÎñ×ÓÌõ¼şµÄ¹¤¾ß·½·¨
+        /// è·å–ä»»åŠ¡å­æ¡ä»¶çš„å·¥å…·æ–¹æ³•
         /// </summary>
-        /// <param name="cacheType">×ÓÌõ¼şÀàĞÍÃ¶¾Ù</param>
-        /// <param name="conditionTypeStr">×ÓÌõ¼şÀàĞÍ</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
-        /// <returns>·µ»ØÒ»¸öÈÎÎñ×ÓÌõ¼şÄ£°å</returns>
+        /// <param name="cacheType">å­æ¡ä»¶ç±»å‹æšä¸¾</param>
+        /// <param name="conditionTypeStr">å­æ¡ä»¶ç±»å‹</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
+        /// <returns>è¿”å›ä¸€ä¸ªä»»åŠ¡å­æ¡ä»¶æ¨¡æ¿</returns>
         public static QuestConditionCounterCondition GetCounterConditionTemplate(EQuestCountersCacheType cacheType, string conditionTypeStr, LoadModContext context)
         {
             if (cacheCounters.TryGetValue(cacheType, out var condition) && condition != null)
@@ -415,7 +449,7 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ÍØÕ¹·½·¨, ¶¨ÒåÈÎÎñ»ù´¡Êı¾İ, ID, ¿ÉÑ¡, ¿É¼ûĞÔ, ÄÚÖÃ±¾µØ»¯
+        /// æ‹“å±•æ–¹æ³•, å®šä¹‰ä»»åŠ¡åŸºç¡€æ•°æ®, ID, å¯é€‰, å¯è§æ€§, å†…ç½®æœ¬åœ°åŒ–
         /// </summary>
         /// <param name="conditon"></param>
         /// <param name="questData"></param>
@@ -428,9 +462,9 @@ namespace EternalCycleServer
             conditon?.VisibilityConditions?.Clear();
             if (questData.ParentVisible != null && questData.ParentVisible.Count>0)
             {
-                //ÄãÎªÊ²Ã´ÊÇ¸öÊı×é??
-                //ÕâÍæÒâ¶ùÄÑµÀ»¹Ö§³ÖÍØÕ¹??
-                //ÎÒchovy, ÕæÖ§³Ö
+                //ä½ ä¸ºä»€ä¹ˆæ˜¯ä¸ªæ•°ç»„??
+                //è¿™ç©æ„å„¿éš¾é“è¿˜æ”¯æŒæ‹“å±•??
+                //æˆ‘chovy, çœŸæ”¯æŒ
                 //rnm
                 conditon.VisibilityConditions = new List<VisibilityCondition>();
                 foreach (var visible in questData.ParentVisible)
@@ -464,25 +498,25 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ´¦ÀíÑ°ÕÒÎïÆ·ÈÎÎñÌõ¼şµÄ¹¤¾ß·½·¨
+        /// å¤„ç†å¯»æ‰¾ç‰©å“ä»»åŠ¡æ¡ä»¶çš„å·¥å…·æ–¹æ³•
         /// </summary>
-        /// <param name="conditions">Ä¿±êÁĞ±í</param>
-        /// <param name="findItemData">×Ô¶¨ÒåÈÎÎñÊı¾İ</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="conditions">ç›®æ ‡åˆ—è¡¨</param>
+        /// <param name="findItemData">è‡ªå®šä¹‰ä»»åŠ¡æ•°æ®</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         public static void InitFindItemDataConditions(List<QuestCondition> conditions, FindItemData findItemData, LoadModContext context)
         {
             var zhCNLang = context.DB.GetLocales().Global["ch"];
-            //»º´æÒıÓÃ, ÕâÀï²»¿ÉÄÜ¿Õ, ÂÌ¾ÍÂÌ°É, ÎŞËùÎ½ÁË
+            //ç¼“å­˜å¼•ç”¨, è¿™é‡Œä¸å¯èƒ½ç©º, ç»¿å°±ç»¿å§, æ— æ‰€è°“äº†
             var condition = GetConditionTemplate(EQuestConditionsTypeCache.FindItem, "FindItem", context);
             if (condition == null) return;
-            //¸´ÖÆÒıÓÃ
+            //å¤åˆ¶å¼•ç”¨
             var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(findItemData, context);
             copycondition.OnlyFoundInRaid = findItemData.FindInRaid;
             copycondition.Index = conditions.Count;
-            //ÕâÀï¿Ï¶¨ÊÇList, Ö±½Ó²Ù×÷
+            //è¿™é‡Œè‚¯å®šæ˜¯List, ç›´æ¥æ“ä½œ
             copycondition.Target.List.Clear();
             copycondition.Target.List.Add(findItemData.ItemId);
-            //Äá»ùËşĞ¡Ê±ºò´ÓÍâÃæ¼ñµ½3.1415926Æ¿¿óÈªË®
+            //å°¼åŸºå¡”å°æ—¶å€™ä»å¤–é¢æ¡åˆ°3.1415926ç“¶çŸ¿æ³‰æ°´
             copycondition.Value = (double)findItemData.Count;
             if (findItemData.DogTagLevel != null)
             {
@@ -490,25 +524,25 @@ namespace EternalCycleServer
             }
             copycondition.MinDurability = findItemData.ItemDurability[0];
             copycondition.MaxDurability = findItemData.ItemDurability[1];
-            //¼ÓÈë
+            //åŠ å…¥
             conditions.Add(copycondition);
-            //×Ô¶¯±¾µØ»¯
+            //è‡ªåŠ¨æœ¬åœ°åŒ–
             if (findItemData.AutoLocale != null && findItemData.AutoLocale == true)
             {
                 zhCNLang.AddTransformer(lang =>
                 {
-                    lang[$"{findItemData.Id}"] = $"ÔÚÕ½¾ÖÖĞÕÒµ½{lang[$"{findItemData.ItemId} Name"]}";
+                    lang[$"{findItemData.Id}"] = $"åœ¨æˆ˜å±€ä¸­æ‰¾åˆ°{lang[$"{findItemData.ItemId} Name"]}";
                     return lang;
                 });
             }
         }
 
         /// <summary>
-        /// ´¦ÀíÑ°ÕÒÎïÆ·×éÈÎÎñÌõ¼şµÄ¹¤¾ß·½·¨
+        /// å¤„ç†å¯»æ‰¾ç‰©å“ç»„ä»»åŠ¡æ¡ä»¶çš„å·¥å…·æ–¹æ³•
         /// </summary>
-        /// <param name="conditions">Ä¿±êÁĞ±í</param>
-        /// <param name="findItemData">×Ô¶¨ÒåÈÎÎñÊı¾İ</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="conditions">ç›®æ ‡åˆ—è¡¨</param>
+        /// <param name="findItemData">è‡ªå®šä¹‰ä»»åŠ¡æ•°æ®</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         public static void InitFindItemGroupDataConditions(List<QuestCondition> conditions, FindItemGroupData findItemData, LoadModContext context)
         {
             var condition = GetConditionTemplate(EQuestConditionsTypeCache.FindItem, "FindItem", context);
@@ -529,11 +563,11 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ´¦ÀíÉÏ½»ÎïÆ·ÈÎÎñÌõ¼şµÄ¹¤¾ß·½·¨
+        /// å¤„ç†ä¸Šäº¤ç‰©å“ä»»åŠ¡æ¡ä»¶çš„å·¥å…·æ–¹æ³•
         /// </summary>
-        /// <param name="conditions">Ä¿±êÁĞ±í</param>
-        /// <param name="handItemData">×Ô¶¨ÒåÈÎÎñÊı¾İ</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="conditions">ç›®æ ‡åˆ—è¡¨</param>
+        /// <param name="handItemData">è‡ªå®šä¹‰ä»»åŠ¡æ•°æ®</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         public static void InitHandoverItemDataConditions(List<QuestCondition> conditions, HandoverItemData handItemData, LoadModContext context)
         {
             var condition = GetConditionTemplate(EQuestConditionsTypeCache.HandoverItem, "HandoverItem", context);
@@ -556,18 +590,18 @@ namespace EternalCycleServer
             {
                 zhCNLang.AddTransformer(lang =>
                 {
-                    lang[$"{handItemData.Id}"] = $"ÉÏ½»ÔÚÕ½¾ÖÖĞÕÒµ½µÄ{lang[$"{handItemData.ItemId} Name"]}";
+                    lang[$"{handItemData.Id}"] = $"ä¸Šäº¤åœ¨æˆ˜å±€ä¸­æ‰¾åˆ°çš„{lang[$"{handItemData.ItemId} Name"]}";
                     return lang;
                 });
             }
         }
 
         /// <summary>
-        /// ´¦ÀíÉÏ½»ÎïÆ·×éÈÎÎñÌõ¼şµÄ¹¤¾ß·½·¨
+        /// å¤„ç†ä¸Šäº¤ç‰©å“ç»„ä»»åŠ¡æ¡ä»¶çš„å·¥å…·æ–¹æ³•
         /// </summary>
-        /// <param name="conditions">Ä¿±êÁĞ±í</param>
-        /// <param name="handItemData">×Ô¶¨ÒåÈÎÎñÊı¾İ</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="conditions">ç›®æ ‡åˆ—è¡¨</param>
+        /// <param name="handItemData">è‡ªå®šä¹‰ä»»åŠ¡æ•°æ®</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         public static void InitHandoverItemGroupDataConditions(List<QuestCondition> conditions, HandoverItemGroupData handItemData, LoadModContext context)
         {
             var condition = GetConditionTemplate(EQuestConditionsTypeCache.HandoverItem, "HandoverItem", context);
@@ -589,14 +623,14 @@ namespace EternalCycleServer
 
 
         /// <summary>
-        /// ´¦Àí»÷É±ÈÎÎñÌõ¼şµÄ¹¤¾ß·½·¨
+        /// å¤„ç†å‡»æ€ä»»åŠ¡æ¡ä»¶çš„å·¥å…·æ–¹æ³•
         /// </summary>
-        /// <param name="conditions">Ä¿±êÁĞ±í</param>
-        /// <param name="killTargetData">×Ô¶¨ÒåÈÎÎñÊı¾İ</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="conditions">ç›®æ ‡åˆ—è¡¨</param>
+        /// <param name="killTargetData">è‡ªå®šä¹‰ä»»åŠ¡æ•°æ®</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         public static void InitKillTargetDataConditions(List<QuestCondition> conditions, KillTargetData killTargetData, LoadModContext context, bool isKill = true)
         {
-            //¶àÁËÒ»²ãËùÒÔ²»ÊÊÓÃ·½·¨
+            //å¤šäº†ä¸€å±‚æ‰€ä»¥ä¸é€‚ç”¨æ–¹æ³•
             cacheConditions.TryGetValue(EQuestConditionsTypeCache.Elimination, out var condition);
             if (condition == null)
             {
@@ -617,9 +651,9 @@ namespace EternalCycleServer
             var equiptargets = GetCounterConditionTemplate(EQuestCountersCacheType.Equipment, "Equipment", context);
             var zonetargets = GetCounterConditionTemplate(EQuestCountersCacheType.InZone, "InZone", context);
 
-            //ĞèÒªĞÂÔö×°±¸ĞèÇó
-            //ÕâÍæÒâ¶¨ÒåºÃÈõÖÇ
-            //²İÁË, »¹ĞèÒªweaponmod½âÎö
+            //éœ€è¦æ–°å¢è£…å¤‡éœ€æ±‚
+            //è¿™ç©æ„å®šä¹‰å¥½å¼±æ™º
+            //è‰äº†, è¿˜éœ€è¦weaponmodè§£æ
             if (killtargets != null)
             {
                 var copytargets = context.Cloner.Clone(killtargets);
@@ -638,9 +672,9 @@ namespace EternalCycleServer
                 copytargets.Id = $"{killTargetData.Id}_KillsCounter".ConvertHashID();
                 if (killTargetData.EnemyEquipmentList.Count > 0)
                 {
-                    //Íò¶ñµÄIEnumerable
-                    //ÕâÀïÎªÉ¶²»Ö±½ÓÓÃĞÂÔªËØ¸²¸ÇàÏ?
-                    //²»¶Ô, ÎÒÔÚ¸ÉÉ¶°¡
+                    //ä¸‡æ¶çš„IEnumerable
+                    //è¿™é‡Œä¸ºå•¥ä¸ç›´æ¥ç”¨æ–°å…ƒç´ è¦†ç›–å˜?
+                    //ä¸å¯¹, æˆ‘åœ¨å¹²å•¥å•Š
                     copytargets.EnemyEquipmentInclusive = new List<List<string>>();
                     foreach (List<string> itemarray in killTargetData.EnemyEquipmentList)
                     {
@@ -649,7 +683,7 @@ namespace EternalCycleServer
                         {
                             addedarray.Add(item.ConvertHashID());
                         }
-                        copytargets.EnemyEquipmentInclusive.AddItem(addedarray); // Ìí¼ÓĞÂÔªËØ
+                        copytargets.EnemyEquipmentInclusive.AddItem(addedarray); // æ·»åŠ æ–°å…ƒç´ 
                     }
                 }
                 copytargets.Weapon = new List<string>().GenerateFromTag(killTargetData.WeaponList, killTargetData.UseTag, context).ToHashSet();
@@ -689,7 +723,7 @@ namespace EternalCycleServer
                 }
                 copycondition.Counter.Conditions.Add(copytargets);
             }
-            //ÍêÊÂ
+            //å®Œäº‹
             if (equiptargets != null && killTargetData.EquipmentList.Count > 0)
             {
                 var count = killTargetData.EquipmentList.Count;
@@ -710,7 +744,7 @@ namespace EternalCycleServer
                     copycondition.Counter.Conditions.Add(copytargets);
                 }
             }
-            //ÇøÓò»÷É±
+            //åŒºåŸŸå‡»æ€
             if (zonetargets != null && killTargetData.ZoneList.Count > 0)
             {
                 var copytargets = context.Cloner.Clone(zonetargets);
@@ -728,11 +762,11 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ´¦Àí´ïµ½µÈ¼¶Ìõ¼şµÄ¹¤¾ß·½·¨
+        /// å¤„ç†è¾¾åˆ°ç­‰çº§æ¡ä»¶çš„å·¥å…·æ–¹æ³•
         /// </summary>
-        /// <param name="conditions">Ä¿±êÁĞ±í</param>
-        /// <param name="reachLevelData">×Ô¶¨ÒåÈÎÎñÊı¾İ</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="conditions">ç›®æ ‡åˆ—è¡¨</param>
+        /// <param name="reachLevelData">è‡ªå®šä¹‰ä»»åŠ¡æ•°æ®</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         public static void InitReachLevelDataConditions(List<QuestCondition> conditions, ReachLevelData reachLevelData, LoadModContext context)
         {
             var condition = context.DB.GetQuests()
@@ -751,11 +785,11 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ´¦Àí´ïµ½×ªÉúµÈ¼¶Ìõ¼şµÄ¹¤¾ß·½·¨
+        /// å¤„ç†è¾¾åˆ°è½¬ç”Ÿç­‰çº§æ¡ä»¶çš„å·¥å…·æ–¹æ³•
         /// </summary>
-        /// <param name="conditions">Ä¿±êÁĞ±í</param>
-        /// <param name="reachPrestigeLevelData">×Ô¶¨ÒåÈÎÎñÊı¾İ</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="conditions">ç›®æ ‡åˆ—è¡¨</param>
+        /// <param name="reachPrestigeLevelData">è‡ªå®šä¹‰ä»»åŠ¡æ•°æ®</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         public static void InitReachPrestigeLevelDataConditions(List<QuestCondition> conditions, ReachPrestigeLevelData reachPrestigeLevelData, LoadModContext context)
         {
             var condition = context.DB.GetQuests()
@@ -771,11 +805,11 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ´¦Àí·ÃÎÊµØµãÌõ¼şµÄ¹¤¾ß·½·¨
+        /// å¤„ç†è®¿é—®åœ°ç‚¹æ¡ä»¶çš„å·¥å…·æ–¹æ³•
         /// </summary>
-        /// <param name="conditions">Ä¿±êÁĞ±í</param>
-        /// <param name="visitPlaceData">×Ô¶¨ÒåÈÎÎñÊı¾İ</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="conditions">ç›®æ ‡åˆ—è¡¨</param>
+        /// <param name="visitPlaceData">è‡ªå®šä¹‰ä»»åŠ¡æ•°æ®</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         public static void InitVisitPlaceDataConditions(List<QuestCondition> conditions, VisitPlaceData visitPlaceData, LoadModContext context)
         {
             cacheConditions.TryGetValue(EQuestConditionsTypeCache.Completion, out var condition);
@@ -805,11 +839,11 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ´¦ÀíÔÚÖ¸¶¨µØµã°²·ÅÎïÆ·Ìõ¼şµÄ¹¤¾ß·½·¨
+        /// å¤„ç†åœ¨æŒ‡å®šåœ°ç‚¹å®‰æ”¾ç‰©å“æ¡ä»¶çš„å·¥å…·æ–¹æ³•
         /// </summary>
-        /// <param name="conditions">Ä¿±êÁĞ±í</param>
-        /// <param name="placeItemData">×Ô¶¨ÒåÈÎÎñÊı¾İ</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="conditions">ç›®æ ‡åˆ—è¡¨</param>
+        /// <param name="placeItemData">è‡ªå®šä¹‰ä»»åŠ¡æ•°æ®</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         public static void InitPlaceItemDataConditions(List<QuestCondition> conditions, PlaceItemData placeItemData, LoadModContext context)
         {
             var condition = GetConditionTemplate(EQuestConditionsTypeCache.LeaveItemAtLocation, "LeaveItemAtLocation", context);
@@ -820,18 +854,19 @@ namespace EternalCycleServer
             copycondition.Target.List.Add(placeItemData.ItemId);
             copycondition.Value = (double)placeItemData.Count;
             copycondition.PlantTime = (double)placeItemData.Time;
-            copycondition.ZoneId = placeItemData.ZoneId;
+            // åŒºåŸŸç»Ÿä¸€èµ° ApplyZoneIdsï¼šå…ˆæ¸…æ‰æ¨¡æ¿æ®‹ç•™ï¼Œå†åˆå¹¶å•æ•°/å¤æ•°å¹¶å»é‡
+            copycondition.ApplyZoneIds(placeItemData.ZoneId, placeItemData.ZoneIds);
             copycondition.MinDurability = placeItemData.ItemDurability[0];
             copycondition.MaxDurability = placeItemData.ItemDurability[1];
             conditions.Add(copycondition);
         }
 
         /// <summary>
-        /// ´¦ÀíÔÚÖ¸¶¨µØµã°²·ÅÎïÆ·×éÌõ¼şµÄ¹¤¾ß·½·¨
+        /// å¤„ç†åœ¨æŒ‡å®šåœ°ç‚¹å®‰æ”¾ç‰©å“ç»„æ¡ä»¶çš„å·¥å…·æ–¹æ³•
         /// </summary>
-        /// <param name="conditions">Ä¿±êÁĞ±í</param>
-        /// <param name="placeItemGroupData">×Ô¶¨ÒåÈÎÎñÊı¾İ</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="conditions">ç›®æ ‡åˆ—è¡¨</param>
+        /// <param name="placeItemGroupData">è‡ªå®šä¹‰ä»»åŠ¡æ•°æ®</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         public static void InitPlaceItemGroupDataConditions(List<QuestCondition> conditions, PlaceItemGroupData placeItemGroupData, LoadModContext context)
         {
             var condition = GetConditionTemplate(EQuestConditionsTypeCache.LeaveItemAtLocation, "LeaveItemAtLocation", context);
@@ -842,18 +877,18 @@ namespace EternalCycleServer
             copycondition.Target.List.GenerateFromTag(placeItemGroupData.Items, placeItemGroupData.UseTag, context);
             copycondition.Value = (double)placeItemGroupData.Count;
             copycondition.PlantTime = (double)placeItemGroupData.Time;
-            copycondition.ZoneId = placeItemGroupData.ZoneId;
+            copycondition.ApplyZoneIds(placeItemGroupData.ZoneId, placeItemGroupData.ZoneIds);
             copycondition.MinDurability = placeItemGroupData.ItemDurability[0];
             copycondition.MaxDurability = placeItemGroupData.ItemDurability[1];
             conditions.Add(copycondition);
         }
 
         /// <summary>
-        /// ´¦Àí´ÓÖ¸¶¨µØÍ¼³·ÀëµÄ¹¤¾ß·½·¨
+        /// å¤„ç†ä»æŒ‡å®šåœ°å›¾æ’¤ç¦»çš„å·¥å…·æ–¹æ³•
         /// </summary>
-        /// <param name="conditions">Ä¿±êÁĞ±í</param>
-        /// <param name="exitLocationData">×Ô¶¨ÒåÈÎÎñÊı¾İ</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="conditions">ç›®æ ‡åˆ—è¡¨</param>
+        /// <param name="exitLocationData">è‡ªå®šä¹‰ä»»åŠ¡æ•°æ®</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         public static void InitExitLocationDataConditions(List<QuestCondition> conditions, ExitLocationData exitLocationData, LoadModContext context)
         {
             cacheConditions.TryGetValue(EQuestConditionsTypeCache.Completion, out var condition);
@@ -915,11 +950,11 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ´¦Àíµ½´ïÖ¸¶¨ÉÌÈËĞÅÈÎ¶ÈµÄ¹¤¾ß·½·¨
+        /// å¤„ç†åˆ°è¾¾æŒ‡å®šå•†äººä¿¡ä»»åº¦çš„å·¥å…·æ–¹æ³•
         /// </summary>
-        /// <param name="conditions">Ä¿±êÁĞ±í</param>
-        /// <param name="reachTraderStandingData">×Ô¶¨ÒåÈÎÎñÊı¾İ</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="conditions">ç›®æ ‡åˆ—è¡¨</param>
+        /// <param name="reachTraderStandingData">è‡ªå®šä¹‰ä»»åŠ¡æ•°æ®</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         public static void InitReachTraderStandingDataConditions(List<QuestCondition> conditions, ReachTraderStandingData reachTraderStandingData, LoadModContext context)
         {
             var condition = context.DB.GetQuests()
@@ -936,11 +971,11 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ´¦Àíµ½´ïÖ¸¶¨ÉÌÈËĞÅÈÎµÈ¼¶µÄ¹¤¾ß·½·¨
+        /// å¤„ç†åˆ°è¾¾æŒ‡å®šå•†äººä¿¡ä»»ç­‰çº§çš„å·¥å…·æ–¹æ³•
         /// </summary>
-        /// <param name="conditions">Ä¿±êÁĞ±í</param>
-        /// <param name="reachTraderTrustLevelData">×Ô¶¨ÒåÈÎÎñÊı¾İ</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="conditions">ç›®æ ‡åˆ—è¡¨</param>
+        /// <param name="reachTraderTrustLevelData">è‡ªå®šä¹‰ä»»åŠ¡æ•°æ®</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         public static void InitReachTraderTrustLevelDataConditions(List<QuestCondition> conditions, ReachTraderTrustLevelData reachTraderTrustLevelData, LoadModContext context)
         {
 
@@ -955,11 +990,11 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ´¦Àíµ½´ïÖ¸¶¨¼¼ÄÜµÈ¼¶µÄ¹¤¾ß·½·¨
+        /// å¤„ç†åˆ°è¾¾æŒ‡å®šæŠ€èƒ½ç­‰çº§çš„å·¥å…·æ–¹æ³•
         /// </summary>
-        /// <param name="conditions">Ä¿±êÁĞ±í</param>
-        /// <param name="reachSkillLevelData">×Ô¶¨ÒåÈÎÎñÊı¾İ</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="conditions">ç›®æ ‡åˆ—è¡¨</param>
+        /// <param name="reachSkillLevelData">è‡ªå®šä¹‰ä»»åŠ¡æ•°æ®</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         public static void InitReachSkillLevelDataConditions(List<QuestCondition> conditions, ReachSkillLevelData reachSkillLevelData, LoadModContext context)
         {
             var condition = GetConditionTemplate(EQuestConditionsTypeCache.Skill, "Skill", context);
@@ -973,11 +1008,11 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ´¦ÀíÍê³ÉÖ¸¶¨ÈÎÎñµÄ¹¤¾ß·½·¨
+        /// å¤„ç†å®ŒæˆæŒ‡å®šä»»åŠ¡çš„å·¥å…·æ–¹æ³•
         /// </summary>
-        /// <param name="conditions">Ä¿±êÁĞ±í</param>
-        /// <param name="completeQuestData">×Ô¶¨ÒåÈÎÎñÊı¾İ</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="conditions">ç›®æ ‡åˆ—è¡¨</param>
+        /// <param name="completeQuestData">è‡ªå®šä¹‰ä»»åŠ¡æ•°æ®</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         public static void InitCompleteQuestDataConditions(List<QuestCondition> conditions, CompleteQuestData completeQuestData, LoadModContext context)
         {
             var condition = GetConditionTemplate(EQuestConditionsTypeCache.Quest, "Quest", context);
@@ -992,11 +1027,11 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ´¦Àí×°ÊÎ·âËøÌõ¼şµÄ¹¤¾ß·½·¨
+        /// å¤„ç†è£…é¥°å°é”æ¡ä»¶çš„å·¥å…·æ–¹æ³•
         /// </summary>
-        /// <param name="conditions">Ä¿±êÁĞ±í</param>
-        /// <param name="customizationBlockData">×Ô¶¨ÒåÈÎÎñÊı¾İ</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="conditions">ç›®æ ‡åˆ—è¡¨</param>
+        /// <param name="customizationBlockData">è‡ªå®šä¹‰ä»»åŠ¡æ•°æ®</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         public static void InitCustomizationBlockDataConditions(List<QuestCondition> conditions, CustomizationBlockData customizationBlockData, LoadModContext context)
         {
             cacheConditions.TryGetValue(EQuestConditionsTypeCache.Block, out var condition);
@@ -1016,27 +1051,27 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ´¦ÀíÎäÆ÷×é×°Ìõ¼şµÄ¹¤¾ß·½·¨
+        /// å¤„ç†æ­¦å™¨ç»„è£…æ¡ä»¶çš„å·¥å…·æ–¹æ³•
         /// </summary>
         /// <param name="conditions"></param>
         /// <param name="weaponBuildData"></param>
         /// <param name="context"></param>
         public static void InitWeaponAssemblyDataConditions(List<QuestCondition> conditions, WeaponBuildData weaponBuildData, LoadModContext context)
         {
-            // »ñÈ¡Ô­°æ WeaponAssembly µÄÌõ¼şÄ£°å£¨´Ó SPT Êı¾İ¿âÖĞ×¥£©
+            // è·å–åŸç‰ˆ WeaponAssembly çš„æ¡ä»¶æ¨¡æ¿ï¼ˆä» SPT æ•°æ®åº“ä¸­æŠ“ï¼‰
             var condition = context.DB.GetQuests()
                 .SelectMany(q => q.Value.Conditions.AvailableForFinish)
-                .FirstOrDefault(c => c.ConditionType == "WeaponAssembly"); // ÇëÈ·ÈÏÔ­°æ×Ö·û´®
+                .FirstOrDefault(c => c.ConditionType == "WeaponAssembly"); // è¯·ç¡®è®¤åŸç‰ˆå­—ç¬¦ä¸²
 
             if (condition == null) return;
 
-            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(weaponBuildData, context); // ¸´ÓÃÒÑÓĞµÄ ID¡¢Visible µÈÉèÖÃ
+            var copycondition = context.Cloner.Clone(condition).InitQuestConditionBase(weaponBuildData, context); // å¤ç”¨å·²æœ‰çš„ IDã€Visible ç­‰è®¾ç½®
             copycondition.Target = new ListOrT<string>(new List<string>() { weaponBuildData.Target.ToString() }, null);
             copycondition.ContainsItems?.Clear();
             copycondition.HasItemFromCategory?.Clear();
             copycondition.Value = 1;
 
-            //ÖĞ¼ä¹¤¾ß·½·¨
+            //ä¸­é—´å·¥å…·æ–¹æ³•
             void SetValueCompare(ValueCompare? field, double? value, int? compareType,
                                  string defaultCompare = ">=", double defaultValue = 0)
             {
@@ -1054,7 +1089,7 @@ namespace EternalCycleServer
                 }
             }
 
-            //´¦Àí¸ÄÇ¹Êı¾İ
+            //å¤„ç†æ”¹æªæ•°æ®
             SetValueCompare(copycondition.BaseAccuracy, weaponBuildData.BaseAccuracy, weaponBuildData.BaseAccuracyCompareType);
             SetValueCompare(copycondition.Durability, weaponBuildData.Durability, weaponBuildData.DurabilityCompareType);
             SetValueCompare(copycondition.Ergonomics, weaponBuildData.Ergonomic, weaponBuildData.ErgonomicsCompareType);
@@ -1067,7 +1102,7 @@ namespace EternalCycleServer
             SetValueCompare(copycondition.Width, weaponBuildData.Width, weaponBuildData.WidthCompareType);
             SetValueCompare(copycondition.EmptyTacticalSlot, weaponBuildData.EmptyTacticalSlot, weaponBuildData.EmptyTacticalSlotCompareType);
 
-            //´¦ÀíÅä¼ş±í
+            //å¤„ç†é…ä»¶è¡¨
             if (weaponBuildData.ContainsItems != null && weaponBuildData.ContainsItems.Count > 0)
             {
                 copycondition.ContainsItems = weaponBuildData.ContainsItems
@@ -1087,14 +1122,14 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ´¦ÀíÊ¹ÓÃÎïÆ·Ìõ¼şµÄ¹¤¾ß·½·¨
+        /// å¤„ç†ä½¿ç”¨ç‰©å“æ¡ä»¶çš„å·¥å…·æ–¹æ³•
         /// </summary>
         /// <param name="conditions"></param>
         /// <param name="useItemData"></param>
         /// <param name="context"></param>
         public static void InitUseItemDataConditions(List<QuestCondition> conditions, UseItemData useItemData, LoadModContext context)
         {
-            // ¸´ÓÃ Completion Ä£°å£¨ºÍ visit/exit ÍêÈ«Ò»ÖÂ£©
+            // å¤ç”¨ Completion æ¨¡æ¿ï¼ˆå’Œ visit/exit å®Œå…¨ä¸€è‡´ï¼‰
             cacheConditions.TryGetValue(EQuestConditionsTypeCache.Completion, out var condition);
             if (condition == null)
             {
@@ -1112,7 +1147,7 @@ namespace EternalCycleServer
             copycondition.Value = (double)useItemData.Count;
             copycondition.Index = conditions.Count;
 
-            // --- ×ÓÌõ¼ş1£ºUseItem ---
+            // --- å­æ¡ä»¶1ï¼šUseItem ---
             var useItemTemplate = GetCounterConditionTemplate(EQuestCountersCacheType.HealthBuff, "HealthBuff", context);
             if (useItemTemplate != null)
             {
@@ -1120,14 +1155,14 @@ namespace EternalCycleServer
                 useItemCopy.Id = $"{useItemData.Id}_UseItemCounter".ConvertHashID();
                 useItemCopy.Target = new ListOrT<string>(new List<string>(), null);
                 useItemCopy.ConditionType = "UseItem";
-                // ´Ó tag ºÍÖ±½ÓÁĞ±íÀ©³äÄ¿±êÎïÆ·
+                // ä» tag å’Œç›´æ¥åˆ—è¡¨æ‰©å……ç›®æ ‡ç‰©å“
                 useItemCopy.CompareMethod = ">=";
                 useItemCopy.Target.List.GenerateFromTag(useItemData.Items, useItemData.UseTag, context);
                 useItemCopy.Value = (double)useItemData.Count;
                 copycondition.Counter.Conditions.Add(useItemCopy);
             }
 
-            // --- ×ÓÌõ¼ş2£ºLocation£¨Èç¹ûÖ¸¶¨ÁËµØÍ¼ÏŞÖÆ£©---
+            // --- å­æ¡ä»¶2ï¼šLocationï¼ˆå¦‚æœæŒ‡å®šäº†åœ°å›¾é™åˆ¶ï¼‰---
             if (useItemData.Location > 0)
             {
                 var locationTemplate = GetCounterConditionTemplate(EQuestCountersCacheType.Location, "Location", context);
@@ -1149,7 +1184,7 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ´¦Àí½¡¿µĞ§¹ûÌõ¼şµÄ¹¤¾ß·½·¨
+        /// å¤„ç†å¥åº·æ•ˆæœæ¡ä»¶çš„å·¥å…·æ–¹æ³•
         /// </summary>
         /// <param name="conditionalCounter"></param>
         /// <param name="healthEffectData"></param>
@@ -1162,7 +1197,7 @@ namespace EternalCycleServer
             if (template == null) return;
             var clone = context.Cloner.Clone(template);
             clone.Id = $"{parentId}_HealthEffectCounter".ConvertHashID();
-            // Ìî³äÉíÌå²¿Î»Ğ§¹û
+            // å¡«å……èº«ä½“éƒ¨ä½æ•ˆæœ
             clone.BodyPartsWithEffects = new List<EnemyHealthEffect>();
             if (healthEffectData.BodyPartsWithEffects != null && healthEffectData.BodyPartsWithEffects.Count > 0)
             {
@@ -1175,7 +1210,7 @@ namespace EternalCycleServer
                     });
                 }
             }
-            // Ìî³äÄÜÁ¿/Ë®·Ö/Ê±¼ä±È½Ï
+            // å¡«å……èƒ½é‡/æ°´åˆ†/æ—¶é—´æ¯”è¾ƒ
             clone.Energy = new ValueCompare()
             {
                 CompareMethod = EnumUtils.GetCompareType(healthEffectData.EnergyCompareType ?? 3),
@@ -1195,7 +1230,7 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ´¦Àí½¡¿µÔöÒæÌõ¼şµÄ¹¤¾ß·½·¨
+        /// å¤„ç†å¥åº·å¢ç›Šæ¡ä»¶çš„å·¥å…·æ–¹æ³•
         /// </summary>
         /// <param name="conditionalCounter"></param>
         /// <param name="buffEffectData"></param>
@@ -1208,13 +1243,13 @@ namespace EternalCycleServer
             if (template == null) return;
             var clone = context.Cloner.Clone(template);
             clone.Id = $"{parentId}_HealthBuffCounter".ConvertHashID();
-            // Ìî³äÉíÌå²¿Î»Ğ§¹û
+            // å¡«å……èº«ä½“éƒ¨ä½æ•ˆæœ
             clone.Target = new ListOrT<string>(buffEffectData.Buffs, null);
             conditionalCounter.Conditions.Add(clone);
         }
 
         /// <summary>
-        /// ´¦Àí·¢ÉäĞÅºÅµ¯Ìõ¼şµÄ¹¤¾ß·½·¨
+        /// å¤„ç†å‘å°„ä¿¡å·å¼¹æ¡ä»¶çš„å·¥å…·æ–¹æ³•
         /// </summary>
         /// <param name="conditions"></param>
         /// <param name="launchFlare"></param>
@@ -1248,7 +1283,7 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ´¦ÀíÏòÖ¸¶¨ÉÌÈË³öÊÛÎïÆ·Ìõ¼şµÄ¹¤¾ß·½·¨
+        /// å¤„ç†å‘æŒ‡å®šå•†äººå‡ºå”®ç‰©å“æ¡ä»¶çš„å·¥å…·æ–¹æ³•
         /// </summary>
         /// <param name="conditions"></param>
         /// <param name="sellItemData"></param>
@@ -1271,7 +1306,7 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ´¦ÀíÔÚÖ¸¶¨µØµã°²·ÅĞÅ±êÌõ¼şµÄ¹¤¾ß·½·¨
+        /// å¤„ç†åœ¨æŒ‡å®šåœ°ç‚¹å®‰æ”¾ä¿¡æ ‡æ¡ä»¶çš„å·¥å…·æ–¹æ³•
         /// </summary>
         /// <param name="conditions"></param>
         /// <param name="placeBeaconData"></param>
@@ -1293,12 +1328,12 @@ namespace EternalCycleServer
             }
             copycondition.Value = 1;
             copycondition.PlantTime = (double)placeBeaconData.Time;
-            copycondition.ZoneId = placeBeaconData.ZoneId;
+            copycondition.ApplyZoneIds(placeBeaconData.ZoneId, placeBeaconData.ZoneIds);
             conditions.Add(copycondition);
         }
 
         /// <summary>
-        /// ´¦Àí²ØÉí´¦ÇøÓòµÈ¼¶µÄ¹¤¾ß·½·¨
+        /// å¤„ç†è—èº«å¤„åŒºåŸŸç­‰çº§çš„å·¥å…·æ–¹æ³•
         /// </summary>
         /// <param name="conditions"></param>
         /// <param name="areaLevelData"></param>
@@ -1315,62 +1350,62 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ½«×Ô¶¨ÒåÈÎÎñ½±Àø×¢²áµ½¼ÓÔØÊÂ¼ş
+        /// å°†è‡ªå®šä¹‰ä»»åŠ¡å¥–åŠ±æ³¨å†Œåˆ°åŠ è½½äº‹ä»¶
         /// </summary>
-        /// <param name="path">Ö¸¶¨Â·¾¶</param>
-        /// <param name="creator">´´½¨Õß</param>
-        /// <param name="modname">ModÃû</param>
+        /// <param name="path">æŒ‡å®šè·¯å¾„</param>
+        /// <param name="creator">åˆ›å»ºè€…</param>
+        /// <param name="modname">Modå</param>
         public static void RegisterQuestRewards(string modpath, string path)
         {
             var correctpath = Path.Combine(modpath, path);
-            // ÎÄ¼ş¼Ğ¼ÓÔØÄ£Ê½
+            // æ–‡ä»¶å¤¹åŠ è½½æ¨¡å¼
             if (Directory.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadQuestRewardEvent += (context) =>
                 {
                     try
                     {
-                        //¶ÔÓ¦µ÷ÓÃÒÑÓĞµÄÎÄ¼ş¼ĞÖØÔØ·½·¨
+                        //å¯¹åº”è°ƒç”¨å·²æœ‰çš„æ–‡ä»¶å¤¹é‡è½½æ–¹æ³•
                         InitQuestRewards(correctpath, context);
-                        //EventManager.EventLogger.Info($"[{modname}] {creator} µÄÈÎÎñ½±ÀøÄ£¿é(ÎÄ¼ş¼Ğ)×¢²á³É¹¦");
+                        //EventManager.EventLogger.Info($"[{modname}] {creator} çš„ä»»åŠ¡å¥–åŠ±æ¨¡å—(æ–‡ä»¶å¤¹)æ³¨å†ŒæˆåŠŸ");
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²áÈÎÎñ½±ÀøÊ±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş¼Ğ {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œä»»åŠ¡å¥–åŠ±æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶å¤¹ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
-            // µ¥ÎÄ¼ş¼ÓÔØÄ£Ê½
+            // å•æ–‡ä»¶åŠ è½½æ¨¡å¼
             else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadQuestRewardEvent += (context) =>
                 {
                     try
                     {
-                        // ·´ĞòÁĞ»¯Îª List ¼¯ºÏ£¬¶ÔÓ¦ÒÑÓĞµÄ List ÖØÔØ·½·¨
+                        // ååºåˆ—åŒ–ä¸º List é›†åˆï¼Œå¯¹åº”å·²æœ‰çš„ List é‡è½½æ–¹æ³•
                         var rewardsData = context.JsonUtil.Deserialize<List<CustomQuestRewardData>>(File.ReadAllText(correctpath));
                         InitQuestRewards(rewardsData, context);
 
-                        //EventManager.EventLogger.Info($"[{modname}] {creator} µÄÈÎÎñ½±ÀøÄ£¿é(µ¥ÎÄ¼ş)×¢²á³É¹¦");
+                        //EventManager.EventLogger.Info($"[{modname}] {creator} çš„ä»»åŠ¡å¥–åŠ±æ¨¡å—(å•æ–‡ä»¶)æ³¨å†ŒæˆåŠŸ");
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²áÈÎÎñ½±ÀøÊ±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œä»»åŠ¡å¥–åŠ±æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"×¢²áÈÎÎñ½±ÀøÊ±·¢ÉúÒì³££ºÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş»òÎÄ¼ş¼Ğ {correctpath}");
+                EventManager.EventLogger.Warn($"æ³¨å†Œä»»åŠ¡å¥–åŠ±æ—¶å‘ç”Ÿå¼‚å¸¸ï¼šæ‰¾ä¸åˆ°æŒ‡å®šçš„æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹ {correctpath}");
             }
         }
 
-        //Éµ±Æ¹ş»ùÃ×
+        //å‚»é€¼å“ˆåŸºç±³
         /// <summary>
-        /// ´ÓÎÄ¼ş¼Ğ¼ÓÔØ½±ÀøµÄÖØÔØ, ¸Ğ¾õÃ»±ØÒª
+        /// ä»æ–‡ä»¶å¤¹åŠ è½½å¥–åŠ±çš„é‡è½½, æ„Ÿè§‰æ²¡å¿…è¦
         /// </summary>
-        /// <param name="folderpath">Â·¾¶</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="folderpath">è·¯å¾„</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         public static void InitQuestRewards(string folderpath, LoadModContext context)
         {
             if (Directory.Exists(folderpath))
@@ -1393,10 +1428,10 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ¼ÓÔØÈÎÎñ½±Àø
+        /// åŠ è½½ä»»åŠ¡å¥–åŠ±
         /// </summary>
-        /// <param name="rewards">½±ÀøList½á¹¹</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="rewards">å¥–åŠ±Listç»“æ„</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         public static void InitQuestRewards(List<CustomQuestRewardData> rewards, LoadModContext context)
         {
             foreach (CustomQuestRewardData reward in rewards)
@@ -1587,7 +1622,7 @@ namespace EternalCycleServer
                 if (rewardtarget != null)
                 {
                     var copyreward = InitCopiedReward(rewardtarget, target[queststage], experienceRewardData, context);
-                    copyreward.Value = (double)experienceRewardData.Count; //ËÀÁËÂèµÄ¶«Î÷Äã¾ÍÕâÃ´Ï²»¶ÓÃdoubleÊÇÂğ
+                    copyreward.Value = (double)experienceRewardData.Count; //æ­»äº†å¦ˆçš„ä¸œè¥¿ä½ å°±è¿™ä¹ˆå–œæ¬¢ç”¨doubleæ˜¯å—
                     target[queststage].Add(copyreward);
                 }
             }
@@ -1737,58 +1772,58 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ½«×Ô¶¨ÒåÈÎÎñÂß¼­Ê÷×¢²áµ½¼ÓÔØÊÂ¼ş
+        /// å°†è‡ªå®šä¹‰ä»»åŠ¡é€»è¾‘æ ‘æ³¨å†Œåˆ°åŠ è½½äº‹ä»¶
         /// </summary>
-        /// <param name="path">Ö¸¶¨µÄ´æ·ÅÈÎÎñÂß¼­ÎÄ¼şµÄÂ·¾¶»òÍêÕûµÄÈÎÎñÂß¼­ÎÄ¼şÂ·¾¶</param>
-        /// <param name="creator">´´½¨Õß</param>
-        /// <param name="modname">ModÃû</param>
+        /// <param name="path">æŒ‡å®šçš„å­˜æ”¾ä»»åŠ¡é€»è¾‘æ–‡ä»¶çš„è·¯å¾„æˆ–å®Œæ•´çš„ä»»åŠ¡é€»è¾‘æ–‡ä»¶è·¯å¾„</param>
+        /// <param name="creator">åˆ›å»ºè€…</param>
+        /// <param name="modname">Modå</param>
         public static void RegisterQuestLogicTree(string modpath, string path)
         {
             var correctpath = Path.Combine(modpath, path);
-            // ÎÄ¼ş¼Ğ¼ÓÔØÄ£Ê½
+            // æ–‡ä»¶å¤¹åŠ è½½æ¨¡å¼
             if (Directory.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadQuestLogicEvent += (context) =>
                 {
                     try
                     {
-                        // ¶ÔÓ¦µ÷ÓÃÒÑÓĞµÄÎÄ¼ş¼ĞÖØÔØ·½·¨
+                        // å¯¹åº”è°ƒç”¨å·²æœ‰çš„æ–‡ä»¶å¤¹é‡è½½æ–¹æ³•
                         InitQuestLogicTreeData(correctpath, context);
-                        //EventManager.EventLogger.Info($"[{modname}] {creator} µÄÈÎÎñÂß¼­Ä£¿é(ÎÄ¼ş¼Ğ)×¢²á³É¹¦");
+                        //EventManager.EventLogger.Info($"[{modname}] {creator} çš„ä»»åŠ¡é€»è¾‘æ¨¡å—(æ–‡ä»¶å¤¹)æ³¨å†ŒæˆåŠŸ");
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²áÈÎÎñÂß¼­Ê±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş¼Ğ {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œä»»åŠ¡é€»è¾‘æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶å¤¹ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
-            // µ¥ÎÄ¼ş¼ÓÔØÄ£Ê½
+            // å•æ–‡ä»¶åŠ è½½æ¨¡å¼
             else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadQuestLogicEvent += (context) =>
                 {
                     try
                     {
-                        // ·´ĞòÁĞ»¯Îª×Öµä×Öµä£¬¶ÔÓ¦ÒÑÓĞµÄ Dictionary ÖØÔØ·½·¨
+                        // ååºåˆ—åŒ–ä¸ºå­—å…¸å­—å…¸ï¼Œå¯¹åº”å·²æœ‰çš„ Dictionary é‡è½½æ–¹æ³•
                         var logicTreeData = context.JsonUtil.Deserialize<Dictionary<string, QuestLogicTree>>(File.ReadAllText(correctpath));
                         InitQuestLogicTreeData(logicTreeData, context);
 
-                        //EventManager.EventLogger.Info($"[{modname}] {creator} µÄÈÎÎñÂß¼­Ä£¿é(µ¥ÎÄ¼ş)×¢²á³É¹¦");
+                        //EventManager.EventLogger.Info($"[{modname}] {creator} çš„ä»»åŠ¡é€»è¾‘æ¨¡å—(å•æ–‡ä»¶)æ³¨å†ŒæˆåŠŸ");
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²áÈÎÎñÂß¼­Ê±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œä»»åŠ¡é€»è¾‘æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"×¢²áÈÎÎñÂß¼­Ê±·¢ÉúÒì³££ºÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş»òÎÄ¼ş¼Ğ {correctpath}");
+                EventManager.EventLogger.Warn($"æ³¨å†Œä»»åŠ¡é€»è¾‘æ—¶å‘ç”Ÿå¼‚å¸¸ï¼šæ‰¾ä¸åˆ°æŒ‡å®šçš„æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹ {correctpath}");
             }
         }
 
         /// <summary>
-        /// InitÖØÔØ 1£º´¦ÀíÎÄ¼ş¼ĞÂ·¾¶£¬±éÀúÎÄ¼ş²¢½âÎöµ¥ÌåÊı¾İ
+        /// Inité‡è½½ 1ï¼šå¤„ç†æ–‡ä»¶å¤¹è·¯å¾„ï¼Œéå†æ–‡ä»¶å¹¶è§£æå•ä½“æ•°æ®
         /// </summary>
         public static void InitQuestLogicTreeData(string folderpath, LoadModContext context)
         {
@@ -1812,7 +1847,7 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// InitÖØÔØ 2£º´¦ÀíÊµ¼ÊµÄ·´ĞòÁĞ»¯Êı¾İ£¨×ÖµäĞÎÊ½´¦Àí£©
+        /// Inité‡è½½ 2ï¼šå¤„ç†å®é™…çš„ååºåˆ—åŒ–æ•°æ®ï¼ˆå­—å…¸å½¢å¼å¤„ç†ï¼‰
         /// </summary>
         public static void InitQuestLogicTreeData(Dictionary<string, QuestLogicTree> questLogicTree, LoadModContext context)
         {
@@ -1958,7 +1993,7 @@ namespace EternalCycleServer
                 }
                 catch (Exception ex)
                 {
-                    context.Logger.Warn($"·¢ÏÖµ½ÎŞĞ§µÄÎïÆ· ID: '{item}'¡£ÒÑÌø¹ı¸ÃÎïÆ·¡£Çë¼ì²éÄãµÄÈÎÎñ»ò±êÇ©ÅäÖÃÎÄ¼ş£¡");
+                    context.Logger.Warn($"å‘ç°åˆ°æ— æ•ˆçš„ç‰©å“ ID: '{item}'ã€‚å·²è·³è¿‡è¯¥ç‰©å“ã€‚è¯·æ£€æŸ¥ä½ çš„ä»»åŠ¡æˆ–æ ‡ç­¾é…ç½®æ–‡ä»¶ï¼");
                 }
             }
             if (list != null)
