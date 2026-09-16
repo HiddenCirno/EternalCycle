@@ -128,6 +128,9 @@ namespace EternalCycleServer
             TraderConfig traderConfig = configServer.GetConfig<TraderConfig>();
             RagfairConfig ragfairConfig = configServer.GetConfig<RagfairConfig>();
             Trader traderPattern = cloner.Clone(GetTrader((string)Traders.PRAPOR, databaseService));
+            //干, 现在只有服装商默认解锁, 而服装商具有Cloth服务
+            //手动设置为默认解锁，如果你的商人是锁定的，它会在后面合并时自动覆盖
+            traderPattern.Base.UnlockedByDefault = true;
             string traderId = (MongoId)traderBase.Id;
             var correctpath = System.IO.Path.Combine(modpath, respath);
             ImageUtils.RegisterAvatarRoute(traderBase.Avatar, correctpath, imageRouter);
