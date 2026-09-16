@@ -1,4 +1,4 @@
-using SPTarkov.Server.Core.Models.Eft.Common;
+ï»¿using SPTarkov.Server.Core.Models.Eft.Common;
 using System.IO;
 using System.Linq;
 using static EternalCycleServer.ContextManager;
@@ -7,23 +7,23 @@ using Path = System.IO.Path;
 namespace EternalCycleServer
 {
     /// <summary>
-    /// ×Ô¶¨ÒåµØÍ¼¼ÓÔØºá·ù¹¤¾ß
-    /// ½«×Ô¶¨Òåºá·ù(Í¼Æ¬ + ÉúĞ§µØÍ¼Î»ÑÚÂë)×¢Èëµ½ LocationTable µÄ LocationBase.Banners ÖĞ,
-    /// ¿Í»§¶ËµØÍ¼Ñ¡Ôñ/¼ÓÔØ»­Ãæ¼´¿ÉÏÔÊ¾¡£
+    /// è‡ªå®šä¹‰åœ°å›¾åŠ è½½æ¨ªå¹…å·¥å…·
+    /// å°†è‡ªå®šä¹‰æ¨ªå¹…(å›¾ç‰‡ + ç”Ÿæ•ˆåœ°å›¾ä½æ©ç )æ³¨å…¥åˆ° LocationTable çš„ LocationBase.Banners ä¸­,
+    /// å®¢æˆ·ç«¯åœ°å›¾é€‰æ‹©/åŠ è½½ç”»é¢å³å¯æ˜¾ç¤ºã€‚
     /// </summary>
     public class BannerUtils
     {
         /// <summary>
-        /// ½«×Ô¶¨Òåºá·ù×¢²áµ½¼ÓÔØÊÂ¼ş
+        /// å°†è‡ªå®šä¹‰æ¨ªå¹…æ³¨å†Œåˆ°åŠ è½½äº‹ä»¶
         /// </summary>
-        /// <param name="modpath">Mod ¸ùÄ¿Â¼</param>
-        /// <param name="path">Ö¸¶¨´æ·Åºá·ùÎÄ¼şµÄÎÄ¼ş¼ĞÂ·¾¶»òµ¥¸öºá·ùÎÄ¼ş(ÁĞ±í)Â·¾¶</param>
-        /// <param name="respath">ºá·ùÍ¼Æ¬×ÊÔ´ËùÔÚÄ¿Â¼(Ïà¶Ô modpath)</param>
+        /// <param name="modpath">Mod æ ¹ç›®å½•</param>
+        /// <param name="path">æŒ‡å®šå­˜æ”¾æ¨ªå¹…æ–‡ä»¶çš„æ–‡ä»¶å¤¹è·¯å¾„æˆ–å•ä¸ªæ¨ªå¹…æ–‡ä»¶(åˆ—è¡¨)è·¯å¾„</param>
+        /// <param name="respath">æ¨ªå¹…å›¾ç‰‡èµ„æºæ‰€åœ¨ç›®å½•(ç›¸å¯¹ modpath)</param>
         public static void RegisterBanner(string modpath, string path, string respath)
         {
             var correctpath = Path.Combine(modpath, path);
 
-            // ÎÄ¼ş¼Ğ¼ÓÔØÄ£Ê½
+            // æ–‡ä»¶å¤¹åŠ è½½æ¨¡å¼
             if (Directory.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadBannerEvent += (context) =>
@@ -34,18 +34,18 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²áºá·ùÊ±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş¼Ğ {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œæ¨ªå¹…æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶å¤¹ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
-            // µ¥ÎÄ¼ş¼ÓÔØÄ£Ê½
+            // å•æ–‡ä»¶åŠ è½½æ¨¡å¼
             else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadBannerEvent += (context) =>
                 {
                     try
                     {
-                        // ·´ĞòÁĞ»¯Îª List ¼¯ºÏ
+                        // ååºåˆ—åŒ–ä¸º List é›†åˆ
                         var bannerData = context.JsonUtil.Deserialize<List<CustomBannerData>>(File.ReadAllText(correctpath));
 
                         if (bannerData != null)
@@ -55,18 +55,18 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²áºá·ùÊ±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œæ¨ªå¹…æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"×¢²áºá·ùÊ±·¢ÉúÒì³££ºÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş»òÎÄ¼ş¼Ğ {correctpath}");
+                EventManager.EventLogger.Warn($"æ³¨å†Œæ¨ªå¹…æ—¶å‘ç”Ÿå¼‚å¸¸ï¼šæ‰¾ä¸åˆ°æŒ‡å®šçš„æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹ {correctpath}");
             }
         }
 
         /// <summary>
-        /// InitÖØÔØ 1£º´¦ÀíÎÄ¼ş¼ĞÂ·¾¶£¬±éÀú½âÎöÎªµ¥¸öºá·ù¶ÔÏó
+        /// Inité‡è½½ 1ï¼šå¤„ç†æ–‡ä»¶å¤¹è·¯å¾„ï¼Œéå†è§£æä¸ºå•ä¸ªæ¨ªå¹…å¯¹è±¡
         /// </summary>
         public static void InitBannerData(string modpath, string folderpath, string respath, LoadModContext context)
         {
@@ -80,7 +80,7 @@ namespace EternalCycleServer
                 foreach (var file in files)
                 {
                     string fileName = Path.GetFileName(file);
-                    // ÎÄ¼ş¼ĞÄ£Ê½ÏÂ£¬Ã¿¸öÎÄ¼şÊÇÒ»¸ö CustomBannerData
+                    // æ–‡ä»¶å¤¹æ¨¡å¼ä¸‹ï¼Œæ¯ä¸ªæ–‡ä»¶æ˜¯ä¸€ä¸ª CustomBannerData
                     var banners = context.ModHelper.GetJsonDataFromFile<List<CustomBannerData>>(correctpath, fileName);
 
                     if (banners != null)
@@ -95,7 +95,7 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// InitÖØÔØ 2£º´¦Àíµ¥ÎÄ¼ş·´ĞòÁĞ»¯³öµÄºá·ùÁĞ±í
+        /// Inité‡è½½ 2ï¼šå¤„ç†å•æ–‡ä»¶ååºåˆ—åŒ–å‡ºçš„æ¨ªå¹…åˆ—è¡¨
         /// </summary>
         public static void InitBannerData(List<CustomBannerData> bannerData, string modpath, string respath, LoadModContext context)
         {
@@ -111,25 +111,25 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ½«µ¥¸ö×Ô¶¨Òåºá·ù×¢Èëµ½¶ÔÓ¦µØÍ¼Êı¾İÖĞ
+        /// å°†å•ä¸ªè‡ªå®šä¹‰æ¨ªå¹…æ³¨å…¥åˆ°å¯¹åº”åœ°å›¾æ•°æ®ä¸­
         /// </summary>
         public static void InitBanner(CustomBannerData bannerData, string modpath, string respath, LoadModContext context)
         {
-            // 1. Î»ÑÚÂë ¡ú Ä¿±êµØÍ¼ key ÁĞ±í(LocationBase ·ç¸ñ)
+            // 1. ä½æ©ç  â†’ ç›®æ ‡åœ°å›¾ key åˆ—è¡¨(LocationBase é£æ ¼)
             List<string> locationKeys = BitMapUtils.GetFuckSptLocationCode(bannerData.Map);
             if (locationKeys == null || locationKeys.Count == 0)
             {
-                context.Logger.Warn($"ºá·ù {bannerData.Id} Î´Ö¸¶¨ÈÎºÎÉúĞ§µØÍ¼(map={bannerData.Map})£¬ÒÑÌø¹ı");
+                context.Logger.Warn($"æ¨ªå¹… {bannerData.Id} æœªæŒ‡å®šä»»ä½•ç”Ÿæ•ˆåœ°å›¾(map={bannerData.Map})ï¼Œå·²è·³è¿‡");
                 return;
             }
 
-            // 2. ×¢²áÍ¼Æ¬ÏÂÔØÂ·ÓÉ: /files/banners/{ÎÄ¼şÃû(ÎŞÀ©Õ¹Ãû)}
+            // 2. æ³¨å†Œå›¾ç‰‡ä¸‹è½½è·¯ç”±: /files/banners/{æ–‡ä»¶å(æ— æ‰©å±•å)}
             string fileName = Path.GetFileName(bannerData.ImagePath);
             string routeKey = "/files/banners/" + Path.GetFileNameWithoutExtension(fileName);
             string fullPath = Path.Combine(modpath, respath, fileName);
             ImageUtils.RegisterImageRoute(routeKey, fullPath, context.ImageRouter);
 
-            // 3. ¹¹Ôì Banner Ä£ĞÍ
+            // 3. æ„é€  Banner æ¨¡å‹
             var banner = new Banner
             {
                 Id = bannerData.Id.ToString(),
@@ -142,7 +142,7 @@ namespace EternalCycleServer
                 }
             };
 
-            // 4. ×¢Èëµ½Ã¿¸öÄ¿±êµØÍ¼µÄ LocationBase.Banners
+            // 4. æ³¨å…¥åˆ°æ¯ä¸ªç›®æ ‡åœ°å›¾çš„ LocationBase.Banners
             var locations = context.DB.GetLocations().GetDictionary();
             foreach (var locationKey in locationKeys)
             {
@@ -158,7 +158,7 @@ namespace EternalCycleServer
                         kvp.Value.Base.Banners = banners;
                     }
 
-                    // ÒÑ´æÔÚÍ¬ id ÔòÌæ»»Í¼Æ¬£¬·ñÔò×·¼Ó
+                    // å·²å­˜åœ¨åŒ id åˆ™æ›¿æ¢å›¾ç‰‡ï¼Œå¦åˆ™è¿½åŠ 
                     var existing = banners.FirstOrDefault(x => x.Id == banner.Id);
                     if (existing != null)
                     {

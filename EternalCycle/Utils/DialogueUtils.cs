@@ -1,4 +1,4 @@
-using SPTarkov.Server.Core.Models.Eft.Common.Tables;
+ï»¿using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using static EternalCycleServer.ContextManager;
 using Path = System.IO.Path;
 
@@ -7,16 +7,16 @@ namespace EternalCycleServer
     public static class DialogueUtils
     {
         /// <summary>
-        /// ×¢²á¶Ô»°Ê÷
-        /// Ö§³ÖÎÄ¼ş¼Ğ/µ¥ÎÄ¼şÁ½ÖÖÄ£Ê½
-        /// ÔªËØ½«×·¼Óµ½È«¾Ö¶Ô»°Ê÷±í GetTemplates().Dialogue.Elements
-        /// (¼´ /client/dialogue ·µ»ØµÄ±í)
+        /// æ³¨å†Œå¯¹è¯æ ‘
+        /// æ”¯æŒæ–‡ä»¶å¤¹/å•æ–‡ä»¶ä¸¤ç§æ¨¡å¼
+        /// å…ƒç´ å°†è¿½åŠ åˆ°å…¨å±€å¯¹è¯æ ‘è¡¨ GetTemplates().Dialogue.Elements
+        /// (å³ /client/dialogue è¿”å›çš„è¡¨)
         /// </summary>
         public static void RegisterDialogue(string modpath, string path)
         {
             var correctpath = Path.Combine(modpath, path);
 
-            // ÎÄ¼ş¼Ğ¼ÓÔØÄ£Ê½
+            // æ–‡ä»¶å¤¹åŠ è½½æ¨¡å¼
             if (Directory.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadDialogueEvent += (context) =>
@@ -27,11 +27,11 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²á¶Ô»°Ê÷Ê±·¢ÉúÒì³££¬Ö¸¶¨µÄÎÄ¼ş¼Ğ {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œå¯¹è¯æ ‘æ—¶å‘ç”Ÿå¼‚å¸¸ï¼ŒæŒ‡å®šçš„æ–‡ä»¶å¤¹ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
-            // µ¥ÎÄ¼ş¼ÓÔØÄ£Ê½
+            // å•æ–‡ä»¶åŠ è½½æ¨¡å¼
             else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadDialogueEvent += (context) =>
@@ -46,18 +46,18 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²á¶Ô»°Ê÷Ê±·¢ÉúÒì³££¬Ö¸¶¨µÄÎÄ¼ş {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œå¯¹è¯æ ‘æ—¶å‘ç”Ÿå¼‚å¸¸ï¼ŒæŒ‡å®šçš„æ–‡ä»¶ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"×¢²á¶Ô»°Ê÷Ê±·¢ÉúÒì³££¬ÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş»òÎÄ¼ş¼Ğ {correctpath}");
+                EventManager.EventLogger.Warn($"æ³¨å†Œå¯¹è¯æ ‘æ—¶å‘ç”Ÿå¼‚å¸¸ï¼Œæ‰¾ä¸åˆ°æŒ‡å®šçš„æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹ {correctpath}");
             }
         }
 
         /// <summary>
-        /// ÎÄ¼ş¼ĞÄ£Ê½: Öğ¸öÎÄ¼ş¼ÓÔØ
+        /// æ–‡ä»¶å¤¹æ¨¡å¼: é€ä¸ªæ–‡ä»¶åŠ è½½
         /// </summary>
         public static void InitDialogueData(string modpath, string folderpath, LoadModContext context)
         {
@@ -79,7 +79,7 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ºËĞÄ: ×·¼ÓÔªËØµ½È«¾Ö¶Ô»°Ê÷±í, Id È¥ÖØ
+        /// æ ¸å¿ƒ: è¿½åŠ å…ƒç´ åˆ°å…¨å±€å¯¹è¯æ ‘è¡¨, Id å»é‡
         /// </summary>
         public static void InitDialogueData(List<TraderDialogElement> elements, LoadModContext context)
         {
@@ -87,10 +87,10 @@ namespace EternalCycleServer
 
             foreach (var element in elements)
             {
-                // Id È¥ÖØ: ÒÑ´æÔÚÔòÌø¹ı(±ÜÃâÓë vanilla »òÆäËû mod ³åÍ»)
+                // Id å»é‡: å·²å­˜åœ¨åˆ™è·³è¿‡(é¿å…ä¸ vanilla æˆ–å…¶ä»– mod å†²çª)
                 if (target.Any(x => x.Id == element.Id))
                 {
-                    EventManager.EventLogger.Warn($"¶Ô»°Ê÷ÔªËØ Id ÖØ¸´, ÒÑÌø¹ı: {element.Id}");
+                    EventManager.EventLogger.Warn($"å¯¹è¯æ ‘å…ƒç´  Id é‡å¤, å·²è·³è¿‡: {element.Id}");
                     continue;
                 }
                 target.Add(element);

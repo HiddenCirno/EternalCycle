@@ -1,4 +1,4 @@
-using EternalCycleServer;
+ï»¿using EternalCycleServer;
 using HarmonyLib;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -144,11 +144,11 @@ namespace EternalCycleServer
             var isstaticbox = ItemUtils.StaticBoxData.ContainsKey(itemid);
             var isspecialbox = ItemUtils.SpecialBoxData.ContainsKey(itemid);//false; //placeholder
             // Temp fix for unlocked weapon crate hideout craft
-            //VulcanLog.Log($"{itemHelper.GetItemName(VulcanUtil.ConvertHashID("»ù½¨²ÄÁÏ³é½±Ïä"))}", logger);
+            //VulcanLog.Log($"{itemHelper.GetItemName(VulcanUtil.ConvertHashID("åŸºå»ºææ–™æŠ½å¥–ç®±"))}", logger);
             if (isadvbox)
             {
-                //¿ÉËãµ½ÕâÁË
-                //ËùÒÔ¿¨³ØÊı¾İÓ¦¸ÃÔõÃ´°ìÄØ
+                //å¯ç®—åˆ°è¿™äº†
+                //æ‰€ä»¥å¡æ± æ•°æ®åº”è¯¥æ€ä¹ˆåŠå‘¢
                 ItemUtils.AdvancedBoxData.TryGetValue(itemid, out var boxdata);
                 if (boxdata != null)
                 {
@@ -186,17 +186,17 @@ namespace EternalCycleServer
                 ItemUtils.StaticBoxData.TryGetValue(itemid, out var boxdata);
                 if (boxdata != null)
                 {
-                    //VulcanLog.Debug("½øÈë¾²Ì¬Ïä×ÓÁ÷³Ì", logger);
+                    //VulcanLog.Debug("è¿›å…¥é™æ€ç®±å­æµç¨‹", logger);
                     var giftdata = boxdata.GiftData;
                     if (boxdata.ForcedFindInRaid) foundInRaid = true;
                     foreach (var data in giftdata)
                     {
-                        //VulcanLog.Debug("ÕıÔÚ¼ì²éÊı¾İ....", logger);
+                        //VulcanLog.Debug("æ­£åœ¨æ£€æŸ¥æ•°æ®....", logger);
                         var hashkey = Utils.ConvertHashID(DateTime.Now.ToString());
                         var reward = ItemUtils.GetGiftItemByType(data, hashkey, context);
                         if (reward.Count > 0)
                         {
-                            //VulcanLog.Debug("Êı¾İ·µ»Ø³É¹¦", logger);
+                            //VulcanLog.Debug("æ•°æ®è¿”å›æˆåŠŸ", logger);
                             rewards.Add(reward);
                         }
                     }

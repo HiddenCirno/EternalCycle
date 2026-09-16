@@ -1,8 +1,8 @@
-using HarmonyLib;
+ï»¿using HarmonyLib;
 using SPTarkov.Reflection.Patching;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using System.Reflection;
-// ¼ÇµÃ using ÄãµÄ Item ËùÔÚµÄÃüÃû¿Õ¼ä
+// è®°å¾— using ä½ çš„ Item æ‰€åœ¨çš„å‘½åç©ºé—´
 
 namespace EternalCycleServer
 {
@@ -10,25 +10,25 @@ namespace EternalCycleServer
     {
         protected override MethodBase GetTargetMethod()
         {
-            // ¾«×¼¾Ñ»÷Ô­°æ Item ÀàµÄ ParentId ÊôĞÔµÄ setter ·½·¨ (µ×²ãÃû³ÆÎª set_ParentId)
+            // ç²¾å‡†ç‹™å‡»åŸç‰ˆ Item ç±»çš„ ParentId å±æ€§çš„ setter æ–¹æ³• (åº•å±‚åç§°ä¸º set_ParentId)
             return AccessTools.PropertySetter(typeof(Item), "ParentId");
         }
 
         [PatchPrefix]
-        // ÕâÀïµÄ __instance ¿ÉÒÔ»ñÈ¡µ½µ±Ç°ÕıÔÚ±»·´ĞòÁĞ»¯µÄ¶ÔÏó
+        // è¿™é‡Œçš„ __instance å¯ä»¥è·å–åˆ°å½“å‰æ­£åœ¨è¢«ååºåˆ—åŒ–çš„å¯¹è±¡
         public static void Prefix(object __instance, ref string value)
         {
-            // ¡¾¹Ø¼üµã¡¿Èç¹ûÄãÖ»ÏëÈÃÕâ¸öÂß¼­¶ÔÄã×Ô¼ºµÄ CustomItem ÉúĞ§£¬¼ÓÕâ¸öÅĞ¶Ï
-            // ÕâÑù¾Í²»»áÎóÉËÔ­°æµÄ Item ·´ĞòÁĞ»¯Âß¼­
+            // ã€å…³é”®ç‚¹ã€‘å¦‚æœä½ åªæƒ³è®©è¿™ä¸ªé€»è¾‘å¯¹ä½ è‡ªå·±çš„ CustomItem ç”Ÿæ•ˆï¼ŒåŠ è¿™ä¸ªåˆ¤æ–­
+            // è¿™æ ·å°±ä¸ä¼šè¯¯ä¼¤åŸç‰ˆçš„ Item ååºåˆ—åŒ–é€»è¾‘
             if (__instance is CustomItem)
             {
-                // ¿ÕÖµ·ÀÀ×
+                // ç©ºå€¼é˜²é›·
                 if (string.IsNullOrEmpty(value)) return;
 
-                // ÄãµÄÌØÊâÂß¼­£ºhideout Ö±½Ó·ÅĞĞ
+                // ä½ çš„ç‰¹æ®Šé€»è¾‘ï¼šhideout ç›´æ¥æ”¾è¡Œ
                 if (value == "hideout" || value.IsHex24()) return;
 
-                // ½Øºú£¡ÔÚÔ­°æ setter Ö´ĞĞÇ°£¬°Ñ´«½øÀ´µÄ·Ç±ê×Ö·û´®Ç¿ĞĞÌæ»»³É Hash ¹ıµÄ×Ö·û´®
+                // æˆªèƒ¡ï¼åœ¨åŸç‰ˆ setter æ‰§è¡Œå‰ï¼ŒæŠŠä¼ è¿›æ¥çš„éæ ‡å­—ç¬¦ä¸²å¼ºè¡Œæ›¿æ¢æˆ Hash è¿‡çš„å­—ç¬¦ä¸²
                 value = value.ConvertHashID();
             }
         }

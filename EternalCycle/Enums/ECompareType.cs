@@ -1,11 +1,11 @@
-namespace EternalCycleServer;
+ï»¿namespace EternalCycleServer;
 
 public enum ECompareType
 {
-    Equal,          // µÈÓÚ
-    NotEqual,       // ²»µÈÓÚ
-    Greater,        // ´óÓÚ
-    GreaterOrEqual, // ´óÓÚµÈÓÚ
-    Less,           // Ğ¡ÓÚ
-    LessOrEqual     // Ğ¡ÓÚµÈÓÚ
+    Equal,          // ç­‰äº
+    NotEqual,       // ä¸ç­‰äº
+    Greater,        // å¤§äº
+    GreaterOrEqual, // å¤§äºç­‰äº
+    Less,           // å°äº
+    LessOrEqual     // å°äºç­‰äº
 }

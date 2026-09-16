@@ -1,4 +1,4 @@
-using SPTarkov.Server.Core.Models.Spt.Bots;
+ï»¿using SPTarkov.Server.Core.Models.Spt.Bots;
 using static EternalCycleServer.ContextManager;
 using Path = System.IO.Path;
 
@@ -12,10 +12,10 @@ namespace EternalCycleServer
         {
             var correctpath = Path.Combine(modpath, path);
 
-            // ÎÄ¼ş¼Ğ¼ÓÔØÄ£Ê½
+            // æ–‡ä»¶å¤¹åŠ è½½æ¨¡å¼
             if (Directory.Exists(correctpath))
             {
-                // ×¢Òâ£ºÊÂ¼şÃûÇë¸ù¾İÊµ¼ÊÇé¿öÌæ»»£¨Èç LoadAchievementEvent »òÍ³ºÏÔÚ LoadQuestEvent ÖĞ£©
+                // æ³¨æ„ï¼šäº‹ä»¶åè¯·æ ¹æ®å®é™…æƒ…å†µæ›¿æ¢ï¼ˆå¦‚ LoadAchievementEvent æˆ–ç»Ÿåˆåœ¨ LoadQuestEvent ä¸­ï¼‰
                 EventManager.DataLoadEvent.LoadAlterBotEvent += (context) =>
                 {
                     try
@@ -24,18 +24,18 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²á×Ô¶¨ÒåBotÊ±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş¼Ğ {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œè‡ªå®šä¹‰Botæ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶å¤¹ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
-            // µ¥ÎÄ¼ş¼ÓÔØÄ£Ê½
+            // å•æ–‡ä»¶åŠ è½½æ¨¡å¼
             else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadAlterBotEvent += (context) =>
                 {
                     try
                     {
-                        // ·´ĞòÁĞ»¯Îª List ¼¯ºÏ
+                        // ååºåˆ—åŒ–ä¸º List é›†åˆ
                         var alterBotData = context.JsonUtil.Deserialize<CustomAlterBot>(File.ReadAllText(correctpath));
 
                         if (alterBotData != null)
@@ -45,15 +45,15 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²á¶¨ÒåBotÊ±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œå®šä¹‰Botæ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"×¢²á¶¨ÒåBotÊ±·¢ÉúÒì³££ºÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş»òÎÄ¼ş¼Ğ {correctpath}");
+                EventManager.EventLogger.Warn($"æ³¨å†Œå®šä¹‰Botæ—¶å‘ç”Ÿå¼‚å¸¸ï¼šæ‰¾ä¸åˆ°æŒ‡å®šçš„æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹ {correctpath}");
             }
-            // ¼ÙÉèÊÂ¼ş»Øµ÷ÖĞµÄ context ÒÑ¾­ÊÇ ContextManager.LoadModContext ÀàĞÍ
+            // å‡è®¾äº‹ä»¶å›è°ƒä¸­çš„ context å·²ç»æ˜¯ ContextManager.LoadModContext ç±»å‹
 
         }
 
@@ -83,7 +83,7 @@ namespace EternalCycleServer
             }
             bots.Add(customAlterBot);
             AlterBotDictionarys[customAlterBot.BotRole] = bots;
-            //context.Logger.Success($"³É¹¦×¢²á{customAlterBot.BotRole}");
+            //context.Logger.Success($"æˆåŠŸæ³¨å†Œ{customAlterBot.BotRole}");
 
 
         }

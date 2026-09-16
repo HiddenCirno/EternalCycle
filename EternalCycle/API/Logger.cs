@@ -1,18 +1,18 @@
-using System.Collections.Concurrent;
+ï»¿using System.Collections.Concurrent;
 
 namespace EternalCycleServer
 {
     /// <summary>
-    /// ¶¨ÒåÈÕÖ¾¼¶±ğ
+    /// å®šä¹‰æ—¥å¿—çº§åˆ«
     /// </summary>
     public enum CycleLogLevel { Info, Success, Warn, Error, Debug }
     /// <summary>
-    /// Ê¹ÓÃÊ±µ÷ÓÃµÄÊµÀıÀàĞÍ
+    /// ä½¿ç”¨æ—¶è°ƒç”¨çš„å®ä¾‹ç±»å‹
     /// </summary>
     public class ECLogger
     {
         /// <summary>
-        /// ¾²Ì¬ºóÌ¨ÒıÇæ, È«·şÎ¨Ò», ËùÓĞÊµÀı¹²ÏíÍ¬Ò»¸ö¶ÓÁĞºÍÏß³Ì
+        /// é™æ€åå°å¼•æ“, å…¨æœå”¯ä¸€, æ‰€æœ‰å®ä¾‹å…±äº«åŒä¸€ä¸ªé˜Ÿåˆ—å’Œçº¿ç¨‹
         /// </summary>
         private static readonly BlockingCollection<LogEntry> _logQueue = new();
         private static readonly CancellationTokenSource _cts = new();
@@ -20,7 +20,7 @@ namespace EternalCycleServer
         private static bool _engineStarted = false;
         private static readonly object _lock = new();
         /// <summary>
-        /// ÈÕÖ¾½á¹¹¶¨Òå
+        /// æ—¥å¿—ç»“æ„å®šä¹‰
         /// </summary>
         private readonly struct LogEntry
         {
@@ -31,20 +31,20 @@ namespace EternalCycleServer
             public readonly DateTime Time;
             public readonly bool ShowModuleName;
             /// <summary>
-            /// ÈÕÖ¾½á¹¹¹¹Ôìº¯Êı
+            /// æ—¥å¿—ç»“æ„æ„é€ å‡½æ•°
             /// </summary>
-            /// <param name="module">Ä£¿éÃû</param>
-            /// <param name="level">ÈÕÖ¾µÈ¼¶</param>
-            /// <param name="msg">ÏûÏ¢</param>
-            /// <param name="color">ÑÕÉ«</param>
-            /// <param name="showModuleName">ÊÇ·ñÏÔÊ¾Ä£¿éÃû×Ö</param>
+            /// <param name="module">æ¨¡å—å</param>
+            /// <param name="level">æ—¥å¿—ç­‰çº§</param>
+            /// <param name="msg">æ¶ˆæ¯</param>
+            /// <param name="color">é¢œè‰²</param>
+            /// <param name="showModuleName">æ˜¯å¦æ˜¾ç¤ºæ¨¡å—åå­—</param>
             public LogEntry(string module, CycleLogLevel level, string msg, ConsoleColor color, bool showModuleName)
             {
                 Module = module; Level = level; Message = msg; Color = color; Time = DateTime.Now; ShowModuleName = showModuleName;
             }
         }
         /// <summary>
-        /// ³õÊ¼»¯¾²Ì¬ÒıÇæ, ½öÒ»´Î
+        /// åˆå§‹åŒ–é™æ€å¼•æ“, ä»…ä¸€æ¬¡
         /// </summary>
         private static void EnsureEngineStarted()
         {
@@ -54,14 +54,14 @@ namespace EternalCycleServer
                 if (_engineStarted) return;
                 string logDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "user", "logs", "EternalCycle");
                 if (!Directory.Exists(logDir)) Directory.CreateDirectory(logDir);
-                //¶¯Ì¬¸ø¾²Ì¬±äÁ¿¸³ÖµÂ·¾¶
+                //åŠ¨æ€ç»™é™æ€å˜é‡èµ‹å€¼è·¯å¾„
                 _logFilePath = Path.Combine(logDir, $"EternalCycle_{DateTime.Now:yyyy-MM-dd}.log");
                 Task.Factory.StartNew(ProcessQueue, _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
                 _engineStarted = true;
             }
         }
         /// <summary>
-        /// ´¦Àí¶ÓÁĞ
+        /// å¤„ç†é˜Ÿåˆ—
         /// </summary>
         private static void ProcessQueue()
         {
@@ -78,68 +78,68 @@ namespace EternalCycleServer
                     Console.ResetColor();
                 }
                 try { File.AppendAllText(_logFilePath, outputText + Environment.NewLine); }
-                catch { /* ºöÂÔÎÄ¼şÕ¼ÓÃ´íÎó */ }
+                catch { /* å¿½ç•¥æ–‡ä»¶å ç”¨é”™è¯¯ */ }
             }
         }
         /// <summary>
-        /// ½«ÈÕÖ¾ÌõÄ¿¼ÓÈë¶ÓÁĞ
+        /// å°†æ—¥å¿—æ¡ç›®åŠ å…¥é˜Ÿåˆ—
         /// </summary>
-        /// <param name="module">Ä£¿éÃû</param>
-        /// <param name="level">ÈÕÖ¾µÈ¼¶</param>
-        /// <param name="msg">ÏûÏ¢</param>
-        /// <param name="color">ÑÕÉ«</param>
-        /// <param name="showModuleName">ÊÇ·ñÏÔÊ¾Ä£¿éÃû×Ö</param>
+        /// <param name="module">æ¨¡å—å</param>
+        /// <param name="level">æ—¥å¿—ç­‰çº§</param>
+        /// <param name="msg">æ¶ˆæ¯</param>
+        /// <param name="color">é¢œè‰²</param>
+        /// <param name="showModuleName">æ˜¯å¦æ˜¾ç¤ºæ¨¡å—åå­—</param>
         private static void Enqueue(string module, CycleLogLevel level, string msg, ConsoleColor color, bool showModuleName)
         {
             if (!_logQueue.IsAddingCompleted) _logQueue.Add(new LogEntry(module, level, msg, color, showModuleName));
         }
-        //ÊµÀı¶¨Òå
+        //å®ä¾‹å®šä¹‰
         private readonly string _moduleName;
         private readonly bool _showModuleName;
         /// <summary>
-        /// ¹¹Ôìº¯Êı
+        /// æ„é€ å‡½æ•°
         /// </summary>
-        /// <param name="moduleName">ÈÕÖ¾Ä£¿éÃû×Ö</param>
-        /// <param name="showModuleName">ÊÇ·ñÏÔÊ¾Ä£¿éÃû×Ö</param>
+        /// <param name="moduleName">æ—¥å¿—æ¨¡å—åå­—</param>
+        /// <param name="showModuleName">æ˜¯å¦æ˜¾ç¤ºæ¨¡å—åå­—</param>
         public ECLogger(string moduleName, bool showModuleName)
         {
             EnsureEngineStarted();
             _moduleName = moduleName;
             _showModuleName = showModuleName;
         }
-        //ÊµÀı·½·¨
+        //å®ä¾‹æ–¹æ³•
         /// <summary>
-        /// Õı³£ĞÅÏ¢ (ÇàÉ«)
+        /// æ­£å¸¸ä¿¡æ¯ (é’è‰²)
         /// </summary>
-        /// <param name="msg">´«ÈëÈÕÖ¾</param>
+        /// <param name="msg">ä¼ å…¥æ—¥å¿—</param>
         public void Info(string msg) => Enqueue(_moduleName, CycleLogLevel.Info, msg, ConsoleColor.DarkCyan, _showModuleName);
         /// <summary>
-        /// ³É¹¦ĞÅÏ¢ (ÂÌÉ«)
+        /// æˆåŠŸä¿¡æ¯ (ç»¿è‰²)
         /// </summary>
-        /// <param name="msg">´«ÈëÈÕÖ¾</param>
+        /// <param name="msg">ä¼ å…¥æ—¥å¿—</param>
         public void Success(string msg) => Enqueue(_moduleName, CycleLogLevel.Success, msg, ConsoleColor.DarkGreen, _showModuleName);
         /// <summary>
-        /// ¾¯¸æĞÅÏ¢ (»ÆÉ«)
+        /// è­¦å‘Šä¿¡æ¯ (é»„è‰²)
         /// </summary>
-        /// <param name="msg">´«ÈëÈÕÖ¾</param>
+        /// <param name="msg">ä¼ å…¥æ—¥å¿—</param>
         public void Warn(string msg) => Enqueue(_moduleName, CycleLogLevel.Warn, msg, ConsoleColor.DarkYellow, _showModuleName);
         /// <summary>
-        /// ´íÎóĞÅÏ¢ (ºìÉ«)
+        /// é”™è¯¯ä¿¡æ¯ (çº¢è‰²)
         /// </summary>
-        /// <param name="msg">´«ÈëÈÕÖ¾</param>
-        /// <param name="ex">´íÎóÏêÇé, ¿ÉÎª¿Õ, Ä¬ÈÏÎªnull¼´ÎŞ´íÎó</param>
+        /// <param name="msg">ä¼ å…¥æ—¥å¿—</param>
+        /// <param name="ex">é”™è¯¯è¯¦æƒ…, å¯ä¸ºç©º, é»˜è®¤ä¸ºnullå³æ— é”™è¯¯</param>
         public void Error(string msg, Exception ex = null)
         {
-            string finalMsg = ex == null ? msg : $"{msg}\nÒì³£: {ex}";
+            string finalMsg = ex == null ? msg : $"{msg}\nå¼‚å¸¸: {ex}";
             Enqueue(_moduleName, CycleLogLevel.Error, finalMsg, ConsoleColor.DarkRed, _showModuleName);
         }
         /// <summary>
-        /// µ÷ÊÔĞÅÏ¢ (»ÒÉ«)
+        /// è°ƒè¯•ä¿¡æ¯ (ç°è‰²)
         /// </summary>
-        /// <param name="msg">´«ÈëÈÕÖ¾</param>
+        /// <param name="msg">ä¼ å…¥æ—¥å¿—</param>
         public void Debug(string msg)
         {
-            //Ô¤ÁôDebug¿ª¹Ø
+            //é¢„ç•™Debugå¼€å…³
             if(true) Enqueue(_moduleName, CycleLogLevel.Error, msg, ConsoleColor.DarkGray, _showModuleName);
         }
     }

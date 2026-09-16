@@ -1,15 +1,15 @@
-using SPTarkov.Server.Core.Models.Enums;
+ï»¿using SPTarkov.Server.Core.Models.Enums;
 
 namespace EternalCycleServer
 {
 
     /// <summary>
-    /// ¶Ô×Ô¶¨ÒåÎ»Í¼½øĞĞ×ª»»µÄ¹¤¾ßÀà
+    /// å¯¹è‡ªå®šä¹‰ä½å›¾è¿›è¡Œè½¬æ¢çš„å·¥å…·ç±»
     /// </summary>
     public static class BitMapUtils
     {
         /// <summary>
-        /// µØÍ¼Ë÷Òı±í
+        /// åœ°å›¾ç´¢å¼•è¡¨
         /// </summary>
         private static readonly Dictionary<ELocationType, string> LocationMap = new()
         {
@@ -29,7 +29,7 @@ namespace EternalCycleServer
         };
 
         /// <summary>
-        /// µØÍ¼Ë÷Òı±í
+        /// åœ°å›¾ç´¢å¼•è¡¨
         /// </summary>
         private static readonly Dictionary<ELocationType, string> LocationBaseMap = new()
         {
@@ -49,7 +49,7 @@ namespace EternalCycleServer
         };
 
         /// <summary>
-        /// µØÍ¼Ë÷Òı±í
+        /// åœ°å›¾ç´¢å¼•è¡¨
         /// </summary>
         private static readonly Dictionary<ELocationType, string> FUCKSPTLocationMap = new()
         {
@@ -68,7 +68,7 @@ namespace EternalCycleServer
             { ELocationType.Labyrinth, "Labyrinth" }
         };
 
-        //ÓÃÓÚÔËËãµÄÔ¤»º´æ±í
+        //ç”¨äºè¿ç®—çš„é¢„ç¼“å­˜è¡¨
         private static readonly EBlackListType[] BlackListTypes = (EBlackListType[])Enum.GetValues(typeof(EBlackListType));
         private static readonly EGameVersionType[] GameVersionTypes = (EGameVersionType[])Enum.GetValues(typeof(EGameVersionType));
         private static readonly EBodyPartType[] BodyPartTypes = (EBodyPartType[])Enum.GetValues(typeof(EBodyPartType));
@@ -82,7 +82,7 @@ namespace EternalCycleServer
         private static readonly Dictionary<EQuestStatusType, QuestStatusEnum> QuestStatusMap = InitializeQuestStatusMap();
 
         /// <summary>
-        /// ³õÊ¼»¯ÈÎÎñ×´Ì¬Ó³Éä±í
+        /// åˆå§‹åŒ–ä»»åŠ¡çŠ¶æ€æ˜ å°„è¡¨
         /// </summary>
         private static Dictionary<EQuestStatusType, QuestStatusEnum> InitializeQuestStatusMap()
         {
@@ -98,10 +98,10 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ¸ù¾İÊäÈëµÄÎ»Í¼Êı×Ö¼ÆËãºÚÃûµ¥
+        /// æ ¹æ®è¾“å…¥çš„ä½å›¾æ•°å­—è®¡ç®—é»‘åå•
         /// </summary>
-        /// <param name="bitmask">Î»Í¼Êı¾İ</param>
-        /// <returns>ºÚÃûµ¥ÁĞ±í¶ÔÏó</returns>
+        /// <param name="bitmask">ä½å›¾æ•°æ®</param>
+        /// <returns>é»‘åå•åˆ—è¡¨å¯¹è±¡</returns>
         public static List<string> GetBlackListCode(int bitmask)
         {
             var result = new List<string>();
@@ -116,10 +116,10 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ¸ù¾İÊäÈëµÄÎ»Í¼Êı×Ö¼ÆËãÓÎÏ·°æ±¾
+        /// æ ¹æ®è¾“å…¥çš„ä½å›¾æ•°å­—è®¡ç®—æ¸¸æˆç‰ˆæœ¬
         /// </summary>
-        /// <param name="bitmask">Î»Í¼Êı¾İ</param>
-        /// <returns>ÓÎÏ·°æ±¾ÁĞ±í¶ÔÏó</returns>
+        /// <param name="bitmask">ä½å›¾æ•°æ®</param>
+        /// <returns>æ¸¸æˆç‰ˆæœ¬åˆ—è¡¨å¯¹è±¡</returns>
         public static List<string> GetGameVersionCode(int bitmask)
         {
             var result = new List<string>();
@@ -134,10 +134,10 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ¸ù¾İÊäÈëµÄÎ»Í¼Êı×Ö¼ÆËãÇûÌå²¿Î»
+        /// æ ¹æ®è¾“å…¥çš„ä½å›¾æ•°å­—è®¡ç®—èº¯ä½“éƒ¨ä½
         /// </summary>
-        /// <param name="bitmask">Î»Í¼Êı¾İ</param>
-        /// <returns>ÇûÌå²¿Î»ÁĞ±í¶ÔÏó</returns>
+        /// <param name="bitmask">ä½å›¾æ•°æ®</param>
+        /// <returns>èº¯ä½“éƒ¨ä½åˆ—è¡¨å¯¹è±¡</returns>
         public static List<string> GetBodyPartCode(int bitmask)
         {
             var result = new List<string>();
@@ -152,10 +152,10 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ¸ù¾İÊäÈëµÄÎ»Í¼Êı×Ö¼ÆËãµØÍ¼
+        /// æ ¹æ®è¾“å…¥çš„ä½å›¾æ•°å­—è®¡ç®—åœ°å›¾
         /// </summary>
-        /// <param name="bitmask">Î»Í¼Êı¾İ</param>
-        /// <returns>µØÍ¼ÁĞ±í¶ÔÏó</returns>
+        /// <param name="bitmask">ä½å›¾æ•°æ®</param>
+        /// <returns>åœ°å›¾åˆ—è¡¨å¯¹è±¡</returns>
         public static List<string> GetLocationCode(int bitmask)
         {
             var result = new List<string>();
@@ -173,10 +173,10 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ¸ù¾İÊäÈëµÄÎ»Í¼Êı×Ö¼ÆËãµØÍ¼
+        /// æ ¹æ®è¾“å…¥çš„ä½å›¾æ•°å­—è®¡ç®—åœ°å›¾
         /// </summary>
-        /// <param name="bitmask">Î»Í¼Êı¾İ</param>
-        /// <returns>µØÍ¼ÁĞ±í¶ÔÏó</returns>
+        /// <param name="bitmask">ä½å›¾æ•°æ®</param>
+        /// <returns>åœ°å›¾åˆ—è¡¨å¯¹è±¡</returns>
         public static List<string> GetLocationBaseCode(int bitmask)
         {
             var result = new List<string>();
@@ -194,10 +194,10 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ¸ù¾İÊäÈëµÄÎ»Í¼Êı×Ö¼ÆËãµØÍ¼
+        /// æ ¹æ®è¾“å…¥çš„ä½å›¾æ•°å­—è®¡ç®—åœ°å›¾
         /// </summary>
-        /// <param name="bitmask">Î»Í¼Êı¾İ</param>
-        /// <returns>µØÍ¼ÁĞ±í¶ÔÏó</returns>
+        /// <param name="bitmask">ä½å›¾æ•°æ®</param>
+        /// <returns>åœ°å›¾åˆ—è¡¨å¯¹è±¡</returns>
         public static List<string> GetFuckSptLocationCode(int bitmask)
         {
             var result = new List<string>();
@@ -215,10 +215,10 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ¸ù¾İÊäÈëµÄÎ»Í¼Êı×Ö¼ÆËã³·Àë×´Ì¬
+        /// æ ¹æ®è¾“å…¥çš„ä½å›¾æ•°å­—è®¡ç®—æ’¤ç¦»çŠ¶æ€
         /// </summary>
-        /// <param name="bitmask">Î»Í¼Êı¾İ</param>
-        /// <returns>³·Àë×´Ì¬ÁĞ±í¶ÔÏó</returns>
+        /// <param name="bitmask">ä½å›¾æ•°æ®</param>
+        /// <returns>æ’¤ç¦»çŠ¶æ€åˆ—è¡¨å¯¹è±¡</returns>
         public static List<string> GetExitStatusCode(int bitmask)
         {
             var result = new List<string>();
@@ -233,10 +233,10 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ¸ù¾İÊäÈëµÄÎ»Í¼Êı×Ö¼ÆËãÈÎÎñ×´Ì¬
+        /// æ ¹æ®è¾“å…¥çš„ä½å›¾æ•°å­—è®¡ç®—ä»»åŠ¡çŠ¶æ€
         /// </summary>
-        /// <param name="bitmask">Î»Í¼Êı¾İ</param>
-        /// <returns>Ò»¸ö¼ÇÂ¼ÈÎÎñ×´Ì¬µÄ¹şÏ£±í</returns>
+        /// <param name="bitmask">ä½å›¾æ•°æ®</param>
+        /// <returns>ä¸€ä¸ªè®°å½•ä»»åŠ¡çŠ¶æ€çš„å“ˆå¸Œè¡¨</returns>
         public static HashSet<QuestStatusEnum> GetQuestStatusCode(int bitmask)
         {
             var result = new HashSet<QuestStatusEnum>();

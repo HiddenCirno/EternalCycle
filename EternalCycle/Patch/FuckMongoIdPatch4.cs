@@ -1,4 +1,4 @@
-using HarmonyLib;
+ï»¿using HarmonyLib;
 using SPTarkov.Reflection.Patching;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Utils.Json.Converters;
@@ -14,7 +14,7 @@ namespace EternalCycleServer
     {
         protected override MethodBase GetTargetMethod()
         {
-            // ¾«×¼¶¨Î»£¬ÕâÀïÄãĞ´µÃºÜ¶Ô£¬±ØĞëÓÃ MakeByRefType
+            // ç²¾å‡†å®šä½ï¼Œè¿™é‡Œä½ å†™å¾—å¾ˆå¯¹ï¼Œå¿…é¡»ç”¨ MakeByRefType
             return AccessTools.Method(
                 typeof(StringToMongoIdConverter),
                 "Read",
@@ -25,35 +25,35 @@ namespace EternalCycleServer
         [PatchTranspiler]
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            // ºËĞÄ IL ºÚÄ§·¨£ºÎÒÃÇÎŞÊÓÔ­·½·¨´«½øÀ´µÄ instructions (Ïàµ±ÓÚÇå¿ÕÔ­·½·¨Ìå)
-            // Ö±½ÓÖØĞ´µ×²ãµÄÖ¸Áî£¬ÈÃËüµ÷ÓÃÎÒÃÇµÄ MyCustomRead ·½·¨
+            // æ ¸å¿ƒ IL é»‘é­”æ³•ï¼šæˆ‘ä»¬æ— è§†åŸæ–¹æ³•ä¼ è¿›æ¥çš„ instructions (ç›¸å½“äºæ¸…ç©ºåŸæ–¹æ³•ä½“)
+            // ç›´æ¥é‡å†™åº•å±‚çš„æŒ‡ä»¤ï¼Œè®©å®ƒè°ƒç”¨æˆ‘ä»¬çš„ MyCustomRead æ–¹æ³•
 
-            // ²ÎÊıËµÃ÷£º
-            // ldarg.0 = this (StringToMongoIdConverter ÊµÀı)
-            // ldarg.1 = ref Utf8JsonReader reader (ÕâÕıÊÇÎÒÃÇĞèÒªµÄ£¡)
+            // å‚æ•°è¯´æ˜ï¼š
+            // ldarg.0 = this (StringToMongoIdConverter å®ä¾‹)
+            // ldarg.1 = ref Utf8JsonReader reader (è¿™æ­£æ˜¯æˆ‘ä»¬éœ€è¦çš„ï¼)
             // ldarg.2 = Type typeToConvert
             // ldarg.3 = JsonSerializerOptions options
 
-            // 1. °Ñ ref reader ÍÆÈëÇóÖµÕ»
+            // 1. æŠŠ ref reader æ¨å…¥æ±‚å€¼æ ˆ
             yield return new CodeInstruction(OpCodes.Ldarg_1);
 
-            // 2. µ÷ÓÃÎÒÃÇ×Ô¶¨ÒåµÄ¾²Ì¬·½·¨ MyCustomRead£¬²¢°ÑÕ»ÉÏµÄ ref reader ´«¸øËü
+            // 2. è°ƒç”¨æˆ‘ä»¬è‡ªå®šä¹‰çš„é™æ€æ–¹æ³• MyCustomReadï¼Œå¹¶æŠŠæ ˆä¸Šçš„ ref reader ä¼ ç»™å®ƒ
             yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(FuckMongoIdPatch4), nameof(MyCustomRead)));
 
-            // 3. Ö±½Ó·µ»Ø MyCustomRead ²úÉúµÄ½á¹û (MongoId)
+            // 3. ç›´æ¥è¿”å› MyCustomRead äº§ç”Ÿçš„ç»“æœ (MongoId)
             yield return new CodeInstruction(OpCodes.Ret);
         }
 
-        // Õâ¸ö·½·¨½«ÔÚÕæÊµµÄÔËĞĞ»·¾³ÖĞ±»Ö±½Ó Call£¬ÍêÈ«±Ü¿ªÁË Prefix µÄÎ¯ÍĞÉú³ÉÏŞÖÆ
+        // è¿™ä¸ªæ–¹æ³•å°†åœ¨çœŸå®çš„è¿è¡Œç¯å¢ƒä¸­è¢«ç›´æ¥ Callï¼Œå®Œå…¨é¿å¼€äº† Prefix çš„å§”æ‰˜ç”Ÿæˆé™åˆ¶
         public static MongoId MyCustomRead(ref Utf8JsonReader reader)
         {
-            // ²¹ÉÏÔ­·½·¨µÄµÚÒ»²½·À´ôĞ£Ñé
+            // è¡¥ä¸ŠåŸæ–¹æ³•çš„ç¬¬ä¸€æ­¥é˜²å‘†æ ¡éªŒ
             if (reader.TokenType != JsonTokenType.String)
             {
                 throw new JsonException($"The JsonTokenType was not of type string, it was: {reader.TokenType}");
             }
 
-            // 1. °²È«¶ÁÈ¡×Ö·û´®
+            // 1. å®‰å…¨è¯»å–å­—ç¬¦ä¸²
             string hex = reader.GetString();
 
             if (string.IsNullOrEmpty(hex))
@@ -61,13 +61,13 @@ namespace EternalCycleServer
                 return default;
             }
 
-            // 2. ÄãµÄºËĞÄ×ª»»Âß¼­
+            // 2. ä½ çš„æ ¸å¿ƒè½¬æ¢é€»è¾‘
             if (!hex.IsHex24())
             {
                 hex = hex.ConvertHashID();
             }
 
-            // 3. °²È«·µ»ØºÏ·¨µÄ MongoId£¬´ËÊ±¾ø²»»áÅ×´í
+            // 3. å®‰å…¨è¿”å›åˆæ³•çš„ MongoIdï¼Œæ­¤æ—¶ç»ä¸ä¼šæŠ›é”™
             return new MongoId(hex);
         }
     }

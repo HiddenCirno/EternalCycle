@@ -1,4 +1,4 @@
-using HarmonyLib;
+ï»¿using HarmonyLib;
 using SPTarkov.Reflection.Patching;
 using SPTarkov.Server.Core.Models.Common;
 using System;
@@ -10,26 +10,26 @@ namespace EternalCycleServer
     {
         protected override MethodBase GetTargetMethod()
         {
-            // ¾«×¼¶¨Î» public MongoId(ReadOnlySpan<char> hex) ¹¹Ôìº¯Êı
+            // ç²¾å‡†å®šä½ public MongoId(ReadOnlySpan<char> hex) æ„é€ å‡½æ•°
             return AccessTools.Constructor(typeof(MongoId), new Type[] { typeof(ReadOnlySpan<char>) });
         }
 
         [PatchPrefix]
         public static void Prefix(ref ReadOnlySpan<char> hex)
         {
-            // Èç¹ûÒÑ¾­ÊÇºÏ·¨ 24 Î» Hex£¬Ö±½ÓÌø¹ı
+            // å¦‚æœå·²ç»æ˜¯åˆæ³• 24 ä½ Hexï¼Œç›´æ¥è·³è¿‡
             if (hex.Length == 24 && IsHex24Span(hex))
                 return;
 
-            // ×ªÎª string È»ºóµ÷ÓÃÄãµÄ ConvertHashID£¬ÔÙ×ª»Ø Span
+            // è½¬ä¸º string ç„¶åè°ƒç”¨ä½ çš„ ConvertHashIDï¼Œå†è½¬å› Span
             string hexString = hex.ToString();
             hexString = hexString.ConvertHashID();
-            // ×¢Òâ£ºSpan ÊÇ´«ÒıÓÃµÄ£¬µ« ref ²ÎÊı²»ÄÜÖ±½Ó¸³ĞÂ Span£¬ĞèÒª½«×Ö·û´®×ªÎª Span ÔÙ¸³Öµ£¿
-            // Êµ¼ÊÉÏ Harmony µÄ ref ²ÎÊı¿ÉÒÔĞŞ¸ÄÖµ£¬µ«ÕâÀïÖ»ÄÜĞŞ¸Ä Span µÄÄÚÈİ¡£
-            // ¸üÎÈÍ×µÄ·½Ê½ÊÇ°Ñ Prefix ¸ÄÎª·µ»Ø false£¬È»ºóÔÚÄÚ²¿µ÷ÓÃÁíÒ»¸ö¹¹Ôìº¯Êı²¢Ìø¹ıÔ­·½·¨¡£
-            // µ«ÎªÁË¼òµ¥£¬ÎÒÃÇ¿ÉÒÔÖ±½ÓĞŞ¸Ä×Ö·û´®£¬È»ºóÈÃ Span Ö¸ÏòĞÂ×Ö·û´®¡£
-            // ÒòÎª Span ÊÇÖ»¶ÁµÄ£¬ÎÒÃÇ²»ÄÜÖ±½ÓĞŞ¸ÄËüÖ¸ÏòµÄÄÚ´æ£¬µ«¿ÉÒÔĞŞ¸Ä Span ÒıÓÃ±¾Éí¡£
-            // Harmony µÄ ref ²ÎÊıÔÊĞíÎÒÃÇ¸ü¸Ä Span µÄÒıÓÃ¡£
+            // æ³¨æ„ï¼šSpan æ˜¯ä¼ å¼•ç”¨çš„ï¼Œä½† ref å‚æ•°ä¸èƒ½ç›´æ¥èµ‹æ–° Spanï¼Œéœ€è¦å°†å­—ç¬¦ä¸²è½¬ä¸º Span å†èµ‹å€¼ï¼Ÿ
+            // å®é™…ä¸Š Harmony çš„ ref å‚æ•°å¯ä»¥ä¿®æ”¹å€¼ï¼Œä½†è¿™é‡Œåªèƒ½ä¿®æ”¹ Span çš„å†…å®¹ã€‚
+            // æ›´ç¨³å¦¥çš„æ–¹å¼æ˜¯æŠŠ Prefix æ”¹ä¸ºè¿”å› falseï¼Œç„¶ååœ¨å†…éƒ¨è°ƒç”¨å¦ä¸€ä¸ªæ„é€ å‡½æ•°å¹¶è·³è¿‡åŸæ–¹æ³•ã€‚
+            // ä½†ä¸ºäº†ç®€å•ï¼Œæˆ‘ä»¬å¯ä»¥ç›´æ¥ä¿®æ”¹å­—ç¬¦ä¸²ï¼Œç„¶åè®© Span æŒ‡å‘æ–°å­—ç¬¦ä¸²ã€‚
+            // å› ä¸º Span æ˜¯åªè¯»çš„ï¼Œæˆ‘ä»¬ä¸èƒ½ç›´æ¥ä¿®æ”¹å®ƒæŒ‡å‘çš„å†…å­˜ï¼Œä½†å¯ä»¥ä¿®æ”¹ Span å¼•ç”¨æœ¬èº«ã€‚
+            // Harmony çš„ ref å‚æ•°å…è®¸æˆ‘ä»¬æ›´æ”¹ Span çš„å¼•ç”¨ã€‚
             hex = hexString.AsSpan();
         }
 

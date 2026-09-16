@@ -1,4 +1,4 @@
-using System.Security.Cryptography;
+ï»¿using System.Security.Cryptography;
 using System.Text;
 
 namespace EternalCycleServer
@@ -12,11 +12,11 @@ namespace EternalCycleServer
             var currectMasterSig = Path.Combine(modpath, masterSigPath);
 
             if (!File.Exists(currectPak))
-                throw new FileNotFoundException($"ÕÒ²»µ½Êı¾İÎÄ¼ş: {currectPak}");
+                throw new FileNotFoundException($"æ‰¾ä¸åˆ°æ•°æ®æ–‡ä»¶: {currectPak}");
             if (!File.Exists(currectFileSig))
-                throw new FileNotFoundException($"ÕÒ²»µ½ÎÄ¼şÇ©Ãû: {currectFileSig}");
+                throw new FileNotFoundException($"æ‰¾ä¸åˆ°æ–‡ä»¶ç­¾å: {currectFileSig}");
             if (!File.Exists(currectMasterSig))
-                throw new FileNotFoundException($"ÕÒ²»µ½ÃÜÔ¿Ç©Ãû: {currectMasterSig}");
+                throw new FileNotFoundException($"æ‰¾ä¸åˆ°å¯†é’¥ç­¾å: {currectMasterSig}");
 
             string encryptedHex = File.ReadAllText(currectPak).Trim();
 
@@ -35,13 +35,13 @@ namespace EternalCycleServer
                 bool isMasterValid = rsa.VerifyData(masterMessageBytes, masterSigBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
                 if (!isMasterValid)
                 {
-                    throw new UnauthorizedAccessException($"¾¯¸æ£¡ÃÜÔ¿Ç©ÃûĞ£ÑéÊ§°Ü£¡");
+                    throw new UnauthorizedAccessException($"è­¦å‘Šï¼å¯†é’¥ç­¾åæ ¡éªŒå¤±è´¥ï¼");
                 }
 
                 bool isFileValid = rsa.VerifyData(fileMessageBytes, fileSigBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
                 if (!isFileValid)
                 {
-                    throw new UnauthorizedAccessException($"¾¯¸æ£¡ÎÄ¼şÄÚÈİÇ©ÃûĞ£ÑéÊ§°Ü£¡");
+                    throw new UnauthorizedAccessException($"è­¦å‘Šï¼æ–‡ä»¶å†…å®¹ç­¾åæ ¡éªŒå¤±è´¥ï¼");
                 }
             }
 
@@ -87,7 +87,7 @@ namespace EternalCycleServer
         {
             hex = hex.Replace(" ", "").Replace("\r", "").Replace("\n", "");
 
-            if (hex.Length % 2 != 0) throw new ArgumentException("Ëğ»µµÄHex¡£");
+            if (hex.Length % 2 != 0) throw new ArgumentException("æŸåçš„Hexã€‚");
 
             byte[] bytes = new byte[hex.Length / 2];
             for (int i = 0; i < hex.Length; i += 2)

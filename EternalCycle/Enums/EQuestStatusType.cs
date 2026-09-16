@@ -1,9 +1,9 @@
-namespace EternalCycleServer;
+﻿namespace EternalCycleServer;
 
 [Flags]
 public enum EQuestStatusType
 {
-    None = 0,                       // Ĭ��û��״̬
+    None = 0,                       // 默认没有状态
     Locked = 1 << 0,                // 1
     AvailableForStart = 1 << 1,     // 2
     Started = 1 << 2,               // 4

@@ -1,4 +1,4 @@
-using static EternalCycleServer.ContextManager;
+ï»¿using static EternalCycleServer.ContextManager;
 using Path = System.IO.Path;
 
 namespace EternalCycleServer
@@ -8,13 +8,13 @@ namespace EternalCycleServer
         public static ItemTagDictionary ItemTagDictionarys = new();
 
         /// <summary>
-        /// ½«×Ô¶¨ÒåÅä·½×¢²áµ½¼ÓÔØÊÂ¼ş
+        /// å°†è‡ªå®šä¹‰é…æ–¹æ³¨å†Œåˆ°åŠ è½½äº‹ä»¶
         /// </summary>
-        /// <param name="path">Ö¸¶¨µÄ´æ·ÅÅä·½ÎÄ¼şµÄÂ·¾¶»òÍêÕûµÄÅä·½ÎÄ¼şÂ·¾¶</param>
+        /// <param name="path">æŒ‡å®šçš„å­˜æ”¾é…æ–¹æ–‡ä»¶çš„è·¯å¾„æˆ–å®Œæ•´çš„é…æ–¹æ–‡ä»¶è·¯å¾„</param>
         public static void RegisterItemTag(string modpath, string path)
         {
             var correctpath = Path.Combine(modpath, path);
-            // µ¥ÎÄ¼ş¼ÓÔØÄ£Ê½
+            // å•æ–‡ä»¶åŠ è½½æ¨¡å¼
             EventManager.DataLoadEvent.LoadItemTagEvent += (context) =>
             {
                 try
@@ -24,13 +24,13 @@ namespace EternalCycleServer
                 }
                 catch (Exception ex)
                 {
-                    EventManager.EventLogger.Error($"×¢²áÎïÆ·´ÊµäÊ±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş {correctpath} ´æÔÚÎÊÌâ", ex);
+                    EventManager.EventLogger.Error($"æ³¨å†Œç‰©å“è¯å…¸æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                 }
             };
         }
 
         /// <summary>
-        /// InitÖØÔØ 2£º´¦Àí·´ĞòÁĞ»¯ºÃµÄ×Öµä
+        /// Inité‡è½½ 2ï¼šå¤„ç†ååºåˆ—åŒ–å¥½çš„å­—å…¸
         /// </summary>
         public static void InitItemTagData(ItemTagDictionary tagDict, LoadModContext context)
         {
@@ -60,7 +60,7 @@ namespace EternalCycleServer
 
         public static ItemTag GetTagList(ItemTag tagList)
         {
-            //ÍµÀÁ¸´ÓÃÁËÀàĞÍ, ÕâÀïÊÇ¸ù¾İ´«ÈëµÄ±êÇ©ÁĞ±í·µ»ØËùÓĞµÄ±êÇ©ÄÚÈİ
+            //å·æ‡’å¤ç”¨äº†ç±»å‹, è¿™é‡Œæ˜¯æ ¹æ®ä¼ å…¥çš„æ ‡ç­¾åˆ—è¡¨è¿”å›æ‰€æœ‰çš„æ ‡ç­¾å†…å®¹
             var result = new ItemTag();
             foreach(var tag in tagList)
             {

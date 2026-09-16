@@ -1,4 +1,4 @@
-using SPTarkov.Server.Core.DI;
+ï»¿using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Routers;
@@ -16,19 +16,19 @@ namespace EternalCycleServer
             return databaseService.GetAchievements().FirstOrDefault(x => x.Id == (MongoId)achievementId);
         }
         /// <summary>
-        /// ½«×Ô¶¨Òå³É¾Í×¢²áµ½¼ÓÔØÊÂ¼ş
+        /// å°†è‡ªå®šä¹‰æˆå°±æ³¨å†Œåˆ°åŠ è½½äº‹ä»¶
         /// </summary>
-        /// <param name="path">Ö¸¶¨µÄ´æ·Å³É¾ÍÎÄ¼şµÄÎÄ¼ş¼ĞÂ·¾¶»òµ¥¸ö³É¾ÍÎÄ¼ş(ÁĞ±í)Â·¾¶</param>
-        /// <param name="creator">´´½¨Õß</param>
-        /// <param name="modname">ModÃû</param>
+        /// <param name="path">æŒ‡å®šçš„å­˜æ”¾æˆå°±æ–‡ä»¶çš„æ–‡ä»¶å¤¹è·¯å¾„æˆ–å•ä¸ªæˆå°±æ–‡ä»¶(åˆ—è¡¨)è·¯å¾„</param>
+        /// <param name="creator">åˆ›å»ºè€…</param>
+        /// <param name="modname">Modå</param>
         public static void RegisterAchievement(string modpath, string path, string respath)
         {
             var correctpath = System.IO.Path.Combine(modpath, path);
 
-            // ÎÄ¼ş¼Ğ¼ÓÔØÄ£Ê½
+            // æ–‡ä»¶å¤¹åŠ è½½æ¨¡å¼
             if (Directory.Exists(correctpath))
             {
-                // ×¢Òâ£ºÊÂ¼şÃûÇë¸ù¾İÊµ¼ÊÇé¿öÌæ»»£¨Èç LoadAchievementEvent »òÍ³ºÏÔÚ LoadQuestEvent ÖĞ£©
+                // æ³¨æ„ï¼šäº‹ä»¶åè¯·æ ¹æ®å®é™…æƒ…å†µæ›¿æ¢ï¼ˆå¦‚ LoadAchievementEvent æˆ–ç»Ÿåˆåœ¨ LoadQuestEvent ä¸­ï¼‰
                 EventManager.DataLoadEvent.LoadAchievementEvent += (context) =>
                 {
                     try
@@ -37,18 +37,18 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²á³É¾ÍÊ±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş¼Ğ {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œæˆå°±æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶å¤¹ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
-            // µ¥ÎÄ¼ş¼ÓÔØÄ£Ê½
+            // å•æ–‡ä»¶åŠ è½½æ¨¡å¼
             else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadAchievementEvent += (context) =>
                 {
                     try
                     {
-                        // ·´ĞòÁĞ»¯Îª List ¼¯ºÏ
+                        // ååºåˆ—åŒ–ä¸º List é›†åˆ
                         var achievementData = context.JsonUtil.Deserialize<List<CustomAchievementData>>(File.ReadAllText(correctpath));
 
                         if (achievementData != null)
@@ -58,18 +58,18 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²á³É¾ÍÊ±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œæˆå°±æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"×¢²á³É¾ÍÊ±·¢ÉúÒì³££ºÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş»òÎÄ¼ş¼Ğ {correctpath}");
+                EventManager.EventLogger.Warn($"æ³¨å†Œæˆå°±æ—¶å‘ç”Ÿå¼‚å¸¸ï¼šæ‰¾ä¸åˆ°æŒ‡å®šçš„æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹ {correctpath}");
             }
         }
 
         /// <summary>
-        /// InitÖØÔØ 1£º´¦ÀíÎÄ¼ş¼ĞÂ·¾¶£¬±éÀú½âÎöÎªµ¥¸ö³É¾Í¶ÔÏó
+        /// Inité‡è½½ 1ï¼šå¤„ç†æ–‡ä»¶å¤¹è·¯å¾„ï¼Œéå†è§£æä¸ºå•ä¸ªæˆå°±å¯¹è±¡
         /// </summary>
         public static void InitAchievementData(string modpath, string folderpath, string respath, LoadModContext context)
         {
@@ -83,7 +83,7 @@ namespace EternalCycleServer
                 foreach (var file in files)
                 {
                     string fileName = Path.GetFileName(file);
-                    // ÎÄ¼ş¼ĞÄ£Ê½ÏÂ£¬°´ÄãµÄÔ­Âß¼­£¬Ã¿¸öÎÄ¼şÊÇÒ»¸ö CustomAchievementData
+                    // æ–‡ä»¶å¤¹æ¨¡å¼ä¸‹ï¼ŒæŒ‰ä½ çš„åŸé€»è¾‘ï¼Œæ¯ä¸ªæ–‡ä»¶æ˜¯ä¸€ä¸ª CustomAchievementData
                     var achievement = context.ModHelper.GetJsonDataFromFile<CustomAchievementData>(correctpath, fileName);
 
                     if (achievement != null)
@@ -95,7 +95,7 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// InitÖØÔØ 2£º´¦Àíµ¥ÎÄ¼ş·´ĞòÁĞ»¯³öµÄ³É¾ÍÁĞ±í
+        /// Inité‡è½½ 2ï¼šå¤„ç†å•æ–‡ä»¶ååºåˆ—åŒ–å‡ºçš„æˆå°±åˆ—è¡¨
         /// </summary>
         public static void InitAchievementData(List<CustomAchievementData> achievementData, string modpath, string respath, LoadModContext context)
         {

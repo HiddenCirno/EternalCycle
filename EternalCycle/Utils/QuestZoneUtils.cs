@@ -1,4 +1,4 @@
-using SPTarkov.Server.Core.Utils.Cloners;
+ï»¿using SPTarkov.Server.Core.Utils.Cloners;
 using static EternalCycleServer.ContextManager;
 using Path = System.IO.Path;
 
@@ -8,17 +8,17 @@ public static class QuestZoneUtils
 {
     private static readonly List<QuestZone> _zones = new();
 
-    // ======== ĞéÄâµØµãÓ³Éä±í ========
+    // ======== è™šæ‹Ÿåœ°ç‚¹æ˜ å°„è¡¨ ========
     private static readonly Dictionary<string, string[]> VirtualLocationMap = new(StringComparer.OrdinalIgnoreCase)
     {
         { "FactoryCommon",  new[] { "factory4_day", "factory4_night" } },
         { "SandboxCommon",  new[] { "Sandbox", "Sandbox_high" } },
     };
 
-    // ======== ¹«¿ª×¢²áÈë¿Ú ========
+    // ======== å…¬å¼€æ³¨å†Œå…¥å£ ========
 
     /// <summary>
-    /// ´ÓÎÄ¼ş¼Ğ»òµ¥ÎÄ¼ş×¢²á QuestZone
+    /// ä»æ–‡ä»¶å¤¹æˆ–å•æ–‡ä»¶æ³¨å†Œ QuestZone
     /// </summary>
     public static void RegisterQuestZones(string modpath, string relativePath)
     {
@@ -34,7 +34,7 @@ public static class QuestZoneUtils
                 }
                 catch (Exception ex)
                 {
-                    EventManager.EventLogger.Error($"¼ÓÔØ QuestZone ÎÄ¼ş¼ĞÊ§°Ü£º{fullPath}", ex);
+                    EventManager.EventLogger.Error($"åŠ è½½ QuestZone æ–‡ä»¶å¤¹å¤±è´¥ï¼š{fullPath}", ex);
                 }
             };
         }
@@ -50,23 +50,23 @@ public static class QuestZoneUtils
                 }
                 catch (Exception ex)
                 {
-                    EventManager.EventLogger.Error($"¼ÓÔØ QuestZone ÎÄ¼şÊ§°Ü£º{fullPath}", ex);
+                    EventManager.EventLogger.Error($"åŠ è½½ QuestZone æ–‡ä»¶å¤±è´¥ï¼š{fullPath}", ex);
                 }
             };
         }
         else
         {
-            EventManager.EventLogger.Warn($"QuestZone Â·¾¶²»´æÔÚ£º{fullPath}");
+            EventManager.EventLogger.Warn($"QuestZone è·¯å¾„ä¸å­˜åœ¨ï¼š{fullPath}");
         }
     }
 
     /// <summary>
-    /// Ö±½ÓÒÔ´úÂë·½Ê½Ìí¼ÓÒ»¸ö zone
+    /// ç›´æ¥ä»¥ä»£ç æ–¹å¼æ·»åŠ ä¸€ä¸ª zone
     /// </summary>
     public static void AddZone(QuestZone zone) => _zones.Add(zone);
 
     /// <summary>
-    /// »ñÈ¡Õ¹¿ªºóµÄÈ«²¿ zone ÁĞ±í£¨ĞéÄâµØµãÒÑÕ¹¿ªÎªÕæÊµµØµã£©
+    /// è·å–å±•å¼€åçš„å…¨éƒ¨ zone åˆ—è¡¨ï¼ˆè™šæ‹Ÿåœ°ç‚¹å·²å±•å¼€ä¸ºçœŸå®åœ°ç‚¹ï¼‰
     /// </summary>
     public static IReadOnlyList<QuestZone> GetZones(ICloner cloner)
     {
@@ -94,7 +94,7 @@ public static class QuestZoneUtils
         return expanded;
     }
 
-    // ======== ÄÚ²¿·½·¨ ========
+    // ======== å†…éƒ¨æ–¹æ³• ========
 
     private static void LoadZonesFromDirectory(string dir, LoadModContext context)
     {

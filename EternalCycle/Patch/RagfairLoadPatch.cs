@@ -1,4 +1,4 @@
-using HarmonyLib;
+ï»¿using HarmonyLib;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Http.HttpResults;
 using SPTarkov.DI.Annotations;
@@ -109,7 +109,7 @@ namespace EternalCycleServer
                 ItemHelper = _itemHelper,
                 Cloner = _cloner
             };
-            //¸ÉËûÂèµÄÔ¤Éè»º´æ
+            //å¹²ä»–å¦ˆçš„é¢„è®¾ç¼“å­˜
             var itemPresets = context.DB.GetGlobals().ItemPresets;
             var presetHelperInstance = context.PresetHelper;
             Traverse.Create(context.PresetHelper).Field("DefaultWeaponPresets").SetValue(null);
@@ -121,13 +121,13 @@ namespace EternalCycleServer
                 var presetId = kvp.Key;
                 var preset = kvp.Value;
 
-                // ÕÒµ½Õâ¸öÔ¤ÉèµÄ¸ùÎïÆ· (ÎäÆ÷±¾Ìå/·Àµ¯ÒÂ±¾Ìå)
+                // æ‰¾åˆ°è¿™ä¸ªé¢„è®¾çš„æ ¹ç‰©å“ (æ­¦å™¨æœ¬ä½“/é˜²å¼¹è¡£æœ¬ä½“)
                 var rootItem = preset.Items.FirstOrDefault(x => x.Id == preset.Parent);
                 if (rootItem == null) continue;
 
                 var tpl = rootItem.Template;
 
-                // Èç¹û×ÖµäÀï»¹Ã»Õâ¸ö Tpl£¬½¨¸öµµ°¸
+                // å¦‚æœå­—å…¸é‡Œè¿˜æ²¡è¿™ä¸ª Tplï¼Œå»ºä¸ªæ¡£æ¡ˆ
                 if (!newPresetCache.ContainsKey(tpl))
                 {
                     newPresetCache[tpl] = new PresetCacheDetails
@@ -136,10 +136,10 @@ namespace EternalCycleServer
                     };
                 }
 
-                // °Ñµ±Ç°µÄÔ¤Éè ID ¼Ó½øÁĞ±í
+                // æŠŠå½“å‰çš„é¢„è®¾ ID åŠ è¿›åˆ—è¡¨
                 newPresetCache[tpl].PresetIds.Add(presetId);
 
-                // Èç¹ûÕâ¸öÔ¤ÉèÊÇ¹Ù·½³ö³§ÅäÖÃ (´øÓĞ Encyclopedia)£¬°ÑËüÉèÎªÄ¬ÈÏ
+                // å¦‚æœè¿™ä¸ªé¢„è®¾æ˜¯å®˜æ–¹å‡ºå‚é…ç½® (å¸¦æœ‰ Encyclopedia)ï¼ŒæŠŠå®ƒè®¾ä¸ºé»˜è®¤
                 if (preset.Encyclopedia != null)
                 {
                     newPresetCache[tpl].DefaultId = presetId;
@@ -147,18 +147,18 @@ namespace EternalCycleServer
             }
 
             // ==========================================
-            // 3. ½«×îĞÂ¡¢×îÈ«µÄ»º´æ×¢Èë»Øµ¥ÀıÖĞ£¡
+            // 3. å°†æœ€æ–°ã€æœ€å…¨çš„ç¼“å­˜æ³¨å…¥å›å•ä¾‹ä¸­ï¼
             // ==========================================
-            // HydratePresetStore ÊÇ public µÄ£¬Ö±½Óµ÷ÓÃ£¬ÍêÃÀ¸²¸Ç£¡
+            // HydratePresetStore æ˜¯ public çš„ï¼Œç›´æ¥è°ƒç”¨ï¼Œå®Œç¾è¦†ç›–ï¼
             context.PresetHelper.HydratePresetStore(newPresetCache);
 
             File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportidmap.json"), context.JsonUtil.Serialize(Utils.hashIdList, true));
             File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportquest.json"), context.JsonUtil.Serialize(context.DB.GetQuests(), true));
             File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportitem.json"), context.JsonUtil.Serialize(context.DB.GetItems(), true));
             File.WriteAllText(System.IO.Path.Combine(ConfigManager.modPath, "exportlocale.json"), context.JsonUtil.Serialize(_localeService.GetLocaleDb("ch"), true));
-            //ÊÔÊÔÓÎÏ·Æô¶¯×¥µ½µÄÓïÑÔÊÇ²»ÊÇMiniHUDµÄ°æ±¾
-            //ÊÇµÄ»°»¹µÃ¸Ä¹ıÈ¥(²»»á³öÎÊÌâ°É)
-            //¿´¿´ÃÔ¹¬µÄ»ú¹ØÔõÃ´»ØÊÂ
+            //è¯•è¯•æ¸¸æˆå¯åŠ¨æŠ“åˆ°çš„è¯­è¨€æ˜¯ä¸æ˜¯MiniHUDçš„ç‰ˆæœ¬
+            //æ˜¯çš„è¯è¿˜å¾—æ”¹è¿‡å»(ä¸ä¼šå‡ºé—®é¢˜å§)
+            //çœ‹çœ‹è¿·å®«çš„æœºå…³æ€ä¹ˆå›äº‹
             return true;
         }
 

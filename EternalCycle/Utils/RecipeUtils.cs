@@ -1,4 +1,4 @@
-using SPTarkov.Server.Core.Models.Common;
+ï»¿using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Hideout;
 using SPTarkov.Server.Core.Models.Spt.Config;
 using static EternalCycleServer.ContextManager;
@@ -9,18 +9,18 @@ namespace EternalCycleServer
     public class RecipeUtils
     {
         /// <summary>
-        /// ½«×Ô¶¨ÒåÅä·½×¢²áµ½¼ÓÔØÊÂ¼ş
+        /// å°†è‡ªå®šä¹‰é…æ–¹æ³¨å†Œåˆ°åŠ è½½äº‹ä»¶
         /// </summary>
-        /// <param name="path">Ö¸¶¨µÄ´æ·ÅÅä·½ÎÄ¼şµÄÂ·¾¶»òÍêÕûµÄÅä·½ÎÄ¼şÂ·¾¶</param>
-        /// <param name="creator">´´½¨Õß</param>
-        /// <param name="modname">ModÃû</param>
+        /// <param name="path">æŒ‡å®šçš„å­˜æ”¾é…æ–¹æ–‡ä»¶çš„è·¯å¾„æˆ–å®Œæ•´çš„é…æ–¹æ–‡ä»¶è·¯å¾„</param>
+        /// <param name="creator">åˆ›å»ºè€…</param>
+        /// <param name="modname">Modå</param>
         public static void RegisterRecipe(string modpath, string path)
         {
             var correctpath = Path.Combine(modpath, path);
-            // ÎÄ¼ş¼Ğ¼ÓÔØÄ£Ê½
+            // æ–‡ä»¶å¤¹åŠ è½½æ¨¡å¼
             if (Directory.Exists(correctpath))
             {
-                // ¼ÙÉèÊÂ¼ş»Øµ÷ÖĞµÄ context ÒÑ¾­ÊÇ ContextManager.LoadModContext ÀàĞÍ
+                // å‡è®¾äº‹ä»¶å›è°ƒä¸­çš„ context å·²ç»æ˜¯ ContextManager.LoadModContext ç±»å‹
                 EventManager.DataLoadEvent.LoadRecipeEvent += (context) =>
                 {
                     try
@@ -29,11 +29,11 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²áÅä·½Ê±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş¼Ğ {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œé…æ–¹æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶å¤¹ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
-            // µ¥ÎÄ¼ş¼ÓÔØÄ£Ê½
+            // å•æ–‡ä»¶åŠ è½½æ¨¡å¼
             else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadRecipeEvent += (context) =>
@@ -45,18 +45,18 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²áÅä·½Ê±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œé…æ–¹æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"×¢²áÅä·½Ê±·¢ÉúÒì³££ºÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş»òÎÄ¼ş¼Ğ {correctpath}");
+                EventManager.EventLogger.Warn($"æ³¨å†Œé…æ–¹æ—¶å‘ç”Ÿå¼‚å¸¸ï¼šæ‰¾ä¸åˆ°æŒ‡å®šçš„æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹ {correctpath}");
             }
         }
 
         /// <summary>
-        /// InitÖØÔØ 1£º´¦ÀíÎÄ¼ş¼ĞÂ·¾¶£¬¶ÁÈ¡µ¥Ìå¶ÔÏó
+        /// Inité‡è½½ 1ï¼šå¤„ç†æ–‡ä»¶å¤¹è·¯å¾„ï¼Œè¯»å–å•ä½“å¯¹è±¡
         /// </summary>
         public static void InitRecipeData(string folderpath, LoadModContext context)
         {
@@ -79,7 +79,7 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// InitÖØÔØ 2£º´¦Àí·´ĞòÁĞ»¯ºÃµÄ×Öµä
+        /// Inité‡è½½ 2ï¼šå¤„ç†ååºåˆ—åŒ–å¥½çš„å­—å…¸
         /// </summary>
         public static void InitRecipeData(Dictionary<string, CustomRecipeData> recipeData, ContextManager.LoadModContext context)
         {
@@ -95,7 +95,7 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ºËĞÄÂ·ÓÉ£º¸ù¾İÅä·½ÀàĞÍ½øĞĞ·Ö·¢´¦Àí
+        /// æ ¸å¿ƒè·¯ç”±ï¼šæ ¹æ®é…æ–¹ç±»å‹è¿›è¡Œåˆ†å‘å¤„ç†
         /// </summary>
         private static void InitRecipeData(CustomRecipeData recipe, ContextManager.LoadModContext context)
         {
@@ -139,10 +139,10 @@ namespace EternalCycleServer
                 Count = recipeData.OutputCount,
                 ProductionLimitCount = 0,
                 IsEncoded = false,
-                // SPT 5.0 °Ñ IsCodeProduction ÓÉ bool? ÊÕ½ôÎª·Ç¿ÕÇÒ required
-                // £¨4.1 Ê±¸Ã³ÉÔ±ÒÑ´æÔÚ£¬Ö»ÊÇ¿É¿Õ£¬¹Êµ±Ê±²»Ğ´Ò²ÄÜ±àÒë£©¡£
-                // ÓïÒåÎª¡¸¸ÃÅä·½ÊÇ·ñÓÉ´úÂëÉú³É¡¹£ºvanilla production.json ÖĞ
-                // 251 ÌõÎª false¡¢½ö 3 ÌõÎª true£¬ÆÕÍ¨Åä·½È¡ false¡£
+                // SPT 5.0 æŠŠ IsCodeProduction ç”± bool? æ”¶ç´§ä¸ºéç©ºä¸” required
+                // ï¼ˆ4.1 æ—¶è¯¥æˆå‘˜å·²å­˜åœ¨ï¼Œåªæ˜¯å¯ç©ºï¼Œæ•…å½“æ—¶ä¸å†™ä¹Ÿèƒ½ç¼–è¯‘ï¼‰ã€‚
+                // è¯­ä¹‰ä¸ºã€Œè¯¥é…æ–¹æ˜¯å¦ç”±ä»£ç ç”Ÿæˆã€ï¼švanilla production.json ä¸­
+                // 251 æ¡ä¸º falseã€ä»… 3 æ¡ä¸º trueï¼Œæ™®é€šé…æ–¹å– falseã€‚
                 IsCodeProduction = false
             };
             if (recipeData.IsEncoded == true)
@@ -183,15 +183,15 @@ namespace EternalCycleServer
                     Type = "QuestComplete"
                 });
             }
-            //ÍüÁË¼ÓÈÎÎñÌõ¼şÁË²İ
+            //å¿˜äº†åŠ ä»»åŠ¡æ¡ä»¶äº†è‰
             //got it
             recipes.Add(recipe);
         }
 
         /// <summary>
-        /// ½«×Ô¶¨Òå Scav ±¦ÏäÅä·½×¢²áµ½¼ÓÔØÊÂ¼ş
+        /// å°†è‡ªå®šä¹‰ Scav å®ç®±é…æ–¹æ³¨å†Œåˆ°åŠ è½½äº‹ä»¶
         /// </summary>
-        /// <param name="path">Ö¸¶¨µÄ´æ·Å Scav Åä·½ÎÄ¼şµÄÂ·¾¶</param>
+        /// <param name="path">æŒ‡å®šçš„å­˜æ”¾ Scav é…æ–¹æ–‡ä»¶çš„è·¯å¾„</param>
         public static void RegisterScavCaseRecipe(string modpath, string path)
         {
             var correctpath = Path.Combine(modpath, path);
@@ -205,7 +205,7 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²á Scav±¦Ïä Åä·½Ê±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş¼Ğ {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œ Scavå®ç®± é…æ–¹æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶å¤¹ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
@@ -220,13 +220,13 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²á Scav±¦Ïä Åä·½Ê±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œ Scavå®ç®± é…æ–¹æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"×¢²á Scav±¦Ïä Åä·½Ê±·¢ÉúÒì³££ºÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş»òÎÄ¼ş¼Ğ {correctpath}");
+                EventManager.EventLogger.Warn($"æ³¨å†Œ Scavå®ç®± é…æ–¹æ—¶å‘ç”Ÿå¼‚å¸¸ï¼šæ‰¾ä¸åˆ°æŒ‡å®šçš„æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹ {correctpath}");
             }
         }
 
@@ -294,9 +294,9 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ½«×Ô¶¨Òå Ğ°½ÌÈ¦ Åä·½×¢²áµ½¼ÓÔØÊÂ¼ş
+        /// å°†è‡ªå®šä¹‰ é‚ªæ•™åœˆ é…æ–¹æ³¨å†Œåˆ°åŠ è½½äº‹ä»¶
         /// </summary>
-        /// <param name="path">Ö¸¶¨µÄ´æ·Å Ğ°½ÌÈ¦ Åä·½ÎÄ¼şµÄÂ·¾¶</param>
+        /// <param name="path">æŒ‡å®šçš„å­˜æ”¾ é‚ªæ•™åœˆ é…æ–¹æ–‡ä»¶çš„è·¯å¾„</param>
         public static void RegisterCultistCircleRecipe(string modpath, string path)
         {
 
@@ -311,7 +311,7 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²á Ğ°½ÌÈ¦ Åä·½Ê±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş¼Ğ {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œ é‚ªæ•™åœˆ é…æ–¹æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶å¤¹ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
@@ -326,13 +326,13 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²á Ğ°½ÌÈ¦ Åä·½Ê±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œ é‚ªæ•™åœˆ é…æ–¹æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"×¢²á Ğ°½ÌÈ¦ Åä·½Ê±·¢ÉúÒì³££ºÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş»òÎÄ¼ş¼Ğ {correctpath}");
+                EventManager.EventLogger.Warn($"æ³¨å†Œ é‚ªæ•™åœˆ é…æ–¹æ—¶å‘ç”Ÿå¼‚å¸¸ï¼šæ‰¾ä¸åˆ°æŒ‡å®šçš„æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹ {correctpath}");
             }
         }
 

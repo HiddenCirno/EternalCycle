@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
+ï»¿using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Logging;
 using SPTarkov.DI.Annotations;
@@ -21,19 +21,19 @@ namespace EternalCycleServer
 
 
         /// <summary>
-        /// ½«×Ô¶¨Òå·ş×°(Suit)×¢²áµ½¼ÓÔØÊÂ¼ş
+        /// å°†è‡ªå®šä¹‰æœè£…(Suit)æ³¨å†Œåˆ°åŠ è½½äº‹ä»¶
         /// </summary>
-        /// <param name="path">Ö¸¶¨µÄ´æ·Å·ş×°ÎÄ¼şµÄÎÄ¼ş¼ĞÂ·¾¶»òµ¥ÎÄ¼şÂ·¾¶</param>
-        /// <param name="creator">´´½¨Õß</param>
-        /// <param name="modname">ModÃû</param>
-        /// <param name="traderId">¿ÉÑ¡£ºÈç¹ûÕâĞ©·ş×°ÊôÓÚÌØ¶¨ÉÌÈË£¬´«ÈëÉÌÈËID</param>
+        /// <param name="path">æŒ‡å®šçš„å­˜æ”¾æœè£…æ–‡ä»¶çš„æ–‡ä»¶å¤¹è·¯å¾„æˆ–å•æ–‡ä»¶è·¯å¾„</param>
+        /// <param name="creator">åˆ›å»ºè€…</param>
+        /// <param name="modname">Modå</param>
+        /// <param name="traderId">å¯é€‰ï¼šå¦‚æœè¿™äº›æœè£…å±äºç‰¹å®šå•†äººï¼Œä¼ å…¥å•†äººID</param>
         public static void RegisterSuit(string modpath, string path, string traderId = null)
         {
             var correctpath = Path.Combine(modpath, path);
-            // ÎÄ¼ş¼Ğ¼ÓÔØÄ£Ê½
+            // æ–‡ä»¶å¤¹åŠ è½½æ¨¡å¼
             if (Directory.Exists(correctpath))
             {
-                // ÊÂ¼şÃûÇë¸ù¾İÊµ¼ÊÇé¿öµ÷Õû£¬ÀıÈç LoadSuitEvent »ò LoadCustomizationEvent
+                // äº‹ä»¶åè¯·æ ¹æ®å®é™…æƒ…å†µè°ƒæ•´ï¼Œä¾‹å¦‚ LoadSuitEvent æˆ– LoadCustomizationEvent
                 EventManager.DataLoadEvent.LoadSuitEvent += (context) =>
                 {
                     try
@@ -42,11 +42,11 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²á·ş×°Ê±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş¼Ğ {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œæœè£…æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶å¤¹ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
-            // µ¥ÎÄ¼ş¼ÓÔØÄ£Ê½
+            // å•æ–‡ä»¶åŠ è½½æ¨¡å¼
             else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadSuitEvent += (context) =>
@@ -58,18 +58,18 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²á·ş×°Ê±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œæœè£…æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"×¢²á·ş×°Ê±·¢ÉúÒì³££ºÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş»òÎÄ¼ş¼Ğ {correctpath}");
+                EventManager.EventLogger.Warn($"æ³¨å†Œæœè£…æ—¶å‘ç”Ÿå¼‚å¸¸ï¼šæ‰¾ä¸åˆ°æŒ‡å®šçš„æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹ {correctpath}");
             }
         }
 
         /// <summary>
-        /// InitÖØÔØ 1£º´¦ÀíÎÄ¼ş¼ĞÂ·¾¶£¬¶ÁÈ¡·ş×°ÁĞ±í²¢ÏòÏÂ´«µİ traderId
+        /// Inité‡è½½ 1ï¼šå¤„ç†æ–‡ä»¶å¤¹è·¯å¾„ï¼Œè¯»å–æœè£…åˆ—è¡¨å¹¶å‘ä¸‹ä¼ é€’ traderId
         /// </summary>
         public static void InitCustomSuitData(string folderpath, ContextManager.LoadModContext context, string traderId = null)
         {
@@ -92,7 +92,7 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// InitÖØÔØ 2£ººÏ²¢ÁËÄãÔ­±¾µÄÁ½¸ö List ÖØÔØ£¬Í¨¹ıÅĞ¶Ï traderId ÊÇ·ñÎª¿ÕÀ´·Ö·¢Âß¼­
+        /// Inité‡è½½ 2ï¼šåˆå¹¶äº†ä½ åŸæœ¬çš„ä¸¤ä¸ª List é‡è½½ï¼Œé€šè¿‡åˆ¤æ–­ traderId æ˜¯å¦ä¸ºç©ºæ¥åˆ†å‘é€»è¾‘
         /// </summary>
         public static void InitCustomSuitData(List<CustomSuit> customSuits, ContextManager.LoadModContext context, string traderId = null)
         {
@@ -102,7 +102,7 @@ namespace EternalCycleServer
             {
                 if (suit == null) continue;
 
-                // Èç¹û´«ÈëÁË traderId£¬¾Í×ß´øÉÌÈËµÄºËĞÄÂß¼­£¬·ñÔò×ßÆÕÍ¨ºËĞÄÂß¼­
+                // å¦‚æœä¼ å…¥äº† traderIdï¼Œå°±èµ°å¸¦å•†äººçš„æ ¸å¿ƒé€»è¾‘ï¼Œå¦åˆ™èµ°æ™®é€šæ ¸å¿ƒé€»è¾‘
                 if (!string.IsNullOrEmpty(traderId))
                 {
                     InitCustomSuit(suit, traderId.ConvertHashID(), context);
@@ -115,7 +115,7 @@ namespace EternalCycleServer
         }
         public static void InitCustomSuit(CustomSuit customSuit, LoadModContext context)
         {
-            // »»³É context.DB µ÷ÓÃ
+            // æ¢æˆ context.DB è°ƒç”¨
             var suit = GenerateSuit(customSuit);
             var trader = context.DB.GetTrader(suit.Tid) ?? context.DB.GetTrader(Traders.RAGMAN);
             var suits = trader.Suits;
@@ -124,7 +124,7 @@ namespace EternalCycleServer
 
         public static void InitCustomSuit(CustomSuit customSuit, MongoId traderId, LoadModContext context)
         {
-            // »»³É context.DB µ÷ÓÃ
+            // æ¢æˆ context.DB è°ƒç”¨
             var suit = GenerateSuit(customSuit);
             var suits = context.DB.GetTrader(traderId).Suits;
             suits.Add(suit);

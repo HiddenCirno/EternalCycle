@@ -1,4 +1,4 @@
-using SPTarkov.Server.Core.Models.Common;
+ï»¿using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Enums;
 using System.IO;
@@ -8,43 +8,43 @@ using Path = System.IO.Path;
 namespace EternalCycleServer
 {
     /// <summary>
-    /// ±¨¼Ûµ¥²¿·Ö
+    /// æŠ¥ä»·å•éƒ¨åˆ†
     /// </summary>
     public class AssortUtils
     {
         /// <summary>
-        /// ½«×Ô¶¨Òå±¨¼Ûµ¥(Assort)×¢²áµ½¼ÓÔØÊÂ¼ş
+        /// å°†è‡ªå®šä¹‰æŠ¥ä»·å•(Assort)æ³¨å†Œåˆ°åŠ è½½äº‹ä»¶
         /// </summary>
-        /// <param name="path">Ö¸¶¨µÄ´æ·Å±¨¼Ûµ¥ÎÄ¼şµÄÂ·¾¶»òÍêÕûµÄ±¨¼Ûµ¥ÎÄ¼şÂ·¾¶</param>
+        /// <param name="path">æŒ‡å®šçš„å­˜æ”¾æŠ¥ä»·å•æ–‡ä»¶çš„è·¯å¾„æˆ–å®Œæ•´çš„æŠ¥ä»·å•æ–‡ä»¶è·¯å¾„</param>
         public static void RegisterAssort(string modpath, string path)
         {
             var correctpath = System.IO.Path.Combine(modpath, path);
-            // ÎÄ¼ş¼Ğ¼ÓÔØÄ£Ê½
+            // æ–‡ä»¶å¤¹åŠ è½½æ¨¡å¼
             if (Directory.Exists(correctpath))
             {
-                // ×¢Òâ£ºÕâÀïµÄÊÂ¼şÃûÇë¸ù¾İÄãÊµ¼ÊµÄ DataLoadEvent ½øĞĞµ÷Õû£¨¿ÉÄÜÊÇ LoadAssortEvent »ò¹ÒÔØÔÚ LoadTraderEvent ÏÂ£©
+                // æ³¨æ„ï¼šè¿™é‡Œçš„äº‹ä»¶åè¯·æ ¹æ®ä½ å®é™…çš„ DataLoadEvent è¿›è¡Œè°ƒæ•´ï¼ˆå¯èƒ½æ˜¯ LoadAssortEvent æˆ–æŒ‚è½½åœ¨ LoadTraderEvent ä¸‹ï¼‰
                 EventManager.DataLoadEvent.LoadTraderAssortEvent += (context) =>
                 {
                     try
                     {
-                        // ¶ÔÓ¦µ÷ÓÃÒÑÓĞµÄÎÄ¼ş¼ĞÖØÔØ·½·¨
-                        // ¼ÙÉè context Ìá¹©ÁË Logger£¬Èç¹ûÃ»ÓĞ£¬ÇëÊ¹ÓÃ ServiceLocator.ServiceProvider.GetService<ISptLogger<EternalCycle>>()
+                        // å¯¹åº”è°ƒç”¨å·²æœ‰çš„æ–‡ä»¶å¤¹é‡è½½æ–¹æ³•
+                        // å‡è®¾ context æä¾›äº† Loggerï¼Œå¦‚æœæ²¡æœ‰ï¼Œè¯·ä½¿ç”¨ ServiceLocator.ServiceProvider.GetService<ISptLogger<EternalCycle>>()
                         InitAssortData(modpath, path, context);
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²á±¨¼Ûµ¥Ê±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş¼Ğ {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†ŒæŠ¥ä»·å•æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶å¤¹ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
-            // µ¥ÎÄ¼ş¼ÓÔØÄ£Ê½
+            // å•æ–‡ä»¶åŠ è½½æ¨¡å¼
             else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadTraderAssortEvent += (context) =>
                 {
                     try
                     {
-                        // ·´ĞòÁĞ»¯Îª List ¼¯ºÏ£¬¶ÔÓ¦ÒÑÓĞµÄ List ÖØÔØ·½·¨
+                        // ååºåˆ—åŒ–ä¸º List é›†åˆï¼Œå¯¹åº”å·²æœ‰çš„ List é‡è½½æ–¹æ³•
                         var assortData = context.JsonUtil.Deserialize<List<CustomAssortData>>(File.ReadAllText(correctpath));
 
                         if (assortData != null)
@@ -54,21 +54,21 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²á±¨¼Ûµ¥Ê±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†ŒæŠ¥ä»·å•æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"×¢²á±¨¼Ûµ¥Ê±·¢ÉúÒì³££ºÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş»òÎÄ¼ş¼Ğ {correctpath}");
+                EventManager.EventLogger.Warn($"æ³¨å†ŒæŠ¥ä»·å•æ—¶å‘ç”Ÿå¼‚å¸¸ï¼šæ‰¾ä¸åˆ°æŒ‡å®šçš„æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹ {correctpath}");
             }
         }
 
         /// <summary>
-        /// ¼ÓÔØ±¨¼Ûµ¥Êı¾İ
+        /// åŠ è½½æŠ¥ä»·å•æ•°æ®
         /// </summary>
         /// <param name="assortData"></param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         public static void InitAssortData(List<CustomAssortData> assortData, LoadModContext context)
         {
             foreach (CustomAssortData assort in assortData)
@@ -98,10 +98,10 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ´ÓÎÄ¼ş¼Ğ¼ÓÔØ±¨¼Ûµ¥Êı¾İ
+        /// ä»æ–‡ä»¶å¤¹åŠ è½½æŠ¥ä»·å•æ•°æ®
         /// </summary>
         /// <param name="folderpath"></param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         public static void InitAssortData(string modpath, string folderpath, LoadModContext context)
         {
             var correctpath = System.IO.Path.Combine(modpath, folderpath);
@@ -126,7 +126,7 @@ namespace EternalCycleServer
             var items = ItemUtils.ConvertItemListData(assort.Item, context);
             var mainitem = items[0];
             var mainitemid = mainitem.Template;
-            if (ItemUtils.GetItemRagfairTag(mainitemid, context) == ERagfairTagsType.µ¯Ò©°ü)
+            if (ItemUtils.GetItemRagfairTag(mainitemid, context) == ERagfairTagsType.å¼¹è¯åŒ…)
             {
                 ItemUtils.AddAmmoToAmmoBoxInList(mainitem.Id, mainitemid, items, context);
             }

@@ -1,6 +1,6 @@
-using HarmonyLib;
+ï»¿using HarmonyLib;
 using SPTarkov.Reflection.Patching;
-using SPTarkov.Server.Core.Models.Common; // È·±£ÒıÓÃÁË MongoId ËùÔÚµÄÃüÃû¿Õ¼ä
+using SPTarkov.Server.Core.Models.Common; // ç¡®ä¿å¼•ç”¨äº† MongoId æ‰€åœ¨çš„å‘½åç©ºé—´
 using System;
 using System.Reflection;
 
@@ -10,18 +10,18 @@ namespace EternalCycleServer
     {
         protected override MethodBase GetTargetMethod()
         {
-            // ¾«×¼¶¨Î» public MongoId(string? hex) ¹¹Ôìº¯Êı
+            // ç²¾å‡†å®šä½ public MongoId(string? hex) æ„é€ å‡½æ•°
             return AccessTools.Constructor(typeof(MongoId), new Type[] { typeof(string) });
         }
 
         [PatchPrefix]
         public static void Prefix(ref string hex)
         {
-            // Èç¹û×Ö·û´®Îª¿Õ»òÕß³¤¶ÈÒÑ¾­ÊÇ24£¬¾Í²»¹ÜËü£¬ÈÃÔ­°æÂß¼­×ß
+            // å¦‚æœå­—ç¬¦ä¸²ä¸ºç©ºæˆ–è€…é•¿åº¦å·²ç»æ˜¯24ï¼Œå°±ä¸ç®¡å®ƒï¼Œè®©åŸç‰ˆé€»è¾‘èµ°
             if (!hex.IsHex24())
             {
-                // À¹½Øµ½·Ç·¨³¤¶È£¡ÔÚÔ­°æ±¨´íÇ°£¬Ç¿ĞĞÏ´°×³É 24 Î» Hex ×Ö·û´®
-                // ÕâÀïµ÷ÓÃÄãµÄ ConvertHashID() ²¢×ªÎª string ¸²¸ÇµôÔ­²ÎÊı
+                // æ‹¦æˆªåˆ°éæ³•é•¿åº¦ï¼åœ¨åŸç‰ˆæŠ¥é”™å‰ï¼Œå¼ºè¡Œæ´—ç™½æˆ 24 ä½ Hex å­—ç¬¦ä¸²
+                // è¿™é‡Œè°ƒç”¨ä½ çš„ ConvertHashID() å¹¶è½¬ä¸º string è¦†ç›–æ‰åŸå‚æ•°
                 hex = hex.ConvertHashID().ToString();
             }
         }

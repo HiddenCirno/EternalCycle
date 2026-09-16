@@ -1,4 +1,4 @@
-using HarmonyLib;
+ï»¿using HarmonyLib;
 using SPTarkov.Server.Core.Helpers;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common;
@@ -11,18 +11,18 @@ namespace EternalCycleServer
     public class PresetUtils
     {
         /// <summary>
-        /// ½«×Ô¶¨ÒåÔ¤Éè(Preset)×¢²áµ½¼ÓÔØÊÂ¼ş
+        /// å°†è‡ªå®šä¹‰é¢„è®¾(Preset)æ³¨å†Œåˆ°åŠ è½½äº‹ä»¶
         /// </summary>
-        /// <param name="path">Ö¸¶¨µÄ´æ·ÅÔ¤ÉèÎÄ¼şµÄÎÄ¼ş¼ĞÂ·¾¶»òµ¥¸öÔ¤ÉèÎÄ¼ş(ÁĞ±í)Â·¾¶</param>
-        /// <param name="creator">´´½¨Õß</param>
-        /// <param name="modname">ModÃû</param>
+        /// <param name="path">æŒ‡å®šçš„å­˜æ”¾é¢„è®¾æ–‡ä»¶çš„æ–‡ä»¶å¤¹è·¯å¾„æˆ–å•ä¸ªé¢„è®¾æ–‡ä»¶(åˆ—è¡¨)è·¯å¾„</param>
+        /// <param name="creator">åˆ›å»ºè€…</param>
+        /// <param name="modname">Modå</param>
         public static void RegisterPreset(string modpath, string path)
         {
             var correctpath = Path.Combine(modpath, path);
-            // ÎÄ¼ş¼Ğ¼ÓÔØÄ£Ê½
+            // æ–‡ä»¶å¤¹åŠ è½½æ¨¡å¼
             if (Directory.Exists(correctpath))
             {
-                // ÊÂ¼şÃûÇë¸ù¾İÄãÊµ¼ÊÇé¿öµ÷Õû£¬ÀıÈç LoadPresetEvent
+                // äº‹ä»¶åè¯·æ ¹æ®ä½ å®é™…æƒ…å†µè°ƒæ•´ï¼Œä¾‹å¦‚ LoadPresetEvent
                 EventManager.DataLoadEvent.LoadPresetEvent += (context) =>
                 {
                     try
@@ -31,18 +31,18 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²áÔ¤ÉèÊ±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş¼Ğ {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œé¢„è®¾æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶å¤¹ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
-            // µ¥ÎÄ¼ş¼ÓÔØÄ£Ê½
+            // å•æ–‡ä»¶åŠ è½½æ¨¡å¼
             else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadPresetEvent += (context) =>
                 {
                     try
                     {
-                        // ·´ĞòÁĞ»¯Îª List ¼¯ºÏ£¬¶Ô½ÓÒÑÓĞµÄÖØÔØ·½·¨
+                        // ååºåˆ—åŒ–ä¸º List é›†åˆï¼Œå¯¹æ¥å·²æœ‰çš„é‡è½½æ–¹æ³•
                         var presetData = context.JsonUtil.Deserialize<List<CustomPresetData>>(File.ReadAllText(correctpath));
 
                         if (presetData != null)
@@ -52,18 +52,18 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²áÔ¤ÉèÊ±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œé¢„è®¾æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"×¢²áÔ¤ÉèÊ±·¢ÉúÒì³££ºÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş»òÎÄ¼ş¼Ğ {correctpath}");
+                EventManager.EventLogger.Warn($"æ³¨å†Œé¢„è®¾æ—¶å‘ç”Ÿå¼‚å¸¸ï¼šæ‰¾ä¸åˆ°æŒ‡å®šçš„æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹ {correctpath}");
             }
         }
 
         /// <summary>
-        /// InitÖØÔØ 1£º´¦Àí·´ĞòÁĞ»¯ºÃµÄÔ¤ÉèÁĞ±í (¶ÔÓ¦µ¥ÎÄ¼ş¼ÓÔØ)
+        /// Inité‡è½½ 1ï¼šå¤„ç†ååºåˆ—åŒ–å¥½çš„é¢„è®¾åˆ—è¡¨ (å¯¹åº”å•æ–‡ä»¶åŠ è½½)
         /// </summary>
         public static void InitPresetData(List<CustomPresetData> presetData, LoadModContext context)
         {
@@ -79,7 +79,7 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// InitÖØÔØ 2£º´¦ÀíÎÄ¼ş¼ĞÂ·¾¶£¬¶ÁÈ¡µ¥Ìå¶ÔÏó²¢³õÊ¼»¯
+        /// Inité‡è½½ 2ï¼šå¤„ç†æ–‡ä»¶å¤¹è·¯å¾„ï¼Œè¯»å–å•ä½“å¯¹è±¡å¹¶åˆå§‹åŒ–
         /// </summary>
         public static void InitPresetData(string folderpath, LoadModContext context)
         {
@@ -109,7 +109,7 @@ namespace EternalCycleServer
             var presetid = presetname.ConvertHashID();
             var realpresetdata = preset.PresetData.ConvertItemListData(context).RegenerateItemListData(presetname, context);
             var itemid = realpresetdata[0].Template;
-            //ÎÒÕæ²ÙËÀÄãÂèÁË, Ëş¿Æ·ò¾ÍÊÇËûÂèµÄËş¿Æ·ò, SPTµÄ°×Æ¤ÖíÕæÊÇºÍÄãÂè¸ô±ÚBSGµÄËÄ°ÙÍ¶×¢ÄãÂè±ÆË«Ïò±¼¸°ÉÏÁË, Á¬ÄãÂè¶¼±£»¤²»ÁËÄã±£»¤ÄãÂè±ÆµÄ×ÖµäÄØ
+            //æˆ‘çœŸæ“æ­»ä½ å¦ˆäº†, å¡”ç§‘å¤«å°±æ˜¯ä»–å¦ˆçš„å¡”ç§‘å¤«, SPTçš„ç™½çš®çŒªçœŸæ˜¯å’Œä½ å¦ˆéš”å£BSGçš„å››ç™¾æŠ•æ³¨ä½ å¦ˆé€¼åŒå‘å¥”èµ´ä¸Šäº†, è¿ä½ å¦ˆéƒ½ä¿æŠ¤ä¸äº†ä½ ä¿æŠ¤ä½ å¦ˆé€¼çš„å­—å…¸å‘¢
             
             if (preset.IsBasePreset)
             {

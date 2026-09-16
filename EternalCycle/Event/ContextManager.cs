@@ -1,4 +1,4 @@
-using SPTarkov.Common.Extensions;
+锘縰sing SPTarkov.Common.Extensions;
 using SPTarkov.Server.Core.Helpers.Items;
 using SPTarkov.Server.Core.Helpers.Server;
 using SPTarkov.Server.Core.Models.Common;
@@ -76,7 +76,7 @@ namespace EternalCycleServer
                     .Where(t => t.IsClass && !t.IsAbstract && typeof(BaseConfig).IsAssignableFrom(t));
                 foreach (var type in configTypes)
                 {
-                    var config = serviceProvider.GetService(type); // 逐个解析
+                    var config = serviceProvider.GetService(type); // 閫愪釜瑙ｆ瀽
                     if (config != null)
                     {
                         _configs[type] = config;
@@ -97,7 +97,7 @@ namespace EternalCycleServer
             }
         }
 
-        // ============= 你的 LoadModContext (对外接口完全不变) =============
+        // ============= 浣犵殑 LoadModContext (瀵瑰鎺ュ彛瀹屽叏涓嶅彉) =============
         public class LoadModContext
         {
             public required DatabaseService DB { get; init; }

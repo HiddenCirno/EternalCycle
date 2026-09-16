@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+ï»¿using Microsoft.Extensions.Logging;
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.Helpers;
@@ -23,7 +23,7 @@ public class ConfigManager
     {
         return JsonSerializer.Deserialize<ConfigClass>(configJsoncContent, new JsonSerializerOptions
         {
-            ReadCommentHandling = JsonCommentHandling.Skip // ÆôÓÃ×¢ÊÍ½âÎö
+            ReadCommentHandling = JsonCommentHandling.Skip // å¯ç”¨æ³¨é‡Šè§£æ
         });
     }
     public class ConfigClass

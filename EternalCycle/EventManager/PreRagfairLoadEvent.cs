@@ -1,4 +1,4 @@
-using static EternalCycleServer.ContextManager;
+﻿using static EternalCycleServer.ContextManager;
 
 namespace EternalCycleServer
 {

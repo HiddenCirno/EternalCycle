@@ -1,4 +1,4 @@
-using SPTarkov.Server.Core.Models.Spt.Config;
+ï»¿using SPTarkov.Server.Core.Models.Spt.Config;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Enums;
 using static EternalCycleServer.ContextManager;
@@ -9,16 +9,16 @@ namespace EternalCycleServer
     public class GiftCodeUtils
     {
         /// <summary>
-        /// ½«×Ô¶¨ÒåÅä·½×¢²áµ½¼ÓÔØÊÂ¼ş
+        /// å°†è‡ªå®šä¹‰é…æ–¹æ³¨å†Œåˆ°åŠ è½½äº‹ä»¶
         /// </summary>
-        /// <param name="path">Ö¸¶¨µÄ´æ·ÅÅä·½ÎÄ¼şµÄÂ·¾¶»òÍêÕûµÄÅä·½ÎÄ¼şÂ·¾¶</param>
+        /// <param name="path">æŒ‡å®šçš„å­˜æ”¾é…æ–¹æ–‡ä»¶çš„è·¯å¾„æˆ–å®Œæ•´çš„é…æ–¹æ–‡ä»¶è·¯å¾„</param>
         public static void RegisterGiftCode(string modpath, string path)
         {
             var correctpath = Path.Combine(modpath, path);
-            // ÎÄ¼ş¼Ğ¼ÓÔØÄ£Ê½
+            // æ–‡ä»¶å¤¹åŠ è½½æ¨¡å¼
             if (Directory.Exists(correctpath))
             {
-                // ¼ÙÉèÊÂ¼ş»Øµ÷ÖĞµÄ context ÒÑ¾­ÊÇ ContextManager.LoadModContext ÀàĞÍ
+                // å‡è®¾äº‹ä»¶å›è°ƒä¸­çš„ context å·²ç»æ˜¯ ContextManager.LoadModContext ç±»å‹
                 EventManager.DataLoadEvent.LoadGiftCodeEvent += (context) =>
                 {
                     try
@@ -27,11 +27,11 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²á¶Ò»»ÂëÊ±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş¼Ğ {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œå…‘æ¢ç æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶å¤¹ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
-            // µ¥ÎÄ¼ş¼ÓÔØÄ£Ê½
+            // å•æ–‡ä»¶åŠ è½½æ¨¡å¼
             else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadGiftCodeEvent += (context) =>
@@ -43,18 +43,18 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²á¶Ò»»ÂëÊ±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œå…‘æ¢ç æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"×¢²á¶Ò»»ÂëÊ±·¢ÉúÒì³££ºÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş»òÎÄ¼ş¼Ğ {correctpath}");
+                EventManager.EventLogger.Warn($"æ³¨å†Œå…‘æ¢ç æ—¶å‘ç”Ÿå¼‚å¸¸ï¼šæ‰¾ä¸åˆ°æŒ‡å®šçš„æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹ {correctpath}");
             }
         }
 
         /// <summary>
-        /// InitÖØÔØ 1£º´¦ÀíÎÄ¼ş¼ĞÂ·¾¶£¬¶ÁÈ¡µ¥Ìå¶ÔÏó
+        /// Inité‡è½½ 1ï¼šå¤„ç†æ–‡ä»¶å¤¹è·¯å¾„ï¼Œè¯»å–å•ä½“å¯¹è±¡
         /// </summary>
         public static void InitGiftCodeData(string modpath, string folderpath, LoadModContext context)
         {
@@ -78,7 +78,7 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// InitÖØÔØ 2£º´¦Àí·´ĞòÁĞ»¯ºÃµÄ×Öµä
+        /// Inité‡è½½ 2ï¼šå¤„ç†ååºåˆ—åŒ–å¥½çš„å­—å…¸
         /// </summary>
         public static void InitGiftCodeData(Dictionary<string, CustomGiftCodeData> codeData, LoadModContext context)
         {
@@ -94,7 +94,7 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ºËĞÄÂ·ÓÉ£º¸ù¾İÅä·½ÀàĞÍ½øĞĞ·Ö·¢´¦Àí
+        /// æ ¸å¿ƒè·¯ç”±ï¼šæ ¹æ®é…æ–¹ç±»å‹è¿›è¡Œåˆ†å‘å¤„ç†
         /// </summary>
         private static void InitGiftCode(CustomGiftCodeData codeData, LoadModContext context)
         {
@@ -111,7 +111,7 @@ namespace EternalCycleServer
             };
             foreach(var kvp in codeData.Item)
             {
-                //±£ÏÕÆğ¼û, ÓÃID×öÑÎ, ÇåÏ´Ò»±é
+                //ä¿é™©èµ·è§, ç”¨IDåšç›, æ¸…æ´—ä¸€é
                 var item = kvp.Value.ConvertItemListData(context).RegenerateItemListData(codeData.Id, context);
                 if (item.Count == 0) continue;
                 item.First().ParentId = parent;

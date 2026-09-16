@@ -1,4 +1,4 @@
-using System.Security.Cryptography;
+ï»¿using System.Security.Cryptography;
 
 namespace EternalCycleServer
 {
@@ -15,7 +15,7 @@ namespace EternalCycleServer
         public static Dictionary<string, string> VoicePath { get; private set; } = new();
 
         /// <summary>
-        /// ×¢²á Bundle ×ÊÔ´
+        /// æ³¨å†Œ Bundle èµ„æº
         /// </summary>
         public static void RegisterRigLayoutResource(string modPath, string path)
         {
@@ -27,13 +27,13 @@ namespace EternalCycleServer
                 }
                 catch (Exception ex)
                 {
-                    EventManager.EventLogger.Error($"³õÊ¼»¯ Bundle Ê±·¢Éú´íÎó£º{path}", ex);
+                    EventManager.EventLogger.Error($"åˆå§‹åŒ– Bundle æ—¶å‘ç”Ÿé”™è¯¯ï¼š{path}", ex);
                 }
             };
         }
 
         /// <summary>
-        /// ×¢²á Slot ×ÊÔ´
+        /// æ³¨å†Œ Slot èµ„æº
         /// </summary>
         public static void RegisterSlotIconResource(string modPath, string path)
         {
@@ -45,13 +45,13 @@ namespace EternalCycleServer
                 }
                 catch (Exception ex)
                 {
-                    EventManager.EventLogger.Error($"³õÊ¼»¯ Slot Ê±·¢Éú´íÎó£º{path}", ex);
+                    EventManager.EventLogger.Error($"åˆå§‹åŒ– Slot æ—¶å‘ç”Ÿé”™è¯¯ï¼š{path}", ex);
                 }
             };
         }
 
         /// <summary>
-        /// ×¢²á Deco ×ÊÔ´
+        /// æ³¨å†Œ Deco èµ„æº
         /// </summary>
         public static void RegisterDecoIconResource(string modPath, string path)
         {
@@ -63,13 +63,13 @@ namespace EternalCycleServer
                 }
                 catch (Exception ex)
                 {
-                    EventManager.EventLogger.Error($"³õÊ¼»¯ Deco Ê±·¢Éú´íÎó£º{path}", ex);
+                    EventManager.EventLogger.Error($"åˆå§‹åŒ– Deco æ—¶å‘ç”Ÿé”™è¯¯ï¼š{path}", ex);
                 }
             };
         }
 
         /// <summary>
-        /// ×¢²á °ĞÖ½ ×ÊÔ´
+        /// æ³¨å†Œ é¶çº¸ èµ„æº
         /// </summary>
         public static void RegisterTargetResource(string modPath, string path)
         {
@@ -81,7 +81,7 @@ namespace EternalCycleServer
                 }
                 catch (Exception ex)
                 {
-                    EventManager.EventLogger.Error($"³õÊ¼»¯ Target Ê±·¢Éú´íÎó£º{path}", ex);
+                    EventManager.EventLogger.Error($"åˆå§‹åŒ– Target æ—¶å‘ç”Ÿé”™è¯¯ï¼š{path}", ex);
                 }
             };
         }
@@ -91,37 +91,37 @@ namespace EternalCycleServer
             var correctPath = Path.Combine(modPath, path);
             List<string> filesToProcess = new List<string>();
 
-            // 1. ÅĞ¶ÏÊÇÎÄ¼ş¼Ğ»¹ÊÇµ¥ÎÄ¼ş
+            // 1. åˆ¤æ–­æ˜¯æ–‡ä»¶å¤¹è¿˜æ˜¯å•æ–‡ä»¶
             if (Directory.Exists(correctPath))
             {
-                // ÎÄ¼ş¼ĞÄ£Ê½£º´øÉÏ AllDirectories ·ÀÖ¹Â©ËÑ×ÓÄ¿Â¼
-                //ÄãËÑÄãÂèµÄ×ÓÄ¿Â¼, Éµ±Æ°É
+                // æ–‡ä»¶å¤¹æ¨¡å¼ï¼šå¸¦ä¸Š AllDirectories é˜²æ­¢æ¼æœå­ç›®å½•
+                //ä½ æœä½ å¦ˆçš„å­ç›®å½•, å‚»é€¼å§
                 filesToProcess = Directory.GetFiles(correctPath).ToList();
             }
             else if (File.Exists(correctPath))
             {
-                // µ¥ÎÄ¼şÄ£Ê½£ºÖ±½Ó°ÑÎÄ¼şÈû½øÁĞ±í
+                // å•æ–‡ä»¶æ¨¡å¼ï¼šç›´æ¥æŠŠæ–‡ä»¶å¡è¿›åˆ—è¡¨
                 filesToProcess.Add(correctPath);
             }
             else
             {
-                EventManager.EventLogger.Warn($"×¢²á×ÊÔ´Òì³££ºÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş»òÎÄ¼ş¼Ğ {correctPath}");
+                EventManager.EventLogger.Warn($"æ³¨å†Œèµ„æºå¼‚å¸¸ï¼šæ‰¾ä¸åˆ°æŒ‡å®šçš„æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹ {correctPath}");
                 return;
             }
 
             if (filesToProcess.Count == 0)
             {
-                EventManager.EventLogger.Warn($"×ÊÔ´Îª¿Õ£º{correctPath}");
+                EventManager.EventLogger.Warn($"èµ„æºä¸ºç©ºï¼š{correctPath}");
                 return;
             }
 
-            // 2. Í³Ò»½øĞĞ MD5 ºÍ Base64 ´¦Àí
+            // 2. ç»Ÿä¸€è¿›è¡Œ MD5 å’Œ Base64 å¤„ç†
             int loadedCount = 0;
             using (var md5 = MD5.Create())
             {
                 foreach (var file in filesToProcess)
                 {
-                    // ÅÄ±â£ºÖ»ÒªÎÄ¼şÃû
+                    // æ‹æ‰ï¼šåªè¦æ–‡ä»¶å
                     string fileName = Path.GetFileName(file);
 
                     byte[] fileData = File.ReadAllBytes(file);
@@ -130,7 +130,7 @@ namespace EternalCycleServer
                     string md5String = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
                     string base64String = Convert.ToBase64String(fileData);
 
-                    // Ğ´ÈëÖ¸¶¨µÄ×Öµä
+                    // å†™å…¥æŒ‡å®šçš„å­—å…¸
                     hashDict[fileName] = md5String;
                     base64Dict[fileName] = base64String;
 
@@ -138,7 +138,7 @@ namespace EternalCycleServer
                 }
             }
 
-            EventManager.EventLogger.Info($"³É¹¦¼ÓÔØÁËÀ´×Ô {correctPath} µÄ {loadedCount} ¸ö×ÊÔ´¡£");
+            EventManager.EventLogger.Info($"æˆåŠŸåŠ è½½äº†æ¥è‡ª {correctPath} çš„ {loadedCount} ä¸ªèµ„æºã€‚");
         }
     }
 }

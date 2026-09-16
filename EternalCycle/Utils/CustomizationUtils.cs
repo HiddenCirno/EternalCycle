@@ -1,4 +1,4 @@
-using SPTarkov.Server.Core.Models.Eft.Common.Tables;
+ï»¿using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Eft.Hideout;
 using static EternalCycleServer.ContextManager;
 using Path = System.IO.Path;
@@ -8,14 +8,14 @@ namespace EternalCycleServer
     public class CustomizationUtils
     {
         /// <summary>
-        /// ½«ÈËÎï×Ô¶¨ÒåÍâ¹Û(Customization)×¢²áµ½¼ÓÔØÊÂ¼ş
+        /// å°†äººç‰©è‡ªå®šä¹‰å¤–è§‚(Customization)æ³¨å†Œåˆ°åŠ è½½äº‹ä»¶
         /// </summary>
         public static void RegisterCustomization(string modpath, string path, string respath)
         {
             var correctPath = Path.Combine(modpath, path);
             if (Directory.Exists(correctPath))
             {
-                // ×¢Òâ£ºÊÂ¼şÃû¸ù¾İÄãµÄÊµ¼Ê¿ò¼Üµ÷Õû (ÀıÈç LoadCustomizationEvent)
+                // æ³¨æ„ï¼šäº‹ä»¶åæ ¹æ®ä½ çš„å®é™…æ¡†æ¶è°ƒæ•´ (ä¾‹å¦‚ LoadCustomizationEvent)
                 EventManager.DataLoadEvent.LoadCustomizationEvent += (context) =>
                 {
                     try
@@ -24,7 +24,7 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²á×Ô¶¨ÒåÍâ¹ÛÊ±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş¼Ğ {correctPath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œè‡ªå®šä¹‰å¤–è§‚æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶å¤¹ {correctPath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
@@ -39,13 +39,13 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²á×Ô¶¨ÒåÍâ¹ÛÊ±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş {correctPath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œè‡ªå®šä¹‰å¤–è§‚æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶ {correctPath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"×¢²á×Ô¶¨ÒåÍâ¹ÛÊ±·¢ÉúÒì³££ºÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş»òÎÄ¼ş¼Ğ {path}");
+                EventManager.EventLogger.Warn($"æ³¨å†Œè‡ªå®šä¹‰å¤–è§‚æ—¶å‘ç”Ÿå¼‚å¸¸ï¼šæ‰¾ä¸åˆ°æŒ‡å®šçš„æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹ {path}");
             }
         }
 
@@ -133,11 +133,11 @@ namespace EternalCycleServer
 
 
         // ==========================================
-        // 2. ²ØÉí´¦×Ô¶¨Òå (Hideout Customization) ×¢²áÓë´¦Àí
+        // 2. è—èº«å¤„è‡ªå®šä¹‰ (Hideout Customization) æ³¨å†Œä¸å¤„ç†
         // ==========================================
 
         /// <summary>
-        /// ½«²ØÉí´¦×Ô¶¨Òå×¢²áµ½¼ÓÔØÊÂ¼ş
+        /// å°†è—èº«å¤„è‡ªå®šä¹‰æ³¨å†Œåˆ°åŠ è½½äº‹ä»¶
         /// </summary>
         public static void RegisterHideoutCustomization(string modpath, string path)
         {
@@ -152,7 +152,7 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²á²ØÉí´¦×Ô¶¨ÒåÊ±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş¼Ğ {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œè—èº«å¤„è‡ªå®šä¹‰æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶å¤¹ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
@@ -167,17 +167,17 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²á²ØÉí´¦×Ô¶¨ÒåÊ±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œè—èº«å¤„è‡ªå®šä¹‰æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"×¢²á²ØÉí´¦×Ô¶¨ÒåÊ±·¢ÉúÒì³££ºÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş»òÎÄ¼ş¼Ğ {correctpath}");
+                EventManager.EventLogger.Warn($"æ³¨å†Œè—èº«å¤„è‡ªå®šä¹‰æ—¶å‘ç”Ÿå¼‚å¸¸ï¼šæ‰¾ä¸åˆ°æŒ‡å®šçš„æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹ {correctpath}");
             }
         }
 
-        // °ïÄã²¹ÆëµÄÎÄ¼ş¼Ğ¼ÓÔØÖØÔØ
+        // å¸®ä½ è¡¥é½çš„æ–‡ä»¶å¤¹åŠ è½½é‡è½½
         public static void InitHideoutCustomizationData(string folderpath, LoadModContext context)
         {
             if (!Directory.Exists(folderpath)) return;

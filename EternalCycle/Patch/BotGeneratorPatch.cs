@@ -1,4 +1,4 @@
-using HarmonyLib;
+ï»¿using HarmonyLib;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using SPTarkov.DI.Annotations;
 using SPTarkov.Reflection.Patching;
@@ -29,42 +29,42 @@ namespace EternalCycleServer
     {
         public static string RussianToLatinApproximation(string russianString)
         {
-            // ¶íÎÄ×ÖÄ¸µ½À­¶¡×ÖÄ¸µÄÓ³Éä±í
+            // ä¿„æ–‡å­—æ¯åˆ°æ‹‰ä¸å­—æ¯çš„æ˜ å°„è¡¨
             var russianToLatinMap = new Dictionary<char, string>
                 {
-                    {'§Ñ', "a"}, {'§Ò', "b"}, {'§Ó', "v"}, {'§Ô', "g"}, {'§Õ', "d"},
-                    {'§Ö', "e"}, {'§×', "yo"}, {'§Ø', "zh"}, {'§Ù', "z"}, {'§Ú', "i"},
-                    {'§Û', "j"}, {'§Ü', "k"}, {'§İ', "l"}, {'§Ş', "m"}, {'§ß', "n"},
-                    {'§à', "o"}, {'§á', "p"}, {'§â', "r"}, {'§ã', "s"}, {'§ä', "t"},
-                    {'§å', "u"}, {'§æ', "f"}, {'§ç', "h"}, {'§è', "c"}, {'§é', "ch"},
-                    {'§ê', "sh"}, {'§ë', "sch"}, {'§ì', "j"}, {'§í', "i"}, {'§î', "j"},
-                    {'§ï', "e"}, {'§ğ', "yu"}, {'§ñ', "ya"},
-                    {'§¡', "A"}, {'§¢', "B"}, {'§£', "V"}, {'§¤', "G"}, {'§¥', "D"},
-                    {'§¦', "E"}, {'§§', "Yo"}, {'§¨', "Zh"}, {'§©', "Z"}, {'§ª', "I"},
-                    {'§«', "Y"}, {'§¬', "K"}, {'§­', "L"}, {'§®', "M"}, {'§¯', "N"},
-                    {'§°', "O"}, {'§±', "P"}, {'§²', "R"}, {'§³', "S"}, {'§´', "T"},
-                    {'§µ', "U"}, {'§¶', "F"}, {'§·', "Kh"}, {'§¸', "Ts"}, {'§¹', "Ch"},
-                    {'§º', "Sh"}, {'§»', "Sch"}, {'§¿', "E"}, {'§À', "Yu"}, {'§Á', "Ya"}
+                    {'Ğ°', "a"}, {'Ğ±', "b"}, {'Ğ²', "v"}, {'Ğ³', "g"}, {'Ğ´', "d"},
+                    {'Ğµ', "e"}, {'Ñ‘', "yo"}, {'Ğ¶', "zh"}, {'Ğ·', "z"}, {'Ğ¸', "i"},
+                    {'Ğ¹', "j"}, {'Ğº', "k"}, {'Ğ»', "l"}, {'Ğ¼', "m"}, {'Ğ½', "n"},
+                    {'Ğ¾', "o"}, {'Ğ¿', "p"}, {'Ñ€', "r"}, {'Ñ', "s"}, {'Ñ‚', "t"},
+                    {'Ñƒ', "u"}, {'Ñ„', "f"}, {'Ñ…', "h"}, {'Ñ†', "c"}, {'Ñ‡', "ch"},
+                    {'Ñˆ', "sh"}, {'Ñ‰', "sch"}, {'ÑŠ', "j"}, {'Ñ‹', "i"}, {'ÑŒ', "j"},
+                    {'Ñ', "e"}, {'Ñ', "yu"}, {'Ñ', "ya"},
+                    {'Ğ', "A"}, {'Ğ‘', "B"}, {'Ğ’', "V"}, {'Ğ“', "G"}, {'Ğ”', "D"},
+                    {'Ğ•', "E"}, {'Ğ', "Yo"}, {'Ğ–', "Zh"}, {'Ğ—', "Z"}, {'Ğ˜', "I"},
+                    {'Ğ™', "Y"}, {'Ğš', "K"}, {'Ğ›', "L"}, {'Ğœ', "M"}, {'Ğ', "N"},
+                    {'Ğ', "O"}, {'ĞŸ', "P"}, {'Ğ ', "R"}, {'Ğ¡', "S"}, {'Ğ¢', "T"},
+                    {'Ğ£', "U"}, {'Ğ¤', "F"}, {'Ğ¥', "Kh"}, {'Ğ¦', "Ts"}, {'Ğ§', "Ch"},
+                    {'Ğ¨', "Sh"}, {'Ğ©', "Sch"}, {'Ğ­', "E"}, {'Ğ®', "Yu"}, {'Ğ¯', "Ya"}
                 };
 
-            // Èç¹û´«Èë×Ö·û´®Îª¿Õ
+            // å¦‚æœä¼ å…¥å­—ç¬¦ä¸²ä¸ºç©º
             if (string.IsNullOrEmpty(russianString))
             {
-                return "²»ÖªµÀ·¢ÉúÁËÊ²Ã´, Õâ¸öAIÃ»ÓĞÃû×Ö, Ò²ĞíÊÇÄá»ùËşËÀÁËÂèÂè";
+                return "ä¸çŸ¥é“å‘ç”Ÿäº†ä»€ä¹ˆ, è¿™ä¸ªAIæ²¡æœ‰åå­—, ä¹Ÿè®¸æ˜¯å°¼åŸºå¡”æ­»äº†å¦ˆå¦ˆ";
             }
 
             var latinString = new StringBuilder();
 
             foreach (var ch in russianString)
             {
-                // Èç¹û×Ö·ûÔÚÓ³Éä±íÖĞ£¬½øĞĞÌæ»»
+                // å¦‚æœå­—ç¬¦åœ¨æ˜ å°„è¡¨ä¸­ï¼Œè¿›è¡Œæ›¿æ¢
                 if (russianToLatinMap.ContainsKey(ch))
                 {
                     latinString.Append(russianToLatinMap[ch]);
                 }
                 else
                 {
-                    // Èç¹û×Ö·û²»ÔÚÓ³Éä±íÖĞ£¬Ö±½ÓÌí¼Ó
+                    // å¦‚æœå­—ç¬¦ä¸åœ¨æ˜ å°„è¡¨ä¸­ï¼Œç›´æ¥æ·»åŠ 
                     latinString.Append(ch);
                 }
             }
@@ -156,22 +156,22 @@ namespace EternalCycleServer
 
                 BotGeneratorUtils.AlterBotDictionarys.TryGetValue(botRoleLowercase, out var alterBots);
 
-                //ÕâÀïÓ¦¸ÃÔ¤Áô¸øGoonsµÄ·ÖÖ§µÄ, ÏÈÅÜÍ¨ÔÙËµ
+                //è¿™é‡Œåº”è¯¥é¢„ç•™ç»™Goonsçš„åˆ†æ”¯çš„, å…ˆè·‘é€šå†è¯´
                 
-                //rnm, ÕâÀï±ØĞëÏë°ì·¨Íê³ÉÏß³Ì¸ôÀë....
+                //rnm, è¿™é‡Œå¿…é¡»æƒ³åŠæ³•å®Œæˆçº¿ç¨‹éš”ç¦»....
 
-                //ÎÒÏëÏë
-                //ÄÇ¾ÍµÃ´®²¢¼ÆÊıÆ÷
-                //Ò²²»¶Ô, ÎÒ²»ÖªµÀÄÄ¸öÊÇµÚÎå´Î....
-                //ÕâÕ¦¸Ä°¡?
+                //æˆ‘æƒ³æƒ³
+                //é‚£å°±å¾—ä¸²å¹¶è®¡æ•°å™¨
+                //ä¹Ÿä¸å¯¹, æˆ‘ä¸çŸ¥é“å“ªä¸ªæ˜¯ç¬¬äº”æ¬¡....
+                //è¿™å’‹æ”¹å•Š?
 
-                //²»¶Ô, ²»¶Ô²»¶Ô²»¶Ô....
-                //²İ°¡ÕâÀïÎªÊ²Ã´ÊÇÕâÑùµ÷ÓÃµÄÄØ???
+                //ä¸å¯¹, ä¸å¯¹ä¸å¯¹ä¸å¯¹....
+                //è‰å•Šè¿™é‡Œä¸ºä»€ä¹ˆæ˜¯è¿™æ ·è°ƒç”¨çš„å‘¢???
                 try
                 {
                     if (alterBots == null || alterBots.Count == 0)
                     {
-                        //logger.Warn($"ÀàĞÍ{botRoleLowercase}Ã»ÓĞÆ¥ÅäµÄ×ª»¯¿ÉÄÜĞÔ");
+                        //logger.Warn($"ç±»å‹{botRoleLowercase}æ²¡æœ‰åŒ¹é…çš„è½¬åŒ–å¯èƒ½æ€§");
                         return true;
                     }
                     ;
@@ -211,8 +211,8 @@ namespace EternalCycleServer
                     }
                     if (botCounter.Access && botCounter.Locations.Contains(botGenerationDetails.Location))
                     {
-                        //logger.Info("³¢ÊÔÌæ»»Boss");
-                        //Êı¾İ¸²¸Ç
+                        //logger.Info("å°è¯•æ›¿æ¢Boss");
+                        //æ•°æ®è¦†ç›–
                         botJsonTemplate.BotAppearance = botCounter.Data.BotType.BotAppearance;
                         botJsonTemplate.BotExperience = botCounter.Data.BotType.BotExperience;
                         botJsonTemplate.BotHealth = botCounter.Data.BotType.BotHealth;
@@ -232,13 +232,13 @@ namespace EternalCycleServer
                         botCounter.Data = null;
                         botCounter.Locations = null;
                     }
-                    //ÕâÑù²»ÖªµÀÎªÊ²Ã´»áÂ©
-                    //ÔÙÏëÏë°ì·¨°É
-                    //ËãÁË, ¾ÍÕâÑù°É, ÀÛÁË
+                    //è¿™æ ·ä¸çŸ¥é“ä¸ºä»€ä¹ˆä¼šæ¼
+                    //å†æƒ³æƒ³åŠæ³•å§
+                    //ç®—äº†, å°±è¿™æ ·å§, ç´¯äº†
                 }
                 catch (Exception ex)
                 {
-                    //logger.Error("Bot×ª»¯Ê§°Ü", ex);
+                    //logger.Error("Botè½¬åŒ–å¤±è´¥", ex);
                 }
                 EventManager.OnPreBotGenerateEvent?.Invoke(bot, botJsonTemplate, botGenerationDetails, context);
                 return true;

@@ -1,4 +1,4 @@
-using HarmonyLib;
+ï»¿using HarmonyLib;
 using SPTarkov.Reflection.Patching;
 using SPTarkov.Server.Core.Models.Common;
 using System;
@@ -10,12 +10,12 @@ namespace EternalCycleServer
     {
         protected override MethodBase GetTargetMethod()
         {
-            // ÔÚ IL ÖĞ£¬ÒşÊ½ÀàĞÍ×ª»»·½·¨µÄÃû×Ö½Ğ "op_Implicit"
+            // åœ¨ IL ä¸­ï¼Œéšå¼ç±»å‹è½¬æ¢æ–¹æ³•çš„åå­—å« "op_Implicit"
             return AccessTools.Method(typeof(MongoId), "op_Implicit", new Type[] { typeof(string) });
         }
 
         [PatchPrefix]
-        public static void Prefix(ref string mongoId) // ×¢ÒâÕâÀïµÄ²ÎÊıÃû±ØĞëºÍÔ­°æÔ´ÂëÀïµÄ²ÎÊıÃûÒ»ÖÂ£¬Ô­°æÊÇ mongoId
+        public static void Prefix(ref string mongoId) // æ³¨æ„è¿™é‡Œçš„å‚æ•°åå¿…é¡»å’ŒåŸç‰ˆæºç é‡Œçš„å‚æ•°åä¸€è‡´ï¼ŒåŸç‰ˆæ˜¯ mongoId
         {
             if (!mongoId.IsHex24())
             {

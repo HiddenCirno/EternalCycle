@@ -1,4 +1,4 @@
-using SPTarkov.Server.Core.Models.Eft.Common.Tables;
+ï»¿using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common;
 using static EternalCycleServer.ContextManager;
@@ -6,16 +6,16 @@ using static EternalCycleServer.ContextManager;
 namespace EternalCycleServer
 {
     /// <summary>
-    /// ¶ÔÕ½ÀûÆ·Éú³É½øĞĞ²Ù×÷´¦ÀíµÄ¹¤¾ßÀà
+    /// å¯¹æˆ˜åˆ©å“ç”Ÿæˆè¿›è¡Œæ“ä½œå¤„ç†çš„å·¥å…·ç±»
     /// </summary>
     public static class LootUtils
     {
         /// <summary>
-        /// Í³Ò»»ñÈ¡µØÍ¼ÒıÓÃ
+        /// ç»Ÿä¸€è·å–åœ°å›¾å¼•ç”¨
         /// </summary>
         private static IEnumerable<Location> GetValidLocations(LoadModContext context)
         {
-            //Ö±½Óµ÷ÓÃSPTÄÚ²¿µÄ×Öµä·½·¨
+            //ç›´æ¥è°ƒç”¨SPTå†…éƒ¨çš„å­—å…¸æ–¹æ³•
             return context.DB.GetLocations()
                 .GetDictionary()
                 .Values
@@ -23,11 +23,11 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// Îª×Ô¶¨ÒåÎïÆ·Ìí¼Ó¾²Ì¬Õ½ÀûÆ·Éú³É
+        /// ä¸ºè‡ªå®šä¹‰ç‰©å“æ·»åŠ é™æ€æˆ˜åˆ©å“ç”Ÿæˆ
         /// </summary>
-        /// <param name="template">×Ô¶¨ÒåÎïÆ·¶ÔÏó</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
-        /// <returns>×Ô¶¨ÒåÎïÆ·¶ÔÏó</returns>
+        /// <param name="template">è‡ªå®šä¹‰ç‰©å“å¯¹è±¡</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
+        /// <returns>è‡ªå®šä¹‰ç‰©å“å¯¹è±¡</returns>
         public static CustomItemTemplate AddStaticLoot(this CustomItemTemplate template, LoadModContext context)
         {
             if (template.CustomProps is not LootableItemProps lootableItemProps || !lootableItemProps.CanFindInRaid) return template;
@@ -66,13 +66,13 @@ namespace EternalCycleServer
                 {
                     foreach (var loot in staticlootDict.Values)
                     {
-                        //·ÀÖ¹ÖØ¸´Õ½ÀûÆ·
+                        //é˜²æ­¢é‡å¤æˆ˜åˆ©å“
                         if (loot.ItemDistribution.Any(d => d.Tpl == itemid)) continue;
-                        //ÅĞ¶ÏÄ¿±ê
+                        //åˆ¤æ–­ç›®æ ‡
                         var loottarget = loot.ItemDistribution.FirstOrDefault(l => l.Tpl == targetid);
                         if (loottarget != null)
                         {
-                            //ÓÃ¹¤¾ßÀà±ÜÃâGCÎÊÌâ
+                            //ç”¨å·¥å…·ç±»é¿å…GCé—®é¢˜
                             loot.ItemDistribution = Utils.AddToArray(loot.ItemDistribution.ToArray(), new ItemDistribution
                             {
                                 Tpl = itemid,
@@ -86,11 +86,11 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// Îª×Ô¶¨ÒåÎïÆ·Ìí¼Ó¶¯Ì¬Õ½ÀûÆ·Éú³É
+        /// ä¸ºè‡ªå®šä¹‰ç‰©å“æ·»åŠ åŠ¨æ€æˆ˜åˆ©å“ç”Ÿæˆ
         /// </summary>
-        /// <param name="template">×Ô¶¨ÒåÎïÆ·¶ÔÏó</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
-        /// <returns>×Ô¶¨ÒåÎïÆ·¶ÔÏó</returns>
+        /// <param name="template">è‡ªå®šä¹‰ç‰©å“å¯¹è±¡</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
+        /// <returns>è‡ªå®šä¹‰ç‰©å“å¯¹è±¡</returns>
         public static CustomItemTemplate AddLooseLoot(this CustomItemTemplate template, LoadModContext context)
         {
             if (template.CustomProps is not LootableItemProps lootableItemProps || !lootableItemProps.CanFindInRaid) return template;
@@ -125,14 +125,14 @@ namespace EternalCycleServer
         {
             foreach (var location in GetValidLocations(context))
             {
-                //ÍüÁË·ÀÓù....
+                //å¿˜äº†é˜²å¾¡....
                 if (location.LooseLoot == null) continue;
                 location.LooseLoot.AddTransformer(looseloot =>
                 {
                     foreach (var spawnpoint in looseloot.Spawnpoints)
                     {
                         if (spawnpoint.Template?.Items == null || spawnpoint.ItemDistribution == null) continue;
-                        //ÖØ¸´¼ì²é
+                        //é‡å¤æ£€æŸ¥
                         if (spawnpoint.Template.Items.Any(i => i.Template == itemid)) continue;
 
                         var loottarget = spawnpoint.Template.Items.FirstOrDefault(i => i.Template == targetid);
@@ -144,7 +144,7 @@ namespace EternalCycleServer
                             var disttarget = spawnpoint.ItemDistribution.FirstOrDefault(i => i.ComposedKey.Key == loottarget.ComposedKey);
                             if (disttarget != null)
                             {
-                                //Ë«Êı×éÌí¼ÓÎïÆ·Ë¢ĞÂ
+                                //åŒæ•°ç»„æ·»åŠ ç‰©å“åˆ·æ–°
                                 spawnpoint.Template.Items = Utils.AddToArray(spawnpoint.Template.Items.ToArray(), new SptLootItem
                                 {
                                     ComposedKey = targetkey,
@@ -165,24 +165,24 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ÎªÔ¤Éè´¦Àí¶¯Ì¬Õ½ÀûÆ·Éú³É
+        /// ä¸ºé¢„è®¾å¤„ç†åŠ¨æ€æˆ˜åˆ©å“ç”Ÿæˆ
         /// </summary>
-        /// <param name="itemPreset">Ô¤ÉèÄÚÈİ</param>
-        /// <param name="targetid">Ä¿±êID</param>
-        /// <param name="context">ÉÏÏÂÎÄÊµÀı</param>
+        /// <param name="itemPreset">é¢„è®¾å†…å®¹</param>
+        /// <param name="targetid">ç›®æ ‡ID</param>
+        /// <param name="context">ä¸Šä¸‹æ–‡å®ä¾‹</param>
         public static void AddPresetLoot(List<Item> itemPreset, MongoId targetid, LoadModContext context)
         {
             if (itemPreset == null || itemPreset.Count == 0) return;
             foreach (var location in GetValidLocations(context))
             {
                 if (location.LooseLoot == null) continue;
-                //VulcanLog.Debug($"³¢ÊÔÉú³ÉÕ½ÀûÆ·: {lootableItemProps.Name}", logger);
+                //VulcanLog.Debug($"å°è¯•ç”Ÿæˆæˆ˜åˆ©å“: {lootableItemProps.Name}", logger);
                 location.LooseLoot.AddTransformer(looseloot =>
                 {
                     foreach (var spawnpoint in looseloot.Spawnpoints)
                     {
                         if (spawnpoint.Template?.Items == null || spawnpoint.ItemDistribution == null) continue;
-                        //²éÕÒÄ¿±ê
+                        //æŸ¥æ‰¾ç›®æ ‡
                         var loottarget = spawnpoint.Template.Items.FirstOrDefault(i => i.Template == targetid);
                         if (loottarget != null)
                         {
@@ -192,12 +192,12 @@ namespace EternalCycleServer
                             var disttarget = spawnpoint.ItemDistribution.FirstOrDefault(i => i.ComposedKey.Key == lootkey);
                             if (disttarget != null)
                             {
-                                //½âÎöÎäÆ÷Ê÷
+                                //è§£ææ­¦å™¨æ ‘
                                 List<Item> presetlist = itemPreset.RegenerateItemListData(targetkey, context);
                                 if (presetlist == null || presetlist.Count == 0) continue;
 
                                 var itemsArray = spawnpoint.Template.Items.ToArray();
-                                //Ìí¼ÓÎïÆ·
+                                //æ·»åŠ ç‰©å“
                                 itemsArray = Utils.AddToArray(itemsArray, new SptLootItem
                                 {
                                     Id = presetlist[0].Id,
@@ -216,13 +216,13 @@ namespace EternalCycleServer
                                         Upd = presetlist[i].Upd
                                     });
                                 }
-                                //·µ»ØÎïÆ·Ê÷
+                                //è¿”å›ç‰©å“æ ‘
                                 spawnpoint.Template.Items = itemsArray;
-                                //·ÖÌ¯È¨ÖØ
+                                //åˆ†æ‘Šæƒé‡
                                 spawnpoint.ItemDistribution = Utils.AddToArray(spawnpoint.ItemDistribution.ToArray(), new LooseLootItemDistribution
                                 {
                                     ComposedKey = new ComposedKey { Key = targetkey },
-                                    RelativeProbability = disttarget.RelativeProbability / 1f // ±£³ÖÔ­°æ¶ÀÁ¢¼¸ÂÊ
+                                    RelativeProbability = disttarget.RelativeProbability / 1f // ä¿æŒåŸç‰ˆç‹¬ç«‹å‡ ç‡
                                 });
                             }
                         }

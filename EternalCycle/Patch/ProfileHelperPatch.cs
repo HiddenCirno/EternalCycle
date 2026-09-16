@@ -1,4 +1,4 @@
-using HarmonyLib;
+ï»¿using HarmonyLib;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Http.HttpResults;
 using MonoMod.Cil;
@@ -147,7 +147,7 @@ namespace EternalCycleServer
 
             EventManager.InitPostDataLoadEvent(context);
 
-            //µ÷ÊÔ´úÂë
+            //è°ƒè¯•ä»£ç 
             var items = context.DB.GetItems();
             foreach (var item in items)
             {
@@ -159,73 +159,73 @@ namespace EternalCycleServer
             EventManager.InitAfterModLoadedEvent(context);
             EventManager.InitPreRagfairLoadEvent(context);
             LocaleUtils.InitGiftBoxLocale(context.DB, _localeService);
-            //ÊÔÊÔÓÎÏ·Æô¶¯×¥µ½µÄÓïÑÔÊÇ²»ÊÇMiniHUDµÄ°æ±¾
-            //ÊÇµÄ»°»¹µÃ¸Ä¹ıÈ¥(²»»á³öÎÊÌâ°É)
-            //¿´¿´ÃÔ¹¬µÄ»ú¹ØÔõÃ´»ØÊÂ
+            //è¯•è¯•æ¸¸æˆå¯åŠ¨æŠ“åˆ°çš„è¯­è¨€æ˜¯ä¸æ˜¯MiniHUDçš„ç‰ˆæœ¬
+            //æ˜¯çš„è¯è¿˜å¾—æ”¹è¿‡å»(ä¸ä¼šå‡ºé—®é¢˜å§)
+            //çœ‹çœ‹è¿·å®«çš„æœºå…³æ€ä¹ˆå›äº‹
             return true;
         }
         
         public static void InitItemTag(LoadModContext context)
         {
-            //ÄÚÖÃtag
+            //å†…ç½®tag
             var taglist = new ItemTagDictionary();
 
-            // 1. ½¨Á¢ÎäÆ÷×¨ÓÃµÄ¡°°×Ãûµ¥Ó³Éä×Öµä¡±
-            // ÕâÀïÖ»·ÅÄãÃ÷È·ĞèÒªÉú³ÉµÄÎäÆ÷ÀàĞÍ£¬³¹µ×¸ô¾ø½¨Öş²ÄÁÏ¡¢Ò½ÁÆÓÃÆ·µÈÀ¬»øÊı¾İ
+            // 1. å»ºç«‹æ­¦å™¨ä¸“ç”¨çš„â€œç™½åå•æ˜ å°„å­—å…¸â€
+            // è¿™é‡Œåªæ”¾ä½ æ˜ç¡®éœ€è¦ç”Ÿæˆçš„æ­¦å™¨ç±»å‹ï¼Œå½»åº•éš”ç»å»ºç­‘ææ–™ã€åŒ»ç–—ç”¨å“ç­‰åƒåœ¾æ•°æ®
             var targetWeapons = new Dictionary<string, string>
                 {
-                    { "Í»»÷¿¨±öÇ¹", ERagfairTagsType.Í»»÷¿¨±öÇ¹ },
-                    { "Í»»÷²½Ç¹", ERagfairTagsType.Í»»÷²½Ç¹ },
-                    { "¾«È·ÉäÊÖ²½Ç¹", ERagfairTagsType.¾«È·ÉäÊÖ²½Ç¹ },
-                    { "ÊÖÇ¹", ERagfairTagsType.ÊÖÇ¹ },
-                    { "ö±µ¯Ç¹", ERagfairTagsType.ö±µ¯Ç¹ },
-                    { "³å·æÇ¹", ERagfairTagsType.³å·æÇ¹ },
-                    { "Ë¨¶¯Ê½²½Ç¹", ERagfairTagsType.Ë¨¶¯Ê½²½Ç¹ },
-                    { "»úÇ¹", ERagfairTagsType.»úÇ¹ },
-                    { "Áñµ¯·¢ÉäÆ÷", ERagfairTagsType.Áñµ¯·¢ÉäÆ÷ },
-                    { "ÌØÊâÎäÆ÷", ERagfairTagsType.ÌØÊâÎäÆ÷ },
-                    { "½üÕ½ÎäÆ÷", ERagfairTagsType.½üÕ½ÎäÆ÷ },
-                    { "Í¶ÖÀÎï", ERagfairTagsType.Í¶ÖÀÎï },
-                    { "ÆäËû", ERagfairTagsType.ÆäËû },
-                    { "Ò½ÁÆÓÃÆ·", ERagfairTagsType.Ò½ÁÆÓÃÆ· },
-                    { "¹¤¾ß", ERagfairTagsType.¹¤¾ß },
-                    { "½¨Öş²ÄÁÏ", ERagfairTagsType.½¨Öş²ÄÁÏ },
-                    { "ÈÕ³£ÓÃÆ·", ERagfairTagsType.ÈÕ³£ÓÃÆ· },
-                    { "Ò×È¼ÎïÆ·", ERagfairTagsType.Ò×È¼ÎïÆ· },
-                    { "µç×Ó²úÆ·", ERagfairTagsType.µç×Ó²úÆ· },
-                    { "ÄÜÔ´ÎïÆ·", ERagfairTagsType.ÄÜÔ´ÎïÆ· },
-                    { "¹óÖØÎïÆ·", ERagfairTagsType.¹óÖØÎïÆ· },
-                    { "¶ú»ú", ERagfairTagsType.¶ú»ú },
-                    { "±³°ü", ERagfairTagsType.±³°ü },
-                    { "·Àµ¯ÒÂ", ERagfairTagsType.·Àµ¯ÒÂ },
-                    { "Õ½ÊõĞØ¹Ò", ERagfairTagsType.Õ½ÊõĞØ¹Ò },
-                    { "×Óµ¯", ERagfairTagsType.×Óµ¯ },
-                    { "µ¯Ò©°ü", ERagfairTagsType.µ¯Ò©°ü },
-                    { "Ê³Îï", ERagfairTagsType.Ê³Îï },
-                    { "ÒûÆ·", ERagfairTagsType.ÒûÆ· },
-                    { "´´ÉË´¦Àí", ERagfairTagsType.´´ÉË´¦Àí },
-                    { "¼±¾È°ü", ERagfairTagsType.¼±¾È°ü },
-                    { "×¢ÉäÆ÷", ERagfairTagsType.×¢ÉäÆ÷ },
-                    { "Ò©Æ·", ERagfairTagsType.Ò©Æ· },
-                    { "»úĞµÔ¿³×", ERagfairTagsType.»úĞµÔ¿³× },
-                    { "µç×ÓÔ¿³×", ERagfairTagsType.µç×ÓÔ¿³× },
-                    { "Çé±¨ÎïÆ·", ERagfairTagsType.Çé±¨ÎïÆ· },
-                    { "ÌØÊâ×°±¸", ERagfairTagsType.ÌØÊâ×°±¸ }
+                    { "çªå‡»å¡å®¾æª", ERagfairTagsType.çªå‡»å¡å®¾æª },
+                    { "çªå‡»æ­¥æª", ERagfairTagsType.çªå‡»æ­¥æª },
+                    { "ç²¾ç¡®å°„æ‰‹æ­¥æª", ERagfairTagsType.ç²¾ç¡®å°„æ‰‹æ­¥æª },
+                    { "æ‰‹æª", ERagfairTagsType.æ‰‹æª },
+                    { "éœ°å¼¹æª", ERagfairTagsType.éœ°å¼¹æª },
+                    { "å†²é”‹æª", ERagfairTagsType.å†²é”‹æª },
+                    { "æ “åŠ¨å¼æ­¥æª", ERagfairTagsType.æ “åŠ¨å¼æ­¥æª },
+                    { "æœºæª", ERagfairTagsType.æœºæª },
+                    { "æ¦´å¼¹å‘å°„å™¨", ERagfairTagsType.æ¦´å¼¹å‘å°„å™¨ },
+                    { "ç‰¹æ®Šæ­¦å™¨", ERagfairTagsType.ç‰¹æ®Šæ­¦å™¨ },
+                    { "è¿‘æˆ˜æ­¦å™¨", ERagfairTagsType.è¿‘æˆ˜æ­¦å™¨ },
+                    { "æŠ•æ·ç‰©", ERagfairTagsType.æŠ•æ·ç‰© },
+                    { "å…¶ä»–", ERagfairTagsType.å…¶ä»– },
+                    { "åŒ»ç–—ç”¨å“", ERagfairTagsType.åŒ»ç–—ç”¨å“ },
+                    { "å·¥å…·", ERagfairTagsType.å·¥å…· },
+                    { "å»ºç­‘ææ–™", ERagfairTagsType.å»ºç­‘ææ–™ },
+                    { "æ—¥å¸¸ç”¨å“", ERagfairTagsType.æ—¥å¸¸ç”¨å“ },
+                    { "æ˜“ç‡ƒç‰©å“", ERagfairTagsType.æ˜“ç‡ƒç‰©å“ },
+                    { "ç”µå­äº§å“", ERagfairTagsType.ç”µå­äº§å“ },
+                    { "èƒ½æºç‰©å“", ERagfairTagsType.èƒ½æºç‰©å“ },
+                    { "è´µé‡ç‰©å“", ERagfairTagsType.è´µé‡ç‰©å“ },
+                    { "è€³æœº", ERagfairTagsType.è€³æœº },
+                    { "èƒŒåŒ…", ERagfairTagsType.èƒŒåŒ… },
+                    { "é˜²å¼¹è¡£", ERagfairTagsType.é˜²å¼¹è¡£ },
+                    { "æˆ˜æœ¯èƒ¸æŒ‚", ERagfairTagsType.æˆ˜æœ¯èƒ¸æŒ‚ },
+                    { "å­å¼¹", ERagfairTagsType.å­å¼¹ },
+                    { "å¼¹è¯åŒ…", ERagfairTagsType.å¼¹è¯åŒ… },
+                    { "é£Ÿç‰©", ERagfairTagsType.é£Ÿç‰© },
+                    { "é¥®å“", ERagfairTagsType.é¥®å“ },
+                    { "åˆ›ä¼¤å¤„ç†", ERagfairTagsType.åˆ›ä¼¤å¤„ç† },
+                    { "æ€¥æ•‘åŒ…", ERagfairTagsType.æ€¥æ•‘åŒ… },
+                    { "æ³¨å°„å™¨", ERagfairTagsType.æ³¨å°„å™¨ },
+                    { "è¯å“", ERagfairTagsType.è¯å“ },
+                    { "æœºæ¢°é’¥åŒ™", ERagfairTagsType.æœºæ¢°é’¥åŒ™ },
+                    { "ç”µå­é’¥åŒ™", ERagfairTagsType.ç”µå­é’¥åŒ™ },
+                    { "æƒ…æŠ¥ç‰©å“", ERagfairTagsType.æƒ…æŠ¥ç‰©å“ },
+                    { "ç‰¹æ®Šè£…å¤‡", ERagfairTagsType.ç‰¹æ®Šè£…å¤‡ }
                 };
 
-            // 2. ¾«×¼±éÀú°×Ãûµ¥
+            // 2. ç²¾å‡†éå†ç™½åå•
             foreach (var kvp in targetWeapons)
             {
                 string tagName = kvp.Key;
                 string tagValue = kvp.Value;
 
-                // Ã¿´Î±ØĞë new Ò»¸öĞÂµÄ¶ÔÏó£¬±ÜÃâÒıÓÃÏİÚå
+                // æ¯æ¬¡å¿…é¡» new ä¸€ä¸ªæ–°çš„å¯¹è±¡ï¼Œé¿å…å¼•ç”¨é™·é˜±
                 var newTagSet = new ItemTag();
 
-                // ³¢ÊÔ»ñÈ¡¸Ã·ÖÀàÏÂµÄËùÓĞÎïÆ·
+                // å°è¯•è·å–è¯¥åˆ†ç±»ä¸‹çš„æ‰€æœ‰ç‰©å“
                 var items = ItemUtils.GetItemListByRagfairTag(tagValue, context);
 
-                // Èç¹û»ñÈ¡²»µ½ÎïÆ·£¬»òÕß¼¯ºÏÎª¿Õ£¬Ö±½ÓÌø¹ıµ±Ç°·ÖÀà
+                // å¦‚æœè·å–ä¸åˆ°ç‰©å“ï¼Œæˆ–è€…é›†åˆä¸ºç©ºï¼Œç›´æ¥è·³è¿‡å½“å‰åˆ†ç±»
                 if (items == null) continue;
 
                 foreach (var item in items)
@@ -233,14 +233,14 @@ namespace EternalCycleServer
                     newTagSet.Add(item);
                 }
 
-                // 3. ¡¾ÖÕ¼«·À´ô¡¿Ö»ÓĞµ±¼¯ºÏÀïÈ·È·ÊµÊµ×°ÁË¶«Î÷£¬²ÅÔÊĞíÈû½ø×îÖÕ×Öµä£¡
+                // 3. ã€ç»ˆæé˜²å‘†ã€‘åªæœ‰å½“é›†åˆé‡Œç¡®ç¡®å®å®è£…äº†ä¸œè¥¿ï¼Œæ‰å…è®¸å¡è¿›æœ€ç»ˆå­—å…¸ï¼
                 if (newTagSet.Count > 0)
                 {
                     taglist[tagName] = newTagSet;
                 }
             }
 
-            //¹·ÅÆ
+            //ç‹—ç‰Œ
             var usecDogTags = new ItemTag();
             var bearDogTags = new ItemTag();
             try
@@ -260,15 +260,15 @@ namespace EternalCycleServer
             }
             catch (Exception ex)
             {
-                Utils.commonLogger.Warn($"¹·ÅÆ±êÇ©Éú³ÉÊ§°Ü: {ex.Message}");
+                Utils.commonLogger.Warn($"ç‹—ç‰Œæ ‡ç­¾ç”Ÿæˆå¤±è´¥: {ex.Message}");
             }
             if (usecDogTags.Count > 0)
             {
-                taglist["USEC¹·ÅÆ"] = usecDogTags;
+                taglist["USECç‹—ç‰Œ"] = usecDogTags;
             }
             if (bearDogTags.Count > 0)
             {
-                taglist["BEAR¹·ÅÆ"] = bearDogTags;
+                taglist["BEARç‹—ç‰Œ"] = bearDogTags;
             }
 
             ItemTagUtils.InitItemTagData(taglist, context);
@@ -295,7 +295,7 @@ namespace EternalCycleServer
                     {
                         if (handbook != null)
                         {
-                            handbook.ParentId = ERagfairTagsType.ÈÎÎñÎïÆ·;
+                            handbook.ParentId = ERagfairTagsType.ä»»åŠ¡ç‰©å“;
                             ItemUtils.AddBlackList(item.Value.Id, 31, context);
                         }
                         else
@@ -303,7 +303,7 @@ namespace EternalCycleServer
                             handbooks.Add(new HandbookItem
                             {
                                 Id = item.Value.Id,
-                                ParentId = ERagfairTagsType.ÈÎÎñÎïÆ·,
+                                ParentId = ERagfairTagsType.ä»»åŠ¡ç‰©å“,
                                 Price = 20000
                             });
                             ItemUtils.AddBlackList(item.Value.Id, 31, context);
@@ -315,7 +315,7 @@ namespace EternalCycleServer
                         handbooks.Add(new HandbookItem
                         {
                             Id = item.Value.Id,
-                            ParentId = ERagfairTagsType.µ÷ÊÔÎïÆ·,
+                            ParentId = ERagfairTagsType.è°ƒè¯•ç‰©å“,
                             Price = 20000
                         });
                         ItemUtils.AddBlackList(item.Value.Id, 64, context);

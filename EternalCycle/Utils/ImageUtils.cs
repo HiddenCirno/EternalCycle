@@ -1,4 +1,4 @@
-using Path = System.IO.Path;
+ï»¿using Path = System.IO.Path;
 using SPTarkov.Server.Core.Routers;
 
 namespace EternalCycleServer
@@ -26,10 +26,10 @@ namespace EternalCycleServer
             string fileName = Path.GetFileName(assetPath);
             string fileKey = Path.GetFileNameWithoutExtension(fileName);
 
-            // ¹ıÂËÔ­°æ 24 Î» Hex ID
+            // è¿‡æ»¤åŸç‰ˆ 24 ä½ Hex ID
             if (!fileKey.IsHex24())
             {
-                // Â·ÓÉ¼üÈÔÈ»±£ÁôÄãÔ­±¾µÄÌæ»»Âß¼­£¬ÒÔ·À assetPath °üº¬¶à¼¶Ä¿Â¼Â·¾¶
+                // è·¯ç”±é”®ä»ç„¶ä¿ç•™ä½ åŸæœ¬çš„æ›¿æ¢é€»è¾‘ï¼Œä»¥é˜² assetPath åŒ…å«å¤šçº§ç›®å½•è·¯å¾„
                 string routeKey = assetPath.Replace(".png", "").Replace(".jpg", "");
                 string fullPath = Path.Combine(imageRoot, fileName);
 

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
+ï»¿using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Logging;
 using SPTarkov.DI.Annotations;
@@ -31,24 +31,24 @@ using Path = System.IO.Path;
 namespace EternalCycleServer
 {
     /// <summary>
-    /// ¶Ô±¾µØ»¯Éú³É½øĞĞ²Ù×÷´¦ÀíµÄ¹¤¾ßÀà
+    /// å¯¹æœ¬åœ°åŒ–ç”Ÿæˆè¿›è¡Œæ“ä½œå¤„ç†çš„å·¥å…·ç±»
     /// </summary>
     public class LocaleUtils
     {
 
         /// <summary>
-        /// ½«×Ô¶¨ÒåÈÎÎñ±¾µØ»¯ÎÄ±¾×¢²áµ½¼ÓÔØÊÂ¼ş
+        /// å°†è‡ªå®šä¹‰ä»»åŠ¡æœ¬åœ°åŒ–æ–‡æœ¬æ³¨å†Œåˆ°åŠ è½½äº‹ä»¶
         /// </summary>
-        /// <param name="path">´æ·Å±¾µØ»¯ÎÄ¼şµÄÎÄ¼ş¼ĞÂ·¾¶£¬»òµ¥¸ö¶àÓïÑÔÎÄ¼şµÄÂ·¾¶</param>
-        /// <param name="creator">´´½¨Õß</param>
-        /// <param name="modname">ModÃû</param>
+        /// <param name="path">å­˜æ”¾æœ¬åœ°åŒ–æ–‡ä»¶çš„æ–‡ä»¶å¤¹è·¯å¾„ï¼Œæˆ–å•ä¸ªå¤šè¯­è¨€æ–‡ä»¶çš„è·¯å¾„</param>
+        /// <param name="creator">åˆ›å»ºè€…</param>
+        /// <param name="modname">Modå</param>
         public static void RegisterQuestLocale(string modpath, string path, string creator, string modname)
         {
             var correctpath = Path.Combine(modpath, path);
-            // ÎÄ¼ş¼Ğ¼ÓÔØÄ£Ê½ (ÎÄ¼ş¼ĞÀïÊÇ ch.json, en.json...)
+            // æ–‡ä»¶å¤¹åŠ è½½æ¨¡å¼ (æ–‡ä»¶å¤¹é‡Œæ˜¯ ch.json, en.json...)
             if (Directory.Exists(correctpath))
             {
-                // ×¢Òâ£º¹ÒÔØµÄÊÂ¼şÇë¸ù¾İÄãµÄÊµ¼ÊÇé¿öµ÷Õû£¨¿ÉÄÜÊÇ LoadLocaleEvent »òÓëÈÎÎñÍ¬¼¶£©
+                // æ³¨æ„ï¼šæŒ‚è½½çš„äº‹ä»¶è¯·æ ¹æ®ä½ çš„å®é™…æƒ…å†µè°ƒæ•´ï¼ˆå¯èƒ½æ˜¯ LoadLocaleEvent æˆ–ä¸ä»»åŠ¡åŒçº§ï¼‰
                 EventManager.DataLoadEvent.LoadQuestLocaleEvent += (context) =>
                 {
                     try
@@ -57,35 +57,35 @@ namespace EternalCycleServer
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²áÈÎÎñ±¾µØ»¯Ê±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş¼Ğ {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œä»»åŠ¡æœ¬åœ°åŒ–æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶å¤¹ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
-            // µ¥ÎÄ¼ş¼ÓÔØÄ£Ê½ (µ¥¸öÎÄ¼şÀï°üº¬ÁËËùÓĞÓïÑÔµÄÊı¾İ)
+            // å•æ–‡ä»¶åŠ è½½æ¨¡å¼ (å•ä¸ªæ–‡ä»¶é‡ŒåŒ…å«äº†æ‰€æœ‰è¯­è¨€çš„æ•°æ®)
             else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadQuestLocaleEvent += (context) =>
                 {
                     try
                     {
-                        // ½âÎöÎª: Dictionary<ÓïÑÔKey, Dictionary<ÈÎÎñID, ±¾µØ»¯Êı¾İ>>
+                        // è§£æä¸º: Dictionary<è¯­è¨€Key, Dictionary<ä»»åŠ¡ID, æœ¬åœ°åŒ–æ•°æ®>>
                         var customLocaleData = context.JsonUtil.Deserialize<Dictionary<string, Dictionary<string, CustomQuestLocaleData>>>(File.ReadAllText(correctpath));
                         InitQuestLocale(customLocaleData, creator, modname, context.DB);
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²áÈÎÎñ±¾µØ»¯Ê±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œä»»åŠ¡æœ¬åœ°åŒ–æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"×¢²áÈÎÎñ±¾µØ»¯Ê±·¢ÉúÒì³££ºÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş»òÎÄ¼ş¼Ğ {correctpath}");
+                EventManager.EventLogger.Warn($"æ³¨å†Œä»»åŠ¡æœ¬åœ°åŒ–æ—¶å‘ç”Ÿå¼‚å¸¸ï¼šæ‰¾ä¸åˆ°æŒ‡å®šçš„æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹ {correctpath}");
             }
         }
 
         /// <summary>
-        /// InitÖØÔØ 1£º´¦ÀíÎÄ¼ş¼ĞÂ·¾¶£¬ÌáÈ¡ÎÄ¼şÃû×÷ÎªÓïÑÔKey
+        /// Inité‡è½½ 1ï¼šå¤„ç†æ–‡ä»¶å¤¹è·¯å¾„ï¼Œæå–æ–‡ä»¶åä½œä¸ºè¯­è¨€Key
         /// </summary>
         public static void InitQuestLocale(string folderpath, string creator, string modname, DatabaseService databaseService, ModHelper modHelper)
         {
@@ -94,20 +94,20 @@ namespace EternalCycleServer
             List<string> files = Directory.GetFiles(folderpath).ToList();
             foreach (var file in files)
             {
-                // ÎÄ¼şÃû¾ÍÊÇÓïÑÔKey (±ÈÈç ch.json -> ch)
+                // æ–‡ä»¶åå°±æ˜¯è¯­è¨€Key (æ¯”å¦‚ ch.json -> ch)
                 string langKey = Path.GetFileNameWithoutExtension(file);
                 var quests = modHelper.GetJsonDataFromFile<Dictionary<string, CustomQuestLocaleData>>(folderpath, Path.GetFileName(file));
 
                 if (quests != null)
                 {
-                    // µ÷ÓÃµ×²ãºËĞÄ·½·¨
+                    // è°ƒç”¨åº•å±‚æ ¸å¿ƒæ–¹æ³•
                     InitQuestLocale(langKey, quests, creator, modname, databaseService);
                 }
             }
         }
 
         /// <summary>
-        /// InitÖØÔØ 2£º´¦Àí·´ĞòÁĞ»¯ºÃµÄ¶àÓïÑÔ×Öµä
+        /// Inité‡è½½ 2ï¼šå¤„ç†ååºåˆ—åŒ–å¥½çš„å¤šè¯­è¨€å­—å…¸
         /// </summary>
         public static void InitQuestLocale(Dictionary<string, Dictionary<string, CustomQuestLocaleData>> customLocaleData, string creator, string modname, DatabaseService databaseService)
         {
@@ -120,33 +120,33 @@ namespace EternalCycleServer
 
                 if (quests != null)
                 {
-                    // µ÷ÓÃµ×²ãºËĞÄ·½·¨
+                    // è°ƒç”¨åº•å±‚æ ¸å¿ƒæ–¹æ³•
                     InitQuestLocale(langKey, quests, creator, modname, databaseService);
                 }
             }
         }
 
         /// <summary>
-        /// µ×²ãºËĞÄ·½·¨£º¸ºÔğ¸øÌØ¶¨µÄÓïÑÔ×¢ÈëÈÎÎñÎÄ±¾£¨½â¾ö´úÂëÖØ¸´µÄ¸ù±¾£©
+        /// åº•å±‚æ ¸å¿ƒæ–¹æ³•ï¼šè´Ÿè´£ç»™ç‰¹å®šçš„è¯­è¨€æ³¨å…¥ä»»åŠ¡æ–‡æœ¬ï¼ˆè§£å†³ä»£ç é‡å¤çš„æ ¹æœ¬ï¼‰
         /// </summary>
         public static void InitQuestLocale(string langKey, Dictionary<string, CustomQuestLocaleData> quests, string creator, string modname, DatabaseService databaseService)
         {
-            // »ñÈ¡Ä¿±êÓïÑÔ¶ÔÓ¦µÄÈ«¾Ö±¾µØ»¯ LazyLoad
+            // è·å–ç›®æ ‡è¯­è¨€å¯¹åº”çš„å…¨å±€æœ¬åœ°åŒ– LazyLoad
             if (!databaseService.GetLocales().Global.TryGetValue(langKey, out var lazyLocale))
             {
-                return; // ÕÒ²»µ½¶ÔÓ¦ÓïÑÔ£¨±ÈÈçÍæ¼Ò¶ËÃ»ÓĞÕâÖÖÓïÑÔ£©Ö±½ÓÌø¹ı
+                return; // æ‰¾ä¸åˆ°å¯¹åº”è¯­è¨€ï¼ˆæ¯”å¦‚ç©å®¶ç«¯æ²¡æœ‰è¿™ç§è¯­è¨€ï¼‰ç›´æ¥è·³è¿‡
             }
 
-            // Ìí¼Ó Transformer ½øĞĞÑÓ³Ù¼ÓÔØ
+            // æ·»åŠ  Transformer è¿›è¡Œå»¶è¿ŸåŠ è½½
             lazyLocale.AddTransformer(localeData =>
             {
                 foreach (var questEntry in quests)
                 {
                     string questId = Utils.ConvertHashID(questEntry.Key);
                     var locale = questEntry.Value;
-                    var modstring = $"<color=#FFFFFF><b>\nÓÉ{creator}´´½¨\nÌí¼ÓÕß: {modname}\nÈÎÎñAPI£ºÓÀºãÊ±Ğò\nÈÎÎñID£º{questId}</b></color>";
+                    var modstring = $"<color=#FFFFFF><b>\nç”±{creator}åˆ›å»º\næ·»åŠ è€…: {modname}\nä»»åŠ¡APIï¼šæ°¸æ’æ—¶åº\nä»»åŠ¡IDï¼š{questId}</b></color>";
 
-                    // Ğ´ÈëÈÎÎñÖ÷Òª×Ö¶Î
+                    // å†™å…¥ä»»åŠ¡ä¸»è¦å­—æ®µ
                     localeData.TryAdd($"{questId} name", locale.QuestName);
                     localeData.TryAdd($"{questId} description", $"{locale.QuestDescription}{modstring}");
                     localeData.TryAdd($"{questId} note", locale.QuestNote ?? "");
@@ -155,7 +155,7 @@ namespace EternalCycleServer
                     localeData.TryAdd($"{questId} successMessageText", locale.QuestSuccessMessage ?? "");
                     localeData.TryAdd($"{questId} location", locale.QuestLocation ?? "");
 
-                    // Ğ´ÈëÌõ¼şÎÄ±¾
+                    // å†™å…¥æ¡ä»¶æ–‡æœ¬
                     if (locale.QuestConditions != null)
                     {
                         foreach (var cond in locale.QuestConditions)
@@ -169,17 +169,17 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ÎªÎïÆ·¹¹½¨±¾µØ»¯Êı¾İ
+        /// ä¸ºç‰©å“æ„å»ºæœ¬åœ°åŒ–æ•°æ®
         /// </summary>
-        /// <param name="props">×Ô¶¨ÒåÊôĞÔ¶ÔÏó</param>
-        /// <param name="creator">´´½¨Õß</param>
-        /// <param name="modname">ModÃû</param>
+        /// <param name="props">è‡ªå®šä¹‰å±æ€§å¯¹è±¡</param>
+        /// <param name="creator">åˆ›å»ºè€…</param>
+        /// <param name="modname">Modå</param>
         /// <returns></returns>
         public static Dictionary<string, LocaleDetails> BuildItemLocales(CustomProps props, string creator, string modname)
         {
-            //ÕâÍæÒâ¾ÓÈ»Ã»É¶ºÃ¸ÄµÄ
+            //è¿™ç©æ„å±…ç„¶æ²¡å•¥å¥½æ”¹çš„
             var locales = new Dictionary<string, LocaleDetails>();
-            var modstring = $"<color=#FFFFFF><b>\nÓÉ{creator}´´½¨\nÌí¼ÓÕß: {modname}\nÎïÆ·API£ºÓÀºãÊ±Ğò\nÎïÆ·ID£º{{0}}</b></color>";
+            var modstring = $"<color=#FFFFFF><b>\nç”±{creator}åˆ›å»º\næ·»åŠ è€…: {modname}\nç‰©å“APIï¼šæ°¸æ’æ—¶åº\nç‰©å“IDï¼š{{0}}</b></color>";
             //Creted By: xxx, Added By: xxx, ModAPI: EternalCycle, Item Id: xxx
             var chdescription = $"{props.Description}{modstring}";
             //zhcn
@@ -207,28 +207,28 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// Íê³É×Ô¶¨ÒåÎïÆ·µÄ±¾µØ»¯¼ÓÔØ
+        /// å®Œæˆè‡ªå®šä¹‰ç‰©å“çš„æœ¬åœ°åŒ–åŠ è½½
         /// </summary>
-        /// <param name="localeDetails">±¾µØ»¯Êı¾İ</param>
-        /// <param name="newItemId">ÎïÆ·ID</param>
-        /// <param name="databaseService">Êı¾İ¿âÊµÀı</param>
+        /// <param name="localeDetails">æœ¬åœ°åŒ–æ•°æ®</param>
+        /// <param name="newItemId">ç‰©å“ID</param>
+        /// <param name="databaseService">æ•°æ®åº“å®ä¾‹</param>
         public static void AddItemToLocales(Dictionary<string, LocaleDetails> localeDetails, string newItemId, DatabaseService databaseService)
         {
             if (localeDetails == null || localeDetails.Count == 0) return;
-            //±éÀúSPTµÄÓïÑÔË÷Òı
+            //éå†SPTçš„è¯­è¨€ç´¢å¼•
             foreach (var language in databaseService.GetLocales().Languages)
             {
-                //³¢ÊÔ´Ó×Ô¶¨Òå±¾µØ»¯Êı¾İ»ñÈ¡Ë÷Òı
+                //å°è¯•ä»è‡ªå®šä¹‰æœ¬åœ°åŒ–æ•°æ®è·å–ç´¢å¼•
                 localeDetails.TryGetValue(language.Key, out var lang);
                 if (lang == null)
                 {
-                    //Ä¬ÈÏ»Øµ÷
+                    //é»˜è®¤å›è°ƒ
                     lang = localeDetails["ch"];
                 }
-                //ÕÒµ½¶ÔÓ¦µÄÓïÑÔÎÄ¼ş
+                //æ‰¾åˆ°å¯¹åº”çš„è¯­è¨€æ–‡ä»¶
                 if (databaseService.GetLocales().Global.TryGetValue(language.Key, out var localeValue))
                 {
-                    //Ìí¼ÓĞŞ¸ÄÆ÷
+                    //æ·»åŠ ä¿®æ”¹å™¨
                     localeValue.AddTransformer(localeData =>
                     {
                         localeData[$"{newItemId} Name"] = lang.Name;
@@ -244,7 +244,7 @@ namespace EternalCycleServer
         {
             var locales = databaseService.GetLocales().Global;
             var newTraderId = baseJson.Id;
-            var modstring = $"<color=#FFFFFF><b>\nÓÉ{creator}´´½¨\nÌí¼ÓÕß: {modname}\nÉÌÈËAPI£ºÓÀºãÊ±Ğò\nÉÌÈËID£º{newTraderId}</b></color>";
+            var modstring = $"<color=#FFFFFF><b>\nç”±{creator}åˆ›å»º\næ·»åŠ è€…: {modname}\nå•†äººAPIï¼šæ°¸æ’æ—¶åº\nå•†äººIDï¼š{newTraderId}</b></color>";
 
             foreach (var (localeKey, localeKvP) in locales)
             {
@@ -261,56 +261,56 @@ namespace EternalCycleServer
         }
 
         /// <summary>
-        /// ½«×Ô¶¨ÒåÈ«¾Ö±¾µØ»¯ÎÄ±¾×¢²áµ½¼ÓÔØÊÂ¼ş
+        /// å°†è‡ªå®šä¹‰å…¨å±€æœ¬åœ°åŒ–æ–‡æœ¬æ³¨å†Œåˆ°åŠ è½½äº‹ä»¶
         /// </summary>
-        /// <param name="modpath">Mod¸ùÄ¿Â¼Â·¾¶</param>
-        /// <param name="path">´æ·Å±¾µØ»¯ÎÄ¼şµÄÎÄ¼ş¼ĞÂ·¾¶£¬»òµ¥¸ö¶àÓïÑÔÎÄ¼şµÄÂ·¾¶</param>
+        /// <param name="modpath">Modæ ¹ç›®å½•è·¯å¾„</param>
+        /// <param name="path">å­˜æ”¾æœ¬åœ°åŒ–æ–‡ä»¶çš„æ–‡ä»¶å¤¹è·¯å¾„ï¼Œæˆ–å•ä¸ªå¤šè¯­è¨€æ–‡ä»¶çš„è·¯å¾„</param>
         public static void RegisterLocaleText(string modpath, string path)
         {
             var correctpath = System.IO.Path.Combine(modpath, path);
 
-            // ÎÄ¼ş¼Ğ¼ÓÔØÄ£Ê½ (ÀıÈçÎÄ¼ş¼ĞÀïÊÇ ch.json, en.json...)
+            // æ–‡ä»¶å¤¹åŠ è½½æ¨¡å¼ (ä¾‹å¦‚æ–‡ä»¶å¤¹é‡Œæ˜¯ ch.json, en.json...)
             if (Directory.Exists(correctpath))
             {
-                // ×¢Òâ£º¹ÒÔØµÄÊÂ¼şÇë¸ù¾İÄãµÄÊµ¼ÊÇé¿öµ÷Õû£¨ÀıÈç LoadLocaleEvent »òÍ³ºÏÔÚ LoadTextEvent ÖĞ£©
+                // æ³¨æ„ï¼šæŒ‚è½½çš„äº‹ä»¶è¯·æ ¹æ®ä½ çš„å®é™…æƒ…å†µè°ƒæ•´ï¼ˆä¾‹å¦‚ LoadLocaleEvent æˆ–ç»Ÿåˆåœ¨ LoadTextEvent ä¸­ï¼‰
                 EventManager.DataLoadEvent.LoadLocaleEvent += (context) =>
                 {
                     try
                     {
-                        // Ö±½Óµ÷ÓÃÄãÒÑ¾­Ğ´ºÃµÄÖØÔØ 2£º´¦ÀíÎÄ¼ş¼ĞÂ·¾¶
+                        // ç›´æ¥è°ƒç”¨ä½ å·²ç»å†™å¥½çš„é‡è½½ 2ï¼šå¤„ç†æ–‡ä»¶å¤¹è·¯å¾„
                         InitLocaleText(correctpath, context.DB, context.ModHelper);
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²á±¾µØ»¯ÎÄ±¾Ê±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş¼Ğ {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œæœ¬åœ°åŒ–æ–‡æœ¬æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶å¤¹ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
-            // µ¥ÎÄ¼ş¼ÓÔØÄ£Ê½ (ÀıÈçµ¥¸ö jsonc ÎÄ¼şÀï°üº¬ÁËËùÓĞÓïÑÔµÄÊı¾İ)
+            // å•æ–‡ä»¶åŠ è½½æ¨¡å¼ (ä¾‹å¦‚å•ä¸ª jsonc æ–‡ä»¶é‡ŒåŒ…å«äº†æ‰€æœ‰è¯­è¨€çš„æ•°æ®)
             else if (File.Exists(correctpath))
             {
                 EventManager.DataLoadEvent.LoadLocaleEvent += (context) =>
                 {
                     try
                     {
-                        // ½âÎöÎª: Dictionary<ÓïÑÔKey, Dictionary<ÎÄ±¾Key, ÎÄ±¾Value>>
+                        // è§£æä¸º: Dictionary<è¯­è¨€Key, Dictionary<æ–‡æœ¬Key, æ–‡æœ¬Value>>
                         var customLocaleData = context.JsonUtil.Deserialize<Dictionary<string, Dictionary<string, string>>>(File.ReadAllText(correctpath));
 
                         if (customLocaleData != null)
                         {
-                            // Ö±½Óµ÷ÓÃÄãÒÑ¾­Ğ´ºÃµÄÖØÔØ 1£º´¦Àí·´ĞòÁĞ»¯ºÃµÄ¶àÓïÑÔ×Öµä
+                            // ç›´æ¥è°ƒç”¨ä½ å·²ç»å†™å¥½çš„é‡è½½ 1ï¼šå¤„ç†ååºåˆ—åŒ–å¥½çš„å¤šè¯­è¨€å­—å…¸
                             InitLocaleText(customLocaleData, context.DB);
                         }
                     }
                     catch (Exception ex)
                     {
-                        EventManager.EventLogger.Error($"×¢²á±¾µØ»¯ÎÄ±¾Ê±·¢Éú´íÎó£ºÖ¸¶¨µÄÎÄ¼ş {correctpath} ´æÔÚÎÊÌâ", ex);
+                        EventManager.EventLogger.Error($"æ³¨å†Œæœ¬åœ°åŒ–æ–‡æœ¬æ—¶å‘ç”Ÿé”™è¯¯ï¼šæŒ‡å®šçš„æ–‡ä»¶ {correctpath} å­˜åœ¨é—®é¢˜", ex);
                     }
                 };
             }
             else
             {
-                EventManager.EventLogger.Warn($"×¢²á±¾µØ»¯ÎÄ±¾Ê±·¢ÉúÒì³££ºÕÒ²»µ½Ö¸¶¨µÄÎÄ¼ş»òÎÄ¼ş¼Ğ {correctpath}");
+                EventManager.EventLogger.Warn($"æ³¨å†Œæœ¬åœ°åŒ–æ–‡æœ¬æ—¶å‘ç”Ÿå¼‚å¸¸ï¼šæ‰¾ä¸åˆ°æŒ‡å®šçš„æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹ {correctpath}");
             }
         }
 
@@ -321,11 +321,11 @@ namespace EternalCycleServer
                 string langKey = languageEntry.Key; // "ch"
                 var langValue = languageEntry.Value;   // Dictionary<string, CustomQuestLocaleData>
 
-                // »ñÈ¡Ä¿±êÓïÑÔ¶ÔÓ¦µÄÈ«¾Ö±¾µØ»¯ LazyLoad
+                // è·å–ç›®æ ‡è¯­è¨€å¯¹åº”çš„å…¨å±€æœ¬åœ°åŒ– LazyLoad
                 if (!databaseService.GetLocales().Global.TryGetValue(langKey, out LazyLoad<GlobalLocaleDictionary> lazyLocale))
                     continue;
 
-                // Îª¸ÃÓïÑÔÌí¼Ó transformer£¨ÑÓ³Ù¼ÓÔØÊ±×¢Èë·­ÒëÊı¾İ£©
+                // ä¸ºè¯¥è¯­è¨€æ·»åŠ  transformerï¼ˆå»¶è¿ŸåŠ è½½æ—¶æ³¨å…¥ç¿»è¯‘æ•°æ®ï¼‰
 
                 InitLocale(lazyLocale, langValue);
             }
@@ -415,9 +415,9 @@ namespace EternalCycleServer
                 var normal = basedata.Normal;
                 var normalpool = itempool.Normal;
                 var poolname = pool.Name;
-                var gold = "<color=#FFFF55>¡ï¡ï¡ï¡ï¡ï</color>ÄÚÈİ";
-                var epic = "<color=#FF55FF>¡ï¡ï¡ï¡ï</color>ÄÚÈİ";
-                var normalstr = "<color=#FFFFFF>¡ï¡ï¡ï</color>ÄÚÈİ";
+                var gold = "<color=#FFFF55>â˜…â˜…â˜…â˜…â˜…</color>å†…å®¹";
+                var epic = "<color=#FF55FF>â˜…â˜…â˜…â˜…</color>å†…å®¹";
+                var normalstr = "<color=#FFFFFF>â˜…â˜…â˜…</color>å†…å®¹";
                 var srchance = Utils.DoubleToPercent(sr.Chance);
                 var srupchance = Utils.DoubleToPercent(sr.UpChance);
                 var srnormalchance = Utils.DoubleToPercent(1 - sr.UpChance);
@@ -542,27 +542,27 @@ namespace EternalCycleServer
                     }
                 }
                 string result = $@"
-³é½±¸ÅÂÊ¹«Ê¾: 
+æŠ½å¥–æ¦‚ç‡å…¬ç¤º: 
 {gold}: 
-³é½±¸ÅÂÊ: 
-±¾½±³ØÖĞ£¬Ã¿´Î³é½±»ñµÃ{gold}µÄ»ù´¡¸ÅÂÊÎª{srchance}, º¬±£µ××ÛºÏ¸ÅÂÊÎª{srrealchance}, ×î¶à{srbasecount}´Î³é½±±Ø¶¨ÄÜÍ¨¹ı±£µ×»ñµÃ{gold}
-¸ÅÂÊÌáÉı: 
-»ñµÃ{gold}Ê±, ÓĞ{srupchance}¸ÅÂÊÎªµ±Ç°upÄÚÈİ, ÁíÓĞ{srnormalchance}¸ÅÂÊÎª±¾½±³Ø¿É»ñµÃµÄÈ«²¿{gold}, Èô±¾´Î³é½±»ñµÃµÄ{gold}·Çµ±Ç°upÄÚÈİ. ÔòÏÂ´Î³é½±»ñµÃµ±Ç°upÄÚÈİµÄ¸ÅÂÊÌáÉı{sraddchance}
-ÈôÁ¬Ğø{srgrowcount}´Î³é½±ÈÔÎ´»ñµÃ{gold}, Ôò´ÓÏÂ´Î¿ªÊ¼, Ã¿´Î³é½±»ñµÃ{gold}µÄ¸ÅÂÊÌáÉı{srgrowchance}
+æŠ½å¥–æ¦‚ç‡: 
+æœ¬å¥–æ± ä¸­ï¼Œæ¯æ¬¡æŠ½å¥–è·å¾—{gold}çš„åŸºç¡€æ¦‚ç‡ä¸º{srchance}, å«ä¿åº•ç»¼åˆæ¦‚ç‡ä¸º{srrealchance}, æœ€å¤š{srbasecount}æ¬¡æŠ½å¥–å¿…å®šèƒ½é€šè¿‡ä¿åº•è·å¾—{gold}
+æ¦‚ç‡æå‡: 
+è·å¾—{gold}æ—¶, æœ‰{srupchance}æ¦‚ç‡ä¸ºå½“å‰upå†…å®¹, å¦æœ‰{srnormalchance}æ¦‚ç‡ä¸ºæœ¬å¥–æ± å¯è·å¾—çš„å…¨éƒ¨{gold}, è‹¥æœ¬æ¬¡æŠ½å¥–è·å¾—çš„{gold}éå½“å‰upå†…å®¹. åˆ™ä¸‹æ¬¡æŠ½å¥–è·å¾—å½“å‰upå†…å®¹çš„æ¦‚ç‡æå‡{sraddchance}
+è‹¥è¿ç»­{srgrowcount}æ¬¡æŠ½å¥–ä»æœªè·å¾—{gold}, åˆ™ä»ä¸‹æ¬¡å¼€å§‹, æ¯æ¬¡æŠ½å¥–è·å¾—{gold}çš„æ¦‚ç‡æå‡{srgrowchance}
 {epic}: 
-³é½±¸ÅÂÊ: 
-±¾½±³ØÖĞ£¬»ñµÃ{epic}µÄ»ù´¡¸ÅÂÊÎª{rchance}, º¬±£µ××ÛºÏ¸ÅÂÊÎª{rchance}, ×î¶à{rbasecount}´Î³é½±±Ø¶¨ÄÜÍ¨¹ı±£µ×»ñµÃ{epic}
-¸ÅÂÊÌáÉı: 
-»ñµÃ{epic}Ê±, ÓĞ{rupchance}¸ÅÂÊÎªµ±Ç°upÄÚÈİ, ÁíÓĞ{rnormalchance}¸ÅÂÊÎª±¾½±³Ø¿É»ñµÃµÄÈ«²¿{epic}, Èô±¾´Î³é½±»ñµÃµÄ{epic}·Çµ±Ç°upÄÚÈİ. ÔòÏÂ´Î³é½±»ñµÃµ±Ç°upÄÚÈİµÄ¸ÅÂÊÌáÉı{raddchance}
-½±³Ø¹«Ê¾: 
+æŠ½å¥–æ¦‚ç‡: 
+æœ¬å¥–æ± ä¸­ï¼Œè·å¾—{epic}çš„åŸºç¡€æ¦‚ç‡ä¸º{rchance}, å«ä¿åº•ç»¼åˆæ¦‚ç‡ä¸º{rchance}, æœ€å¤š{rbasecount}æ¬¡æŠ½å¥–å¿…å®šèƒ½é€šè¿‡ä¿åº•è·å¾—{epic}
+æ¦‚ç‡æå‡: 
+è·å¾—{epic}æ—¶, æœ‰{rupchance}æ¦‚ç‡ä¸ºå½“å‰upå†…å®¹, å¦æœ‰{rnormalchance}æ¦‚ç‡ä¸ºæœ¬å¥–æ± å¯è·å¾—çš„å…¨éƒ¨{epic}, è‹¥æœ¬æ¬¡æŠ½å¥–è·å¾—çš„{epic}éå½“å‰upå†…å®¹. åˆ™ä¸‹æ¬¡æŠ½å¥–è·å¾—å½“å‰upå†…å®¹çš„æ¦‚ç‡æå‡{raddchance}
+å¥–æ± å…¬ç¤º: 
 {gold}: 
-µ±Ç°upÄÚÈİ: {srupstring}
-¿É»ñµÃÄÚÈİ: {srnormalstring}
+å½“å‰upå†…å®¹: {srupstring}
+å¯è·å¾—å†…å®¹: {srnormalstring}
 {epic}: 
-µ±Ç°upÄÚÈİ: {rupstring}
-¿É»ñµÃÄÚÈİ: {rnormalstring}
+å½“å‰upå†…å®¹: {rupstring}
+å¯è·å¾—å†…å®¹: {rnormalstring}
 {normalstr}: 
-¿É»ñµÃÄÚÈİ: {normalstring}";
+å¯è·å¾—å†…å®¹: {normalstring}";
                 var itemlist = new List<string>();
                 foreach (var kvp in ItemUtils.AdvancedBoxData)
                 {
@@ -575,10 +575,10 @@ namespace EternalCycleServer
                 {
                     foreach (var kvp in lang)
                     {
-                        if (kvp.Value != null && kvp.Value.Contains("<color=#FFFFFF><b>\nÓÉ") && itemlist.Contains(kvp.Key))
+                        if (kvp.Value != null && kvp.Value.Contains("<color=#FFFFFF><b>\nç”±") && itemlist.Contains(kvp.Key))
                         {
                             //lang[kvp.Key] = $"{lang[kvp.Key]}\n{result}";
-                            lang[kvp.Key] = kvp.Value.Replace("<color=#FFFFFF><b>\nÓÉ", $"{result}\n<color=#FFFFFF><b>\nÓÉ");
+                            lang[kvp.Key] = kvp.Value.Replace("<color=#FFFFFF><b>\nç”±", $"{result}\n<color=#FFFFFF><b>\nç”±");
                         }
                     }
                     return lang;

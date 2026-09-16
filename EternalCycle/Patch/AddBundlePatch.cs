@@ -1,4 +1,4 @@
-using HarmonyLib;
+ï»¿using HarmonyLib;
 using SPTarkov.Reflection.Patching;
 using SPTarkov.Server.Core.Loaders;
 using System.Collections.Concurrent;
@@ -17,7 +17,7 @@ namespace EternalCycleServer
         public static bool Prefix(BundleLoader __instance, string key, BundleInfo bundle)
         {
 
-            // »ñÈ¡¹¹Ôìº¯Êı²ÎÊıÖĞµÄ logger
+            // è·å–æ„é€ å‡½æ•°å‚æ•°ä¸­çš„ logger
             //var logger = GetLogger(__instance);
             var bundlesField = AccessTools.Field(typeof(BundleLoader), "_bundles");
             var bundles = (ConcurrentDictionary<string, BundleInfo>)bundlesField.GetValue(__instance);
@@ -28,7 +28,7 @@ namespace EternalCycleServer
                 //logger.Warning($"Failed to add bundle: {key} is already exist.");
             }
 
-            return false; // Ìø¹ıÔ­Ê¼·½·¨Ö´ĞĞ
+            return false; // è·³è¿‡åŸå§‹æ–¹æ³•æ‰§è¡Œ
         }
     }
 }
