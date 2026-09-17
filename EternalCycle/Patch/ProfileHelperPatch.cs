@@ -291,7 +291,25 @@ namespace EternalCycleServer
                     {
                         item.Value.Properties.Height = 2;
                     }
-                    if ((bool)item.Value.Properties.QuestItem)
+                    // ★ 任务物品的判定**不能只看 Properties.QuestItem**。
+                    //
+                    //   原版「任务物品」分类（ERagfairTagsType.原版任务物品）下现有 183 个物品，
+                    //   其中 163 个带 QuestItem=true 标记、会被下面转走；
+                    //   剩下 **20 个 QuestItem=false**，全部是「终局门票」——
+                    //   Kerman / Prapor 重新编码的钥匙卡、克鲁格洛夫钥匙卡、TG-Vi-24 疫苗、
+                    //   违禁品盒子系列、加固手提箱、Ultralink 通讯模块等
+                    //   （它们的 _name 都是 q_ 前缀，属于按任务动态解锁的新一代任务物品）。
+                    //
+                    //   只按属性判断会让这 20 个留在原版分类里，而客户端对那个分类有特殊处理
+                    //   （HandbookCategoriesPanel 用玩家的 questItems 列表过滤它的子节点），
+                    //   于是它们既不在 EC 的任务物品分类里，又受任务进度影响而不可见。
+                    //
+                    //   ⇒ 把「手册分类 == 原版任务物品」也算作任务物品。
+                    bool isQuestItem = (bool)item.Value.Properties.QuestItem
+                        || (handbook != null
+                            && handbook.ParentId.ToString() == ERagfairTagsType.原版任务物品);
+
+                    if (isQuestItem)
                     {
                         if (handbook != null)
                         {

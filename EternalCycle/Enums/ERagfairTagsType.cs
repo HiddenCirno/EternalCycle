@@ -91,4 +91,17 @@ public static class ERagfairTagsType
     public static string 特殊物品 = "VulcanSpecialItem".ConvertHashID();
     public static string 调试物品 = "VulcanDevItem".ConvertHashID();
     public static string 任务物品 = "VulcanQuestItem".ConvertHashID();
+
+    /// <summary>
+    /// 游戏**原版**的「任务物品」分类（handbook 顶级分类，图标 icon_quest.png）。
+    ///
+    /// ⚠ 它和上面的「任务物品」是**两个不同的分类**：
+    ///   上面那个是 EC 自造的（"VulcanQuestItem" 的 hash），
+    ///   这个是 BSG 数据里就有的，原版任务物品一直挂在它下面。
+    ///
+    /// 客户端对这个分类有特殊处理（HandbookCategoriesPanel 里用玩家的 questItems
+    /// 列表过滤它的子节点），所以物品留在这里会受任务进度影响 —— 这正是要把它们
+    /// 转到 EC 分类的原因。
+    /// </summary>
+    public static string 原版任务物品 = "5b619f1a86f77450a702a6f3";
 }
